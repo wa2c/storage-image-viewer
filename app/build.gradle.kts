@@ -1,19 +1,29 @@
+import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
+val appId: String by rootProject.extra
+val appJavaVersion: JavaVersion by rootProject.extra
+val appTargetSdkVersion: Int by rootProject.extra
+val appMinSdkVersion: Int by rootProject.extra
+val appVersionCode: Int by rootProject.extra
+val appVersionName: String by rootProject.extra
+
 android {
-    namespace = "com.wa2c.android.storageimageviewer"
-    compileSdk = 34
+
+    namespace = appId
+    compileSdk = appTargetSdkVersion
 
     defaultConfig {
-        applicationId = "com.wa2c.android.storageimageviewer"
-        minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        applicationId = applicationId
+        minSdk = appMinSdkVersion
+        targetSdk = appTargetSdkVersion
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,11 +38,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = appJavaVersion
+        targetCompatibility = appJavaVersion
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = appJavaVersion.majorVersion
     }
     buildFeatures {
         compose = true
@@ -40,6 +50,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":common"))
+    implementation(project(":presentation"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

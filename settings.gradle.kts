@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "StorageImageViewer"
+rootProject.name = "Storage Image Viewer"
 include(":app")
 include(":presentation")
 include(":domain")

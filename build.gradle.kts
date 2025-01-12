@@ -5,3 +5,11 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.android.library) apply false
 }
+
+// Global Definition
+val appId by extra ("com.wa2c.android.storageimageviewer")
+val appJavaVersion by extra (JavaVersion.VERSION_21)
+val appTargetSdkVersion by extra (35)
+val appMinSdkVersion by extra (26)
+val appVersionCode by extra(1)
+val appVersionName by extra("1.0")

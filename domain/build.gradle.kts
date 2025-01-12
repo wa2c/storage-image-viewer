@@ -3,12 +3,17 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+val appId: String by rootProject.extra
+val appJavaVersion: JavaVersion by rootProject.extra
+val appTargetSdkVersion: Int by rootProject.extra
+val appMinSdkVersion: Int by rootProject.extra
+
 android {
-    namespace = "com.wa2c.android.storageimageviewer.domain"
-    compileSdk = 34
+    namespace = "$appId.domain"
+    compileSdk = appTargetSdkVersion
 
     defaultConfig {
-        minSdk = 26
+        minSdk = appMinSdkVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -24,15 +29,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = appJavaVersion
+        targetCompatibility = appJavaVersion
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = appJavaVersion.majorVersion
     }
 }
 
 dependencies {
+    implementation(project(":common"))
+    implementation(project(":data"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
