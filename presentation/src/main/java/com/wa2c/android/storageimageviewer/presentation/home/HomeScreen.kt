@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wa2c.android.storageimageviewer.common.value.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
@@ -209,12 +210,14 @@ private fun HomeScreenContainerPreview() {
                 uri = UriModel(uri = "content://test1/"),
                 name = "Test Storage 1",
                 type = StorageType.SAF,
+                sortOrder = 1,
             ),
             StorageModel(
                 id = "2",
                 uri = UriModel(uri = "content://test2/"),
                 name = "Test Storage 2",
                 type = StorageType.Device,
+                sortOrder = 2,
             ),
         )
 
