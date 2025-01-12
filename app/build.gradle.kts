@@ -1,8 +1,8 @@
-import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 val appId: String by rootProject.extra
@@ -49,4 +49,6 @@ dependencies {
     implementation(project(":presentation"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
 }
