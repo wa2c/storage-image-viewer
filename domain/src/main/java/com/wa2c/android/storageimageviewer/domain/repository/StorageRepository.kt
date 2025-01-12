@@ -1,6 +1,7 @@
 package com.wa2c.android.storageimageviewer.domain.repository
 
-import com.wa2c.android.storageimageviewer.common.utils.logD
+import com.wa2c.android.storageimageviewer.common.utils.Log
+import com.wa2c.android.storageimageviewer.common.utils.Utils
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.data.db.SafStorageEntity
 import com.wa2c.android.storageimageviewer.data.db.StorageDao
@@ -44,6 +45,20 @@ class StorageRepository @Inject internal constructor(
         }
     }
 
+    suspend fun getStorage(
+        id: String,
+    ): StorageModel? {
+        return storageDao.getEntity(id)?.let {
+            return StorageModel(
+                id = it.id,
+                name = it.name,
+                uri = UriModel(it.uri),
+                sortOrder = it.sortOrder,
+                type = StorageType.SAF,
+            )
+        }
+    }
+
     suspend fun setStorage(
         model: StorageModel,
     ) {
@@ -54,7 +69,7 @@ class StorageRepository @Inject internal constructor(
                     name = model.name,
                     uri = model.uri.toString(),
                     sortOrder = model.sortOrder,
-                    modifiedDate = System.currentTimeMillis(),
+                    modifiedDate = Utils.currentTime,
                 )
             )
         }
@@ -64,7 +79,7 @@ class StorageRepository @Inject internal constructor(
      * Move order
      */
     suspend fun moveConnection(fromPosition: Int, toPosition: Int) {
-        logD("moveConnection: fromPosition=$fromPosition, toPosition=$toPosition")
+        Log.d("moveConnection: fromPosition=$fromPosition, toPosition=$toPosition")
         withContext(dispatcher) {
             storageDao.move(fromPosition, toPosition)
         }

@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.common
+package com.wa2c.android.storageimageviewer.presentation.ui.common
 
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.presentation.R

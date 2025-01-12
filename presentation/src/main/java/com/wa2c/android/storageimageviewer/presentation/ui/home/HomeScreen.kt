@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.home
+package com.wa2c.android.storageimageviewer.presentation.ui.home
 
 import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -42,10 +42,10 @@ import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
-import com.wa2c.android.storageimageviewer.presentation.common.DividerThin
-import com.wa2c.android.storageimageviewer.presentation.common.ValueResource.drawableResId
-import com.wa2c.android.storageimageviewer.presentation.common.theme.Size
-import com.wa2c.android.storageimageviewer.presentation.common.theme.StorageImageViewerTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.drawableResId
+import com.wa2c.android.storageimageviewer.presentation.ui.common.DividerThin
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -199,8 +199,6 @@ private fun HomeScreenStorageItem(
  * Preview
  */
 @Preview(
-    name = "Preview",
-    group = "Group",
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     showBackground = true,
 )

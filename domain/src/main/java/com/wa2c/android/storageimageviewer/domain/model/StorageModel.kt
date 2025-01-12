@@ -8,4 +8,16 @@ data class StorageModel(
     val uri: UriModel,
     val type: StorageType,
     val sortOrder: Int,
-)
+) {
+
+    companion object {
+        val Empty = StorageModel(
+            id = "",
+            name = "",
+            uri = UriModel(""),
+            type = StorageType.SAF,
+            sortOrder = 0,
+        )
+    }
+
+}

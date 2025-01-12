@@ -6,7 +6,7 @@ import android.os.Build
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import androidx.core.net.toUri
-import com.wa2c.android.storageimageviewer.common.utils.logE
+import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -57,7 +57,7 @@ class MediaStoreHelper @Inject internal constructor(
                 }
             }
         } catch (e: Exception) {
-            logE(e)
+            Log.e(e)
             null
         } ?: emptyList()
     }

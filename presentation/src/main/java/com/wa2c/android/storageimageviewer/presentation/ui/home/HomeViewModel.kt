@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.home
+package com.wa2c.android.storageimageviewer.presentation.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

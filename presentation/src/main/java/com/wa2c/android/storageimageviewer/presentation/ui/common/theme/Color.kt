@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.common.theme
+package com.wa2c.android.storageimageviewer.presentation.ui.common.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -17,4 +17,8 @@ object Color {
 
     /** Divider */
     val Divider = Color(0xFFBDBDBD)
+
+    /** Loading background */
+    val LoadingBackground = Color(0x80000000)
+
 }

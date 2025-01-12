@@ -14,7 +14,7 @@
         android:theme="@style/Theme.StorageImageViewer">
 
         <activity
-            android:name=".presentation.MainActivity"
+            android:name=".presentation.ui.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.StorageImageViewer">
             <intent-filter>

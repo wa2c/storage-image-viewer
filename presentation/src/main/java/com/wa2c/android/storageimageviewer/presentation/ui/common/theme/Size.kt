@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.common.theme
+package com.wa2c.android.storageimageviewer.presentation.ui.common.theme
 
 import androidx.compose.ui.unit.dp
 
@@ -12,5 +12,7 @@ object Size {
 
     val IconMiddle = 48.dp
     val ListItem = 68.dp
+
+    val ScreenMargin = 16.dp
 
 }
