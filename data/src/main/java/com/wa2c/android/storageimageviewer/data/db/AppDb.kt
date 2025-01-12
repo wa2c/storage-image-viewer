@@ -12,9 +12,6 @@ import androidx.room.RoomDatabase
     ],
     version = AppDatabase.DB_VERSION,
     exportSchema = true,
-    autoMigrations = [
-        AutoMigration (from = 1, to = 2)
-    ]
 )
 internal abstract class AppDatabase : RoomDatabase() {
 

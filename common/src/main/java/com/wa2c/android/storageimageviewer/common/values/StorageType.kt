@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.common.value
+package com.wa2c.android.storageimageviewer.common.values
 
 /**
  * Storage type

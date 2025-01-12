@@ -27,6 +27,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            versionNameSuffix = "D"
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -41,6 +44,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = appJavaVersion.majorVersion
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

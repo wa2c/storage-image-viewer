@@ -1,7 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.home
 
 import android.content.res.Configuration
-import android.content.res.Resources.Theme
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
@@ -38,9 +37,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.wa2c.android.storageimageviewer.common.value.StorageType
+import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
@@ -72,7 +70,8 @@ fun HomeScreen(
     HomeScreenContainer(
         storageListState = storageListState,
         onClickAdd = { treeOpenLauncher.launch(null) },
-        onClickItem = onSelectStorage
+        onClickItem = onSelectStorage,
+        onDragAndDrop = viewModel::onItemMove,
     )
 }
 
@@ -82,11 +81,15 @@ private fun HomeScreenContainer(
     storageListState: State<List<StorageModel>>,
     onClickAdd: () -> Unit,
     onClickItem: (storage: StorageModel) -> Unit,
+    onDragAndDrop: (from: Int, to: Int) -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
+                navigationIcon = {
+                    // todo
+                }
             )
         },
         floatingActionButton = {
@@ -111,7 +114,7 @@ private fun HomeScreenContainer(
             HomeScreenStorageList(
                 storageListState = storageListState,
                 onClickItem = onClickItem,
-                onDragAndDrop = { from, to ->  }
+                onDragAndDrop = onDragAndDrop,
             )
         }
     }
@@ -225,6 +228,7 @@ private fun HomeScreenContainerPreview() {
             storageListState = remember { mutableStateOf(storageList) },
             onClickAdd = {},
             onClickItem = {},
+            onDragAndDrop = { _, _ -> },
         )
     }
 }

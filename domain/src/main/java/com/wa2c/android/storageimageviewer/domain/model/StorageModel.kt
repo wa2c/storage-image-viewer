@@ -1,6 +1,6 @@
 package com.wa2c.android.storageimageviewer.domain.model
 
-import com.wa2c.android.storageimageviewer.common.value.StorageType
+import com.wa2c.android.storageimageviewer.common.values.StorageType
 
 data class StorageModel(
     val id: String,

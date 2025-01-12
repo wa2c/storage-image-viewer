@@ -1,6 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.common
 
-import com.wa2c.android.storageimageviewer.common.value.StorageType
+import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.presentation.R
 
 object ValueResource {
