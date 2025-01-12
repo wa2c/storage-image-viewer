@@ -1,6 +1,5 @@
-package com.wa2c.android.storageimageviewer.ui.theme
+package com.wa2c.android.storageimageviewer.presentation.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

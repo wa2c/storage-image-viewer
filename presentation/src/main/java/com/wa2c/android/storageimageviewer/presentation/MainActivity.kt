@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer
+package com.wa2c.android.storageimageviewer.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.wa2c.android.storageimageviewer.ui.theme.StorageImageViewerTheme
+import com.wa2c.android.storageimageviewer.presentation.theme.StorageImageViewerTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

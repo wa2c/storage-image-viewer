@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.ui.theme
+package com.wa2c.android.storageimageviewer.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
