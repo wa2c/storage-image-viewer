@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.theme
+package com.wa2c.android.storageimageviewer.presentation.common.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

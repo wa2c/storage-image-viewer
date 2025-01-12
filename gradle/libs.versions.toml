@@ -13,7 +13,7 @@ navigationCompose = "2.8.5"
 hiltAndroid = "2.55"
 hiltNavigationCompose = "1.2.0"
 ksp = "2.1.0-1.0.29"
-kotlinCompilerExtension = "1.5.9"
+reorderable = "0.9.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +36,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
+reorderable = { module = "org.burnoutcrew.composereorderable:reorderable", version.ref = "reorderable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
