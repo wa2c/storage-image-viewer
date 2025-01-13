@@ -6,10 +6,12 @@ object ScreenParam {
     const val HomeScreenName = "home"
 
     const val EditScreenRouteName = "edit"
-    const val EditScreenParamId = "id"
 
-    const val ListScreenRouteName = "list"
+    const val TreeScreenRouteName = "list"
 
     const val ViewerScreenRouteName = "viewer"
+
+
+    const val ScreenParamId = "id"
 
 }

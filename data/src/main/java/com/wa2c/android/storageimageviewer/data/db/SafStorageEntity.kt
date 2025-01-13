@@ -22,6 +22,8 @@ data class SafStorageEntity(
     /** URI */
     @ColumnInfo(name = "uri")
     val uri: String,
+    @ColumnInfo(name = "path")
+    val path: String,
     /** Sort Order */
     @ColumnInfo(name = "sort_order")
     val sortOrder: Int,
@@ -32,6 +34,5 @@ data class SafStorageEntity(
     companion object {
         /** Table name.  */
         const val TABLE_NAME = "saf_storage"
-
     }
 }

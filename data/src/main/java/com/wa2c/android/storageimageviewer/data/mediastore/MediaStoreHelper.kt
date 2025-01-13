@@ -25,7 +25,7 @@ class MediaStoreHelper @Inject internal constructor(
      * Get root storage item list.
      */
     @SuppressLint("DiscouragedPrivateApi", "PrivateApi")
-    fun getStorageList(): List<MediaStoreStorageEntity> {
+    fun getStorageList(): List<StorageEntity> {
         return try {
             val storageMax = storageManager.storageVolumes.size
             when {
@@ -33,10 +33,11 @@ class MediaStoreHelper @Inject internal constructor(
                     // Version >= Android 11
                     storageManager.storageVolumes.mapIndexedNotNull { index, storageVolume ->
                         val uri = storageVolume.directory?.toUri()?.toString() ?: return@mapIndexedNotNull null
-                        MediaStoreStorageEntity(
+                        StorageEntity(
                             id = storageVolume.uuid ?: uri,
                             name = storageVolume.mediaStoreVolumeName ?: storageVolume.getDescription(context),
                             uri = uri,
+                            path = "",
                             sortOrder = storageMax - index, // negative value
                             storageType = storageVolume.getStorageType()
                         )
@@ -46,10 +47,11 @@ class MediaStoreHelper @Inject internal constructor(
                     val getPath = StorageVolume::class.java.getDeclaredMethod("getPath")
                     storageManager.storageVolumes.mapIndexedNotNull { index, storageVolume ->
                         val uri = (getPath.invoke(storageVolume) as? String)?.let { File(it).toUri().toString() } ?: return@mapIndexedNotNull null
-                        MediaStoreStorageEntity(
+                        StorageEntity(
                             id = storageVolume.uuid ?: uri,
                             name = storageVolume.getDescription(context),
                             uri = uri,
+                            path = "",
                             sortOrder = storageMax - index, // negative value
                             storageType = storageVolume.getStorageType()
                         )

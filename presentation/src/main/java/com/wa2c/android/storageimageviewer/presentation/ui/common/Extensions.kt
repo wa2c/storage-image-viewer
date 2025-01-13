@@ -12,8 +12,8 @@ object Extensions {
         )
     }
 
-    fun UriModel.toUri(): Uri {
-        return uri.toUri()
+    fun UriModel.toUri(): Uri? {
+        return if (isInvalidUri) null else uri.toUri()
     }
 
 }

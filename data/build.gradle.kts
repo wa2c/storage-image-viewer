@@ -59,6 +59,9 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
+    // File
+    implementation(libs.androidx.documentfile)
+
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,8 +1,10 @@
-package com.wa2c.android.storageimageviewer.presentation.ui.edit
+package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import com.wa2c.android.storageimageviewer.common.exception.AppException
 import com.wa2c.android.storageimageviewer.common.utils.Utils
+import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
@@ -15,7 +17,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class EditViewModel @Inject constructor(
+class TreeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val storageRepository: StorageRepository,
 ): ViewModel(), CoroutineScope by MainCoroutineScope() {
@@ -25,25 +27,32 @@ class EditViewModel @Inject constructor(
     private var initStorage: StorageModel = StorageModel.Empty
 
     /** Current Storage */
-    val currentStorage = MutableStateFlow<StorageModel>(initStorage)
+    private val _currentStorage = MutableStateFlow(initStorage)
+    val currentStorage = _currentStorage.asStateFlow()
+
+    private val _currentList = MutableStateFlow<List<FileModel>>(emptyList())
+    val currentList = _currentList.asStateFlow()
 
     private val _busyState = MutableStateFlow(false)
     val busyState = _busyState.asStateFlow()
 
-    /** True if adding new settings */
-    val isNew: Boolean
-        get() = paramId.isNullOrEmpty()
-
-    /** True if data changed */
-    val isChanged: Boolean
-        get() = isNew || initStorage != currentStorage.value
+    private val _resultState = MutableStateFlow(Result.success(Unit))
+    val resultState = _resultState.asStateFlow()
 
     init {
         launch {
-            val storage = paramId?.let {
-                storageRepository.getStorage(paramId)?.also { initStorage = it }
-            } ?: StorageModel.Empty.copy(id = Utils.generateUUID())
-            currentStorage.emit(storage)
+            runCatching {
+                val storage = paramId?.let { storageRepository.getStorage(paramId) } ?: throw AppException.StorageNotFoundException(paramId)
+                val list = storageRepository.getChildList(storage)
+                (storage to list)
+            }.onSuccess { (storage, list) ->
+                initStorage = storage
+                _currentStorage.emit(storage)
+                _currentList.emit(list)
+                _resultState.emit(Result.success(Unit))
+            }.onFailure {
+                _resultState.emit(Result.failure(it))
+            }
         }
     }
 
