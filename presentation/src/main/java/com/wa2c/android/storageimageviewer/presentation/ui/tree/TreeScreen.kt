@@ -1,7 +1,17 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
+import android.provider.DocumentsContract
 import android.text.format.DateUtils
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +24,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -25,16 +38,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
@@ -57,25 +70,44 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typograp
 fun TreeScreen(
     viewModel: TreeViewModel = hiltViewModel(),
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
-    onNavigateViewer: (fileList: List<FileModel>, selectedFile: FileModel) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
     val fileListState = viewModel.currentList.collectAsStateWithLifecycle()
+    val viewerFileState = viewModel.viewerFile.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
 
-    TreeScreenContainer(
-        snackBarHostState = snackBarHostState,
-        fileListState = fileListState,
-        busyState = busyState,
-        onClickItem = {},
-        onClickBack = onNavigateBack,
-    )
+    Box {
+        TreeScreenContainer(
+            modifier = Modifier.fillMaxSize(),
+            snackBarHostState = snackBarHostState,
+            fileListState = fileListState,
+            busyState = busyState,
+            onClickItem = viewModel::openFile,
+            onClickBack = onNavigateBack,
+        )
+        TreeScreenViewer(
+            modifier = Modifier.fillMaxSize(),
+            viewerFileState = viewerFileState,
+            fileListState = fileListState,
+        )
+    }
 
     LaunchedEffect(resultState) {
         resultState.value.exceptionOrNull()?.let {
             snackBarHostState.showSnackbar(it.message ?: it.toString())
+            onNavigateBack()
+        }
+    }
+
+    // Back button
+    BackHandler {
+        if (viewerFileState.value != null) {
+            viewModel.closeViewer()
+        } else if (!viewModel.isRoot) {
+            viewModel.openParent()
+        } else {
             onNavigateBack()
         }
     }
@@ -84,42 +116,48 @@ fun TreeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TreeScreenContainer(
+    modifier: Modifier = Modifier,
     snackBarHostState: SnackbarHostState,
     fileListState: State<List<FileModel>>,
     busyState: State<Boolean>,
     onClickItem: (FileModel) -> Unit,
     onClickBack: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.app_name)) },
-                navigationIcon = {
-                    IconButton(onClick = onClickBack) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_back),
-                            contentDescription = "Back",
-                        )
-                    }
-                },
-            )
-        },
-        snackbarHost = { SnackbarHost(snackBarHostState) }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            TreeScreenStorageList(
-                fileListState = fileListState,
-                onClickItem = onClickItem,
-            )
-            LoadingBox(
-                isLoading = busyState.value
-            )
+    Box(
+        modifier = modifier
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.app_name)) },
+                    navigationIcon = {
+                        IconButton(onClick = onClickBack) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_back),
+                                contentDescription = "Back",
+                            )
+                        }
+                    },
+                )
+            },
+            snackbarHost = { SnackbarHost(snackBarHostState) }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                TreeScreenStorageList(
+                    fileListState = fileListState,
+                    onClickItem = onClickItem,
+                )
+                LoadingBox(
+                    isLoading = busyState.value
+                )
+            }
         }
     }
+
 }
 
 @Composable
@@ -153,38 +191,98 @@ private fun TreeScreenItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Size.M, vertical = Size.SS)
-            .heightIn(min = Size.ListItem)
             .clickable { onClickItem(file) }
+            .fillMaxWidth()
+            .padding(horizontal = Size.M)
+            .heightIn(min = Size.ListItem)
     ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(
-                if (file.isDirectory) R.drawable.ic_folder else R.drawable.ic_image
-            ),
-            contentDescription = file.name,
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
-                .size(Size.IconMiddle)
-        )
+        if (file.isDirectory) {
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.ic_folder),
+                contentDescription = file.name,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .size(Size.IconMiddle)
+            )
+        } else {
+            AsyncImage(
+                model = file.uri.uri,
+                contentDescription = file.name,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .size(Size.IconMiddle)
+            )
+        }
         Column(
             modifier = Modifier
                 .padding(start = Size.M)
+                .padding(vertical = Size.SS)
         ) {
             Text(
                 text = file.name,
                 style = Typography.titleLarge,
-                fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = DateUtils.formatDateTime(context, file.dateModified, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME) ,
+                style = Typography.bodyLarge,
                 maxLines = 1,
                 textAlign = TextAlign.End,
             )
         }
     }
+}
+
+@Composable
+private fun TreeScreenViewer(
+    modifier: Modifier = Modifier,
+    viewerFileState: State<FileModel?>,
+    fileListState: State<List<FileModel>>,
+) {
+    val visibleState = rememberUpdatedState { MutableTransitionState(viewerFileState.value != null) }
+    AnimatedVisibility(
+        visibleState = visibleState.value(),
+        enter = slideInVertically(
+            animationSpec = tween(
+                durationMillis = 500,
+                easing = LinearEasing,
+            ),
+            initialOffsetY = { fullHeight -> fullHeight },
+        ),
+        exit = slideOutVertically(
+            animationSpec = tween(
+                durationMillis = 500,
+                easing = LinearEasing,
+            ),
+            targetOffsetY = { fullHeight -> fullHeight },
+        ),
+        content = {
+            val pageList = fileListState.value.filter { !it.isDirectory }
+            val pagerState = rememberPagerState(
+                pageCount = { pageList.size },
+                initialPage = viewerFileState.value?.let { pageList.indexOf(it) } ?: 0,
+            )
+            HorizontalPager(
+                state = pagerState,
+                modifier = modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .animateContentSize { initialValue, targetValue ->  }
+                ,
+            ) { page ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    AsyncImage(
+                        model = pageList.getOrNull(page)?.uri?.uri,
+                        contentDescription = pageList[page].name,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        },
+    )
 }
 
 /**
@@ -195,7 +293,7 @@ private fun TreeScreenItem(
     showBackground = true,
 )
 @Composable
-private fun HomeScreenContainerPreview() {
+private fun TreeScreenContainerPreview() {
     StorageImageViewerTheme {
         val storage = StorageModel(
             id = "1",
@@ -207,7 +305,7 @@ private fun HomeScreenContainerPreview() {
         val list = listOf(
             FileModel(
                 storage = storage,
-                path = "path1",
+                uri = UriModel( "content://test1/"),
                 name = "Test directory",
                 isDirectory = true,
                 mimeType = "",
@@ -216,7 +314,7 @@ private fun HomeScreenContainerPreview() {
             ),
             FileModel(
                 storage = storage,
-                path = "path2",
+                uri = UriModel( "content://test2/"),
                 name = "Test file.jpg",
                 isDirectory = true,
                 mimeType = "image/jpeg",

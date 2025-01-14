@@ -8,4 +8,18 @@ enum class UriType {
     File,
     /** Content URI (content://...) */
     Content,
+    ;
+
+    companion object {
+
+        fun fromUriText(uriText: String): UriType? {
+            return when {
+                uriText.startsWith("content://") -> return Content
+                uriText.startsWith("file://") -> return File
+                else -> null
+            }
+        }
+
+    }
+
 }

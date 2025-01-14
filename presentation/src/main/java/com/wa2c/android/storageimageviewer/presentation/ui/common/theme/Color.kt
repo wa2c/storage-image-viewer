@@ -1,5 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.common.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)

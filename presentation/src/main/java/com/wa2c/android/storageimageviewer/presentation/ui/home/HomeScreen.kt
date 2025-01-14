@@ -22,10 +22,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -34,20 +35,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,15 +55,15 @@ import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
-import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.drawableResId
 import com.wa2c.android.storageimageviewer.presentation.ui.common.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUriModel
+import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.drawableResId
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.CommonDialog
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.DialogButton
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
-import com.wa2c.android.storageimageviewer.presentation.ui.edit.components.InputText
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -75,8 +72,6 @@ import org.burnoutcrew.reorderable.reorderable
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onAddStorage: () -> Unit,
-    onEditStorage: (storage: StorageModel) -> Unit,
     onSelectStorage: (storage: StorageModel) -> Unit,
 ) {
     val resolver = LocalContext.current.contentResolver
@@ -208,7 +203,6 @@ private fun HomeScreenStorageList(
     onClickEdit: (storage: StorageModel) -> Unit,
     onDragAndDrop: (from: Int, to: Int) -> Unit,
 ) {
-    val context = LocalContext.current
     val state = rememberReorderableLazyListState(onMove = { from, to ->
         onDragAndDrop(from.index, to.index)
     })
@@ -223,22 +217,6 @@ private fun HomeScreenStorageList(
             key = { it.id },
         ) { storage ->
             ReorderableItem(state, key = storage) { isDragging ->
-                val granted = when (storage.type) {
-                    StorageType.Device,
-                    StorageType.SD -> {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            context.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
-                        } else {
-                            context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                        }
-                    }
-                    StorageType.External,
-                    StorageType.SAF -> {
-                        context.checkCallingOrSelfUriPermission(storage.uri.toUri(), Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                }.let { permission ->
-                    permission == PackageManager.PERMISSION_GRANTED
-                }
 
                 val elevation = animateDpAsState(if (isDragging) Size.S else 0.dp, label = "")
                 HomeScreenStorageItem(
@@ -263,6 +241,24 @@ private fun HomeScreenStorageItem(
     onClickItem: (storage: StorageModel) -> Unit,
     onClickEdit: (storage: StorageModel) -> Unit,
 ) {
+    val context = LocalContext.current
+    val granted = when (storage.type) {
+        StorageType.Device,
+        StorageType.SD -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
+            } else {
+                context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+        }
+        StorageType.External,
+        StorageType.SAF -> {
+            context.checkCallingOrSelfUriPermission(storage.uri.toUri(), Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    }.let { permission ->
+        permission == PackageManager.PERMISSION_GRANTED
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -293,13 +289,19 @@ private fun HomeScreenStorageItem(
         ) {
             Text(
                 text = storage.name,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+                style = Typography.titleLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            val subText = if (granted) {
+                storage.uri.uri
+            } else {
+                "Not granted" // FIXME
+            }
+
             Text(
-                text = storage.uri.uri,
+                text = subText,
+                style = Typography.bodyLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -334,35 +336,39 @@ fun HomeScreenStorageEditDialog(
     ) {
         Column {
             // Name
-            InputText(
-                title = "Name", // FIXME
-                hint = "Name", // FIXME
+            OutlinedTextField(
                 value = storage.name,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next,
-                ),
-            ) {
-                editStorage.value = storage.copy(name = it)
-            }
+                label = { Text("Name") }, // fixme
+                placeholder = { Text("Input name") }, // fixme
+                onValueChange = { value ->
+                    editStorage.value = storage.copy(name = value)
+                },
+                maxLines = 1,
+                singleLine = true,
+            )
 
             // URI
-            InputText(
-                title = "URI", // todo
-                hint = "URI", // todo
-                value = storage.uri.uri,
-                modifier = Modifier
-                    .clickable {
-                        onClickUri(storage.uri)
-                },
-                //readonly = true,
-                enabled = false,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next,
-                ),
-            ) {
-                editStorage.value = storage.copy(uri = UriModel(it))
+            Box {
+                OutlinedTextField(
+                    value = storage.uri.uri,
+                    label = { Text("URI") }, // fixme
+                    placeholder = { Text("Select URI") }, // fixme
+                    readOnly = true,
+                    onValueChange = { value ->
+                        editStorage.value = storage.copy(uri = UriModel(value))
+                    },
+                    maxLines = 1,
+                    singleLine = true,
+                    modifier = Modifier
+                        .padding(top = Size.M)
+                )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .padding(top = Size.L)
+                        .clip(RoundedCornerShape(Size.SS))
+                        .clickable { onClickUri(storage.uri) }
+                )
             }
         }
     }
@@ -401,6 +407,33 @@ private fun HomeScreenContainerPreview() {
             onClickEdit = {},
             onClickItem = {},
             onDragAndDrop = { _, _ -> },
+        )
+    }
+}
+
+/**
+ * Preview
+ */
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+)
+@Composable
+private fun HomeScreenStorageEditDialogPreview() {
+    StorageImageViewerTheme {
+        val storage = StorageModel(
+            id = "1",
+            uri = UriModel(uri = "content://test1/"),
+            name = "Test Storage 1",
+            type = StorageType.SAF,
+            sortOrder = 1,
+        )
+
+        HomeScreenStorageEditDialog(
+            editStorage = remember { mutableStateOf(storage) },
+            onClickUri = {},
+            onClickSet = {},
+            onDismiss = {},
         )
     }
 }

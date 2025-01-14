@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.data.mediastore
+package com.wa2c.android.storageimageviewer.data.file
 
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 

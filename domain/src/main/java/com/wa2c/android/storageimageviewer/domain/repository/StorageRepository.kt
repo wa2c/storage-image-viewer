@@ -6,13 +6,11 @@ import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.data.db.SafStorageEntity
 import com.wa2c.android.storageimageviewer.data.db.StorageDao
 import com.wa2c.android.storageimageviewer.data.file.FileHelper
-import com.wa2c.android.storageimageviewer.data.mediastore.MediaStoreHelper
 import com.wa2c.android.storageimageviewer.domain.IoDispatcher
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -22,13 +20,12 @@ import javax.inject.Singleton
 @Singleton
 class StorageRepository @Inject internal constructor(
     private val storageDao: StorageDao,
-    private val mediaStoreHelper: MediaStoreHelper,
     private val fileHelper: FileHelper,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
     val storageListFlow = storageDao.getList().map {
         withContext(dispatcher) {
-            val mediaStoreList = mediaStoreHelper.getStorageList().map { entity ->
+            val volumeList = fileHelper.getStorageList().map { entity ->
                 StorageModel(
                     id = entity.id,
                     name = entity.name,
@@ -46,14 +43,24 @@ class StorageRepository @Inject internal constructor(
                     sortOrder = entity.sortOrder,
                 )
             }
-            mediaStoreList + safList
+            volumeList + safList
         }
     }
 
-    suspend fun getStorage(
+    suspend fun getStorageFile(
         id: String,
-    ): StorageModel? {
-        return storageListFlow.firstOrNull()?.firstOrNull { it.id == id }
+    ): FileModel? {
+        return storageListFlow.firstOrNull()?.firstOrNull { it.id == id }?.let { storage ->
+            FileModel(
+                storage = storage,
+                uri = storage.uri.uri.let { UriModel(it) },
+                isDirectory = true,
+                name = storage.name,
+                mimeType = "",
+                size = 0,
+                dateModified = 0,
+            )
+        }
     }
 
     suspend fun setStorage(
@@ -73,12 +80,12 @@ class StorageRepository @Inject internal constructor(
         }
     }
 
-    suspend fun getChildList(storage: StorageModel): List<FileModel> {
+    suspend fun getChildList(file: FileModel): List<FileModel> {
         return withContext(dispatcher) {
-            fileHelper.getChildList(storage.uri.uri).map { child ->
+            fileHelper.getChildList(file.uri.uri).map { child ->
                 FileModel(
-                    storage = storage,
-                    path = child.uri.replaceFirst(storage.uri.uri, "") ,
+                    storage = file.storage,
+                    uri = UriModel(child.uri) ,
                     isDirectory = child.isDirectory,
                     name = child.name,
                     mimeType = child.mimeType,
@@ -89,12 +96,12 @@ class StorageRepository @Inject internal constructor(
         }
     }
 
-    suspend fun getChildList(file: FileModel): List<FileModel> {
+    suspend fun getParent(file: FileModel): FileModel? {
         return withContext(dispatcher) {
-            fileHelper.getChildList(file.uriText).map { child ->
+            fileHelper.getParent(file.uri.uri)?.let { child ->
                 FileModel(
                     storage = file.storage,
-                    path = child.uri.replaceFirst(file.uriText, "") ,
+                    uri = UriModel(child.uri) ,
                     isDirectory = child.isDirectory,
                     name = child.name,
                     mimeType = child.mimeType,
