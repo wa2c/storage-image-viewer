@@ -2,13 +2,15 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.wa2c.android.storageimageviewer.common.exception.AppException
+import com.wa2c.android.storageimageviewer.common.result.AppException
+import com.wa2c.android.storageimageviewer.common.result.AppResult
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ScreenParam
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -33,7 +35,7 @@ class TreeViewModel @Inject constructor(
     private val _busyState = MutableStateFlow(false)
     val busyState = _busyState.asStateFlow()
 
-    private val _resultState = MutableStateFlow(Result.success(Unit))
+    private val _resultState = MutableStateFlow(Result.success<AppResult>(AppResult.Success))
     val resultState = _resultState.asStateFlow()
 
     val isRoot: Boolean
@@ -41,12 +43,15 @@ class TreeViewModel @Inject constructor(
 
     init {
         launch {
+            _busyState.emit(true)
             runCatching {
                 paramId?.let { storageRepository.getStorageFile(paramId) } ?: throw AppException.StorageNotFoundException(paramId)
             }.onSuccess { file ->
                 openFile(file)
             }.onFailure {
                 _resultState.emit(Result.failure(it))
+            }.also {
+                _busyState.emit(false)
             }
         }
     }
@@ -54,15 +59,18 @@ class TreeViewModel @Inject constructor(
     fun openFile(file: FileModel) {
         launch {
             if (file.isDirectory) {
+                _busyState.emit(true)
                 runCatching {
                     val list = storageRepository.getChildList(file)
                     file to list
                 }.onSuccess { (file, list) ->
                     _currentFile.emit(file)
                     _currentList.emit(list)
-                    _resultState.emit(Result.success(Unit))
+                    _resultState.emit(Result.success(AppResult.Success))
                 }.onFailure {
                     _resultState.emit(Result.failure(it))
+                }.also {
+                    _busyState.emit(false)
                 }
             } else {
                 _viewerFile.emit(file)
@@ -72,6 +80,7 @@ class TreeViewModel @Inject constructor(
 
     fun openParent() {
         launch {
+            _busyState.emit(true)
             runCatching {
                 val file = currentFile.value ?: return@launch
                 val parent = storageRepository.getParent(file) ?: return@launch
@@ -80,9 +89,11 @@ class TreeViewModel @Inject constructor(
             }.onSuccess { (file, list) ->
                 _currentFile.emit(file)
                 _currentList.emit(list)
-                _resultState.emit(Result.success(Unit))
+                _resultState.emit(Result.success(AppResult.Success))
             }.onFailure {
                 _resultState.emit(Result.failure(it))
+            }.also {
+                _busyState.emit(false)
             }
         }
     }
@@ -91,6 +102,10 @@ class TreeViewModel @Inject constructor(
         launch {
             _viewerFile.emit(null)
         }
+    }
+
+    fun cancelLoading() {
+        coroutineContext.cancelChildren()
     }
 
 }

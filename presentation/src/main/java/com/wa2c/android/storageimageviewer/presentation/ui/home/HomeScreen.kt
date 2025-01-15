@@ -29,6 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -43,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,6 +64,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toU
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.drawableResId
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.CommonDialog
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.DialogButton
+import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
@@ -74,9 +78,12 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onSelectStorage: (storage: StorageModel) -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+    val snackBarHostState = remember { SnackbarHostState() }
     val resolver = LocalContext.current.contentResolver
     val storageListState = viewModel.storageList.collectAsStateWithLifecycle()
     val editStorage = remember { mutableStateOf<StorageModel?>(null) }
+    val resultState = viewModel.resultState.collectAsStateWithLifecycle()
 
     val treeOpenLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri == null) {
@@ -93,7 +100,9 @@ fun HomeScreen(
         //todo message
     }
 
+
     HomeScreenContainer(
+        snackBarHostState = snackBarHostState,
         storageListState = storageListState,
         onClickAdd = {
             editStorage.value = StorageModel(
@@ -147,11 +156,16 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(resultState) {
+        snackBarHostState.showMessage(resultState.value)
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreenContainer(
+    snackBarHostState: SnackbarHostState,
     storageListState: State<List<StorageModel>>,
     onClickAdd: () -> Unit,
     onClickEdit: (storage: StorageModel) -> Unit,
@@ -179,7 +193,7 @@ private fun HomeScreenContainer(
                 )
             }
         },
-//        snackbarHost = { AppSnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -402,6 +416,7 @@ private fun HomeScreenContainerPreview() {
         )
 
         HomeScreenContainer(
+            snackBarHostState = remember { SnackbarHostState() },
             storageListState = remember { mutableStateOf(storageList) },
             onClickAdd = {},
             onClickEdit = {},

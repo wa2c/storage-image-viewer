@@ -18,6 +18,9 @@ import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.UriType
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -118,19 +121,24 @@ class FileHelper @Inject internal constructor(
     /**
      * Get tree files
      */
-    fun getChildList(uriText: String): List<FileEntity> {
+    suspend fun getChildList(uriText: String): List<FileEntity> {
         val uriType = UriType.fromUriText(uriText) ?: return emptyList()
         val uri = uriText.toUri()
         val directory = when (uriType) {
             UriType.Content -> DocumentFile.fromTreeUri(context, uri) ?: return emptyList()
             UriType.File -> DocumentFile.fromFile(uri.toFile())
         }
-        return directory.listFiles().mapNotNull { file ->
-            if (!file.isDirectory && file.type?.startsWith("image/") != true) return@mapNotNull null
-            val a = file.parentFile
-            Log.d(a)
-            file.toEntity()
+        return withContext(Dispatchers.IO) {
+             directory.listFiles().mapNotNull { file ->
+                async {
+                    if (!file.isDirectory && file.type?.startsWith("image/") != true) return@async null
+                    file.toEntity()
+                }
+            }.mapNotNull {
+                it.await()
+            }
         }
+
     }
 
     /**
@@ -142,11 +150,11 @@ class FileHelper @Inject internal constructor(
         when (uriType) {
             UriType.Content -> {
                 val normalizedUri = uriText.removeSuffix(SEPARATOR)
-                val lastSeparatorIndex = normalizedUri.lastIndexOf(SEPARATOR)
+                val lastSeparatorIndex = normalizedUri.lastIndexOf(SEPARATOR) + SEPARATOR.length
                 val lastDelimiterIndex = normalizedUri.lastIndexOf('/')
 
-                val uri = normalizedUri.substring(0, max(lastSeparatorIndex, lastDelimiterIndex)).toUri()
-                val directory = DocumentFile.fromTreeUri(context, uri)?.takeIf { it.isDirectory } ?: return null
+                val uri = normalizedUri.substring(0, max(lastSeparatorIndex, lastDelimiterIndex + 1)).toUri()
+                val directory = DocumentFile.fromTreeUri(context, uri) ?: return null
                 return directory.toEntity()
             }
             UriType.File -> {

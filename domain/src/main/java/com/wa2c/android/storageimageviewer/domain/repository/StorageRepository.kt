@@ -11,6 +11,7 @@ import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -85,7 +86,7 @@ class StorageRepository @Inject internal constructor(
             fileHelper.getChildList(file.uri.uri).map { child ->
                 FileModel(
                     storage = file.storage,
-                    uri = UriModel(child.uri) ,
+                    uri = UriModel(child.uri),
                     isDirectory = child.isDirectory,
                     name = child.name,
                     mimeType = child.mimeType,

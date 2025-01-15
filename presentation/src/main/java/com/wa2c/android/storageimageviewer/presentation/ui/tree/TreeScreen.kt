@@ -1,17 +1,8 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
-import android.provider.DocumentsContract
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -40,7 +28,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -62,6 +49,7 @@ import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.LoadingBox
+import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
@@ -95,15 +83,14 @@ fun TreeScreen(
     }
 
     LaunchedEffect(resultState) {
-        resultState.value.exceptionOrNull()?.let {
-            snackBarHostState.showSnackbar(it.message ?: it.toString())
-            onNavigateBack()
-        }
+        snackBarHostState.showMessage(resultState.value)
     }
 
     // Back button
     BackHandler {
-        if (viewerFileState.value != null) {
+        if (busyState.value) {
+            viewModel.cancelLoading()
+        } else if (viewerFileState.value != null) {
             viewModel.closeViewer()
         } else if (!viewModel.isRoot) {
             viewModel.openParent()
@@ -232,57 +219,6 @@ private fun TreeScreenItem(
             )
         }
     }
-}
-
-@Composable
-private fun TreeScreenViewer(
-    modifier: Modifier = Modifier,
-    viewerFileState: State<FileModel?>,
-    fileListState: State<List<FileModel>>,
-) {
-    val visibleState = rememberUpdatedState { MutableTransitionState(viewerFileState.value != null) }
-    AnimatedVisibility(
-        visibleState = visibleState.value(),
-        enter = slideInVertically(
-            animationSpec = tween(
-                durationMillis = 500,
-                easing = LinearEasing,
-            ),
-            initialOffsetY = { fullHeight -> fullHeight },
-        ),
-        exit = slideOutVertically(
-            animationSpec = tween(
-                durationMillis = 500,
-                easing = LinearEasing,
-            ),
-            targetOffsetY = { fullHeight -> fullHeight },
-        ),
-        content = {
-            val pageList = fileListState.value.filter { !it.isDirectory }
-            val pagerState = rememberPagerState(
-                pageCount = { pageList.size },
-                initialPage = viewerFileState.value?.let { pageList.indexOf(it) } ?: 0,
-            )
-            HorizontalPager(
-                state = pagerState,
-                modifier = modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .animateContentSize { initialValue, targetValue ->  }
-                ,
-            ) { page ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    AsyncImage(
-                        model = pageList.getOrNull(page)?.uri?.uri,
-                        contentDescription = pageList[page].name,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
-        },
-    )
 }
 
 /**
