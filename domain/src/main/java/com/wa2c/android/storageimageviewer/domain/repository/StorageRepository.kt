@@ -83,17 +83,19 @@ class StorageRepository @Inject internal constructor(
 
     suspend fun getChildList(file: FileModel): List<FileModel> {
         return withContext(dispatcher) {
-            fileHelper.getChildList(file.uri.uri).map { child ->
-                FileModel(
-                    storage = file.storage,
-                    uri = UriModel(child.uri),
-                    isDirectory = child.isDirectory,
-                    name = child.name,
-                    mimeType = child.mimeType,
-                    size = child.size,
-                    dateModified = child.dateModified,
-                )
-            }
+            fileHelper.getChildList(file.uri.uri)
+                .filter { it.isDirectory || it.mimeType.startsWith("image/")}
+                .map { child ->
+                    FileModel(
+                        storage = file.storage,
+                        uri = UriModel(child.uri),
+                        isDirectory = child.isDirectory,
+                        name = child.name,
+                        mimeType = child.mimeType,
+                        size = child.size,
+                        dateModified = child.dateModified,
+                    )
+                }
         }
     }
 

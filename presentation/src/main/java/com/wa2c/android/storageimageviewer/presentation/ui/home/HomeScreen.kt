@@ -12,6 +12,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,12 +38,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -78,7 +83,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onSelectStorage: (storage: StorageModel) -> Unit,
 ) {
-    val focusManager = LocalFocusManager.current
+
     val snackBarHostState = remember { SnackbarHostState() }
     val resolver = LocalContext.current.contentResolver
     val storageListState = viewModel.storageList.collectAsStateWithLifecycle()
@@ -272,13 +277,10 @@ private fun HomeScreenStorageItem(
     }.let { permission ->
         permission == PackageManager.PERMISSION_GRANTED
     }
-
+    //var color by remember { mutableStateOf(Color.Green) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = Size.M, vertical = Size.SS)
-            .heightIn(min = Size.ListItem)
             .let {
                 if (storage.type == StorageType.SAF) {
                     it.combinedClickable(
@@ -289,6 +291,10 @@ private fun HomeScreenStorageItem(
                     it.clickable { onClickItem(storage) }
                 }
             }
+            .fillMaxWidth()
+            //.background(color=  color)
+            .padding(horizontal = Size.M, vertical = Size.SS)
+            .heightIn(min = Size.ListItem)
     ) {
         Icon(
             imageVector = ImageVector.vectorResource(storage.type.drawableResId()),

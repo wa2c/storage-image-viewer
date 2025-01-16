@@ -110,9 +110,7 @@ private fun TreeScreenContainer(
     onClickItem: (FileModel) -> Unit,
     onClickBack: () -> Unit,
 ) {
-    Box(
-        modifier = modifier
-    ) {
+    Box{
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -127,7 +125,7 @@ private fun TreeScreenContainer(
                     },
                 )
             },
-            snackbarHost = { SnackbarHost(snackBarHostState) }
+            snackbarHost = { SnackbarHost(snackBarHostState) },
         ) { paddingValues ->
             Box(
                 modifier = Modifier
