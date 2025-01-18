@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.ui.common
+package com.wa2c.android.storageimageviewer.presentation.ui.common.components
 
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable

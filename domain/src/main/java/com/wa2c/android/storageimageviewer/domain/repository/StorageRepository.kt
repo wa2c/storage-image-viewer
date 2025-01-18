@@ -11,7 +11,6 @@ import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -51,16 +50,18 @@ class StorageRepository @Inject internal constructor(
     suspend fun getStorageFile(
         id: String,
     ): FileModel? {
-        return storageListFlow.firstOrNull()?.firstOrNull { it.id == id }?.let { storage ->
-            FileModel(
-                storage = storage,
-                uri = storage.uri.uri.let { UriModel(it) },
-                isDirectory = true,
-                name = storage.name,
-                mimeType = "",
-                size = 0,
-                dateModified = 0,
-            )
+        return withContext(dispatcher) {
+            storageListFlow.firstOrNull()?.firstOrNull { it.id == id }?.let { storage ->
+                FileModel(
+                    storage = storage,
+                    uri = storage.uri.uri.let { UriModel(it) },
+                    isDirectory = true,
+                    name = storage.name,
+                    mimeType = "",
+                    size = 0,
+                    dateModified = 0,
+                )
+            }
         }
     }
 
@@ -81,7 +82,7 @@ class StorageRepository @Inject internal constructor(
         }
     }
 
-    suspend fun getChildList(file: FileModel): List<FileModel> {
+    suspend fun getChildren(file: FileModel): List<FileModel> {
         return withContext(dispatcher) {
             fileHelper.getChildList(file.uri.uri)
                 .filter { it.isDirectory || it.mimeType.startsWith("image/")}
@@ -115,11 +116,10 @@ class StorageRepository @Inject internal constructor(
         }
     }
 
-
     /**
      * Move order
      */
-    suspend fun moveConnection(fromPosition: Int, toPosition: Int) {
+    suspend fun moveStorageOrder(fromPosition: Int, toPosition: Int) {
         Log.d("moveConnection: fromPosition=$fromPosition, toPosition=$toPosition")
         withContext(dispatcher) {
             storageDao.move(fromPosition, toPosition)

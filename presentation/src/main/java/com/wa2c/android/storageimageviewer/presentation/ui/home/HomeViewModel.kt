@@ -35,7 +35,7 @@ class HomeViewModel @Inject constructor(
      */
     fun onItemMove(fromPosition: Int, toPosition: Int) {
         runBlocking {
-            storageRepository.moveConnection(fromPosition, toPosition)
+            storageRepository.moveStorageOrder(fromPosition, toPosition)
         }
     }
 

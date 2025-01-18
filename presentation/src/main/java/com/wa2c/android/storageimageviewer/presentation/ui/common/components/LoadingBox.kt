@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.ui.common
+package com.wa2c.android.storageimageviewer.presentation.ui.common.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

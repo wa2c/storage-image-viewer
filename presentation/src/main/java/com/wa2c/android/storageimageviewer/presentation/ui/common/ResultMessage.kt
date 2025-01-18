@@ -3,15 +3,16 @@ package com.wa2c.android.storageimageviewer.presentation.ui.common
 import androidx.compose.material3.SnackbarHostState
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
+import kotlinx.coroutines.CancellationException
 
 suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
     result.onSuccess {
-        val message = when (it) {
-            is AppResult.Success -> {
-                "Success"
-            }
-        }
-        showSnackbar(message)
+//        val message = when (it) {
+//            is AppResult.Success -> {
+//                null
+//            }
+//        }
+//        message?.let { showSnackbar(it) }
     }.onFailure {
         val message = when (it) {
             is AppException -> {
@@ -21,12 +22,13 @@ suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
                     }
                 }
             }
-            else -> {
-                ""
+            is CancellationException -> {
+                "Loading cancelled"
             }
-        }
-        showSnackbar(
-            message
-        )
+            else -> {
+                it.message
+            }
+        } ?: "Error"
+        showSnackbar(message)
     }
 }
