@@ -87,14 +87,13 @@ fun TreeScreen(
 
     val snackBarHostState = remember { SnackbarHostState() }
     val fileListState = viewModel.currentList.collectAsStateWithLifecycle()
-    val currentFileState = viewModel.currentFile.collectAsStateWithLifecycle()
+    val currentDirState = viewModel.currentDir.collectAsStateWithLifecycle()
     val viewerFileState = viewModel.viewerFile.collectAsStateWithLifecycle()
     val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
 
     Box {
-        val visibleViewer = (viewerFileState.value != null)
         window?.let {
             val windowInsetsController = WindowInsetsControllerCompat(window, view)
             //WindowCompat.setDecorFitsSystemWindows(window, visibleViewer)
@@ -106,16 +105,17 @@ fun TreeScreen(
             modifier = Modifier.fillMaxSize(),
             snackBarHostState = snackBarHostState,
             fileListState = fileListState,
-            currentFileState = currentFileState,
+            currentFileState = currentDirState,
             sortState = sortState,
             busyState = busyState,
             onSetSort = viewModel::sortFile,
             onClickItem = viewModel::openFile,
+            onClickUp = viewModel::openParent,
             onClickBack = onNavigateBack,
         )
 
         AnimatedVisibility(
-            visible = visibleViewer,
+            visible = (viewerFileState.value != null),
             enter = slideInVertically(
                 initialOffsetY = { fullHeight -> fullHeight },
             ),
@@ -123,8 +123,8 @@ fun TreeScreen(
                 targetOffsetY = { fullHeight -> fullHeight },
             ),
             content = {
-                TreeScreenViewerContent(
-                    viewerFileState = viewerFileState,
+                TreeScreenViewerContainer(
+                    fileState = viewerFileState,
                     fileListState = fileListState,
                 )
             },
@@ -160,6 +160,7 @@ private fun TreeScreenContainer(
     busyState: State<Boolean>,
     onSetSort: (SortModel) -> Unit,
     onClickItem: (FileModel) -> Unit,
+    onClickUp: () -> Unit,
     onClickBack: () -> Unit,
 ) {
     var sortMenuExpanded by remember { mutableStateOf(false) }
@@ -279,7 +280,7 @@ private fun TreeScreenContainer(
 
                 TreeScreenControlBar(
                     file = currentFileState,
-                    onClickUp = {}
+                    onClickUp = onClickUp
                 )
             }
             LoadingBox(
@@ -296,13 +297,17 @@ private fun TreeScreenActionMenuRadio(
     onClick: () -> Unit,
 ) = DropdownMenuItem(
     text = {
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             RadioButton(
                 selected = selected,
                 onClick = null,
             )
             Text(
                 text = text,
+                modifier = Modifier
+                    .padding(start = Size.SS)
             )
         }
     },
@@ -316,13 +321,17 @@ private fun TreeScreenActionMenuCheck(
     onClick: () -> Unit,
 ) = DropdownMenuItem(
     text = {
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Checkbox(
                 checked = checked,
                 onCheckedChange = null,
             )
             Text(
                 text = text,
+                modifier = Modifier
+                    .padding(start = Size.SS),
             )
         }
     },
@@ -335,7 +344,9 @@ private fun TreeScreenControlBar(
     onClickUp: () -> Unit,
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(horizontal = Size.S)
     ) {
         val pathScroll = rememberScrollState()
         IconButton(
@@ -348,15 +359,14 @@ private fun TreeScreenControlBar(
                 contentDescription = "Up",
             )
         }
-
         Text(
             text = file.value?.uri?.uri ?: "",
             maxLines = 1,
             modifier = Modifier
+                .padding(start = Size.SS)
                 .weight(1f)
                 .horizontalScroll(pathScroll)
         )
-
 
         LaunchedEffect(file.value?.uri) {
             pathScroll.scrollTo(pathScroll.maxValue)
@@ -500,6 +510,7 @@ private fun TreeScreenContainerPreview() {
             busyState = remember { mutableStateOf(false) },
             onSetSort = {},
             onClickItem = {},
+            onClickUp = {},
             onClickBack = {},
         )
     }

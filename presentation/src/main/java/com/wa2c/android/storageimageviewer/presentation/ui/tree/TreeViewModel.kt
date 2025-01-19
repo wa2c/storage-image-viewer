@@ -29,8 +29,8 @@ class TreeViewModel @Inject constructor(
     private val _currentList = MutableStateFlow<List<FileModel>>(emptyList())
     val currentList = _currentList.asStateFlow()
 
-    private val _currentFile = MutableStateFlow<FileModel?>(null)
-    val currentFile = _currentFile.asStateFlow()
+    private val _currentDir = MutableStateFlow<FileModel?>(null)
+    val currentDir = _currentDir.asStateFlow()
 
     private val _viewerFile = MutableStateFlow<FileModel?>(null)
     val viewerFile = _viewerFile.asStateFlow()
@@ -45,7 +45,7 @@ class TreeViewModel @Inject constructor(
     val sortState = _sortState.asStateFlow()
 
     val isRoot: Boolean
-        get() = currentFile.value?.isRoot ?: true
+        get() = currentDir.value?.isRoot ?: true
 
     init {
         launch {
@@ -79,7 +79,7 @@ class TreeViewModel @Inject constructor(
                     val list = getChildren(file)
                     file to list
                 }.onSuccess { (file, list) ->
-                    _currentFile.emit(file)
+                    _currentDir.emit(file)
                     _currentList.emit(list)
                     _resultState.emit(Result.success(AppResult.Success))
                 }.onFailure {
@@ -97,12 +97,12 @@ class TreeViewModel @Inject constructor(
         launch {
             _busyState.emit(true)
             runCatching {
-                val file = currentFile.value ?: return@launch
+                val file = currentDir.value ?: return@launch
                 val parent = storageRepository.getParent(file) ?: return@launch
                 val list = getChildren(parent)
                 parent to list
             }.onSuccess { (file, list) ->
-                _currentFile.emit(file)
+                _currentDir.emit(file)
                 _currentList.emit(list)
                 _resultState.emit(Result.success(AppResult.Success))
             }.onFailure {
