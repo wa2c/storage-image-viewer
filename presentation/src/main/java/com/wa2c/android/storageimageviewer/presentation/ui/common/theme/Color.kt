@@ -1,6 +1,7 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.common.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)
@@ -16,10 +17,14 @@ object Color {
     val Secondary = PurpleGrey80
     val Tertiary = Pink80
 
+
     /** Divider */
     val Divider = Color(0xFFBDBDBD)
 
     /** Loading background */
     val LoadingBackground = Color(0x80000000)
+
+    /** Viewer overlay background */
+    val ViewerOverlayBackground = Color(0x80808080)
 
 }

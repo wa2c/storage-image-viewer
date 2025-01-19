@@ -124,7 +124,7 @@ fun TreeScreen(
             ),
             content = {
                 TreeScreenViewerContainer(
-                    fileState = viewerFileState,
+                    initialFile = viewerFileState,
                     fileListState = fileListState,
                 )
             },
