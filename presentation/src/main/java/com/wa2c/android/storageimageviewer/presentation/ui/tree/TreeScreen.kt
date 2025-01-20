@@ -2,7 +2,6 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
 import android.text.format.DateUtils
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -49,13 +48,11 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -82,30 +79,21 @@ fun TreeScreen(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     onNavigateBack: () -> Unit,
 ) {
-    val view = LocalView.current
-    val window = (view.context as? ComponentActivity)?.window
-
     val snackBarHostState = remember { SnackbarHostState() }
     val fileListState = viewModel.currentList.collectAsStateWithLifecycle()
     val currentDirState = viewModel.currentDir.collectAsStateWithLifecycle()
+    val treeHistoryState = viewModel.treeHistory.collectAsStateWithLifecycle()
     val viewerFileState = viewModel.viewerFile.collectAsStateWithLifecycle()
     val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
 
     Box {
-        window?.let {
-            val windowInsetsController = WindowInsetsControllerCompat(window, view)
-            //WindowCompat.setDecorFitsSystemWindows(window, visibleViewer)
-            //windowInsetsController.isAppearanceLightStatusBars = visibleViewer
-            //windowInsetsController.isAppearanceLightStatusBars = !visibleViewer
-        }
-
         TreeScreenContainer(
             modifier = Modifier.fillMaxSize(),
             snackBarHostState = snackBarHostState,
             fileListState = fileListState,
-            currentFileState = currentDirState,
+            treeHistoryState = treeHistoryState,
             sortState = sortState,
             busyState = busyState,
             onSetSort = viewModel::sortFile,
@@ -126,6 +114,7 @@ fun TreeScreen(
                 TreeScreenViewerContainer(
                     initialFile = viewerFileState,
                     fileListState = fileListState,
+                    onClose = viewModel::closeViewer
                 )
             },
         )
@@ -139,8 +128,6 @@ fun TreeScreen(
     BackHandler {
         if (busyState.value) {
             viewModel.cancelLoading()
-        } else if (viewerFileState.value != null) {
-            viewModel.closeViewer()
         } else if (!viewModel.isRoot) {
             viewModel.openParent()
         } else {
@@ -155,11 +142,11 @@ private fun TreeScreenContainer(
     modifier: Modifier = Modifier,
     snackBarHostState: SnackbarHostState,
     fileListState: State<List<FileModel>>,
-    currentFileState: State<FileModel?>,
+    treeHistoryState: State<List<TreeHistory>>,
     sortState: State<SortModel>,
     busyState: State<Boolean>,
     onSetSort: (SortModel) -> Unit,
-    onClickItem: (FileModel) -> Unit,
+    onClickItem: (FileModel, Int, Int) -> Unit,
     onClickUp: () -> Unit,
     onClickBack: () -> Unit,
 ) {
@@ -272,6 +259,7 @@ private fun TreeScreenContainer(
                         modifier = Modifier
                             .weight(1f),
                         fileListState = fileListState,
+                        treeHistoryState = treeHistoryState,
                         onClickItem = onClickItem,
                     )
                 }
@@ -279,7 +267,7 @@ private fun TreeScreenContainer(
                 DividerNormal()
 
                 TreeScreenControlBar(
-                    file = currentFileState,
+                    dir = treeHistoryState.value.lastOrNull()?.file,
                     onClickUp = onClickUp
                 )
             }
@@ -340,7 +328,7 @@ private fun TreeScreenActionMenuCheck(
 
 @Composable
 private fun TreeScreenControlBar(
-    file: State<FileModel?>,
+    dir: FileModel?,
     onClickUp: () -> Unit,
 ) {
     Row(
@@ -360,7 +348,7 @@ private fun TreeScreenControlBar(
             )
         }
         Text(
-            text = file.value?.uri?.uri ?: "",
+            text = dir?.uri?.uri ?: "",
             maxLines = 1,
             modifier = Modifier
                 .padding(start = Size.SS)
@@ -368,7 +356,7 @@ private fun TreeScreenControlBar(
                 .horizontalScroll(pathScroll)
         )
 
-        LaunchedEffect(file.value?.uri) {
+        LaunchedEffect(dir?.uri) {
             pathScroll.scrollTo(pathScroll.maxValue)
         }
     }
@@ -393,10 +381,13 @@ private fun TreeScreenEmpty(
 private fun TreeScreenStorageList(
     modifier: Modifier,
     fileListState: State<List<FileModel>>,
-    onClickItem: (storage: FileModel) -> Unit,
+    treeHistoryState: State<List<TreeHistory>>,
+    onClickItem: (FileModel, Int, Int) -> Unit,
 ) {
+    val lazyListState = rememberLazyListState()
+
     LazyColumn(
-        state = rememberLazyListState(),
+        state = lazyListState,
         modifier = modifier,
     ) {
         items(
@@ -405,9 +396,17 @@ private fun TreeScreenStorageList(
         ) { file ->
             TreeScreenItem(
                 file = file,
-                onClickItem = onClickItem,
+                onClickItem = {
+                    onClickItem(it, lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset)
+                },
             )
             DividerThin()
+        }
+    }
+
+    LaunchedEffect(treeHistoryState.value.lastOrNull()) {
+        treeHistoryState.value.lastOrNull()?.let {
+            lazyListState.scrollToItem(it.scrollIndex, it.scrollOffset)
         }
     }
 }
@@ -505,11 +504,12 @@ private fun TreeScreenContainerPreview() {
         TreeScreenContainer(
             snackBarHostState = SnackbarHostState(),
             fileListState = remember { mutableStateOf(list) },
-            currentFileState = remember { mutableStateOf(list.getOrNull(0)) },
+            //currentFileState = remember { mutableStateOf(list.getOrNull(0)) },
+            treeHistoryState = remember { mutableStateOf(listOf()) },
             sortState = remember { mutableStateOf(SortModel()) },
             busyState = remember { mutableStateOf(false) },
             onSetSort = {},
-            onClickItem = {},
+            onClickItem = { _, _, _ -> },
             onClickUp = {},
             onClickBack = {},
         )

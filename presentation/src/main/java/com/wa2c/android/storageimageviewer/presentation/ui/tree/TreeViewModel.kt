@@ -44,6 +44,9 @@ class TreeViewModel @Inject constructor(
     private val _sortState = MutableStateFlow(SortModel())
     val sortState = _sortState.asStateFlow()
 
+    private var _treeHistory = MutableStateFlow<List<TreeHistory>>(listOf())
+    val treeHistory = _treeHistory.asStateFlow()
+
     val isRoot: Boolean
         get() = currentDir.value?.isRoot ?: true
 
@@ -53,7 +56,7 @@ class TreeViewModel @Inject constructor(
             runCatching {
                 paramId?.let { storageRepository.getStorageFile(paramId) } ?: throw AppException.StorageNotFoundException(paramId)
             }.onSuccess { file ->
-                openFile(file)
+                openFile(file, 0, 0)
             }.onFailure {
                 _resultState.emit(Result.failure(it))
             }.also {
@@ -71,7 +74,11 @@ class TreeViewModel @Inject constructor(
         }
     }
 
-    fun openFile(file: FileModel) {
+    fun openFile(
+        file: FileModel,
+        scrollIndex: Int,
+        scrollOffset: Int,
+    ) {
         launch {
             if (file.isDirectory) {
                 _busyState.emit(true)
@@ -79,6 +86,7 @@ class TreeViewModel @Inject constructor(
                     val list = getChildren(file)
                     file to list
                 }.onSuccess { (file, list) ->
+                    _treeHistory.emit(treeHistory.value + TreeHistory(file, scrollIndex, scrollOffset))
                     _currentDir.emit(file)
                     _currentList.emit(list)
                     _resultState.emit(Result.success(AppResult.Success))
@@ -102,6 +110,7 @@ class TreeViewModel @Inject constructor(
                 val list = getChildren(parent)
                 parent to list
             }.onSuccess { (file, list) ->
+                _treeHistory.emit(_treeHistory.value.toMutableList().dropLastWhile { it.file != file })
                 _currentDir.emit(file)
                 _currentList.emit(list)
                 _resultState.emit(Result.success(AppResult.Success))
@@ -127,6 +136,12 @@ class TreeViewModel @Inject constructor(
         coroutineContext.cancelChildren()
     }
 }
+
+data class TreeHistory(
+    val file: FileModel,
+    val scrollIndex: Int,
+    val scrollOffset: Int,
+)
 
 /**
  * File comparator
@@ -173,17 +188,15 @@ private class FileComparator(
     private fun normalize(s: String) = Normalizer.normalize(s, Normalizer.Form.NFKC).lowercase()
 
     private fun compareWithNumber(argS1: String?, argS2: String?): Int {
-        var s1 = argS1
-        var s2 = argS2
-        if (s1.isNullOrEmpty() && s2.isNullOrEmpty())
-            return 0
-        else if (s1.isNullOrEmpty() && !s2.isNullOrEmpty())
-            return 1
-        else if (!s1.isNullOrEmpty() && s2.isNullOrEmpty())
-            return -1
-
-        s1 = Normalizer.normalize(s1, Normalizer.Form.NFKC).lowercase()
-        s2 = Normalizer.normalize(s2, Normalizer.Form.NFKC).lowercase()
+        val (s1, s2) = let {
+            if (argS1.isNullOrEmpty() && argS2.isNullOrEmpty())
+                return 0
+            else if (argS1.isNullOrEmpty())
+                return 1
+            else if (argS2.isNullOrEmpty())
+                return -1
+            argS1 to argS2
+        }
 
         var thisMarker = 0
         var thatMarker = 0

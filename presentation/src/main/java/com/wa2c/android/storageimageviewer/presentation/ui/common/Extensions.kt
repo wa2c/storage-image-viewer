@@ -1,6 +1,5 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.common
 
-import android.content.res.Resources.Theme
 import android.net.Uri
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -23,6 +22,5 @@ object Extensions {
     fun Modifier.enabledStyle(enabled: Boolean): Modifier {
         return if (enabled) this else this.alpha(0.5f)
     }
-
 
 }

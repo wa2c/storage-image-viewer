@@ -20,6 +20,7 @@ datastorePreferences = "1.1.1"
 documentfile = "1.0.1"
 timber = "4.7.1" # TODO: Update after supporting Kotlin static call
 coilCompose = "2.6.0"
+zoomable = "2.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +51,7 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+zoomable = { module = "net.engawapg.lib:zoomable", version.ref = "zoomable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

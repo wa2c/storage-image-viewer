@@ -73,6 +73,7 @@ dependencies {
 
     // Image
     implementation(libs.coil.compose)
+    implementation(libs.zoomable)
 
     // Test
     testImplementation(libs.junit)
