@@ -1,8 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -14,7 +12,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.TreeScreen
 
 @Composable
 internal fun MainNavHost(
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     navController: NavHostController,
 ) {
     NavHost(
@@ -45,7 +42,7 @@ internal fun MainNavHost(
         ) {
             TreeScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.popBackStack(ScreenParam.TreeScreenRouteName, true)
                 }
             )
         }

@@ -3,6 +3,7 @@ package com.wa2c.android.storageimageviewer.presentation.ui.common.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.colorspace.ColorSpaces
 
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
@@ -26,5 +27,7 @@ object Color {
 
     /** Viewer overlay background */
     val ViewerOverlayBackground = Color(0x60808080)
+
+    val Transparent = Color.Transparent
 
 }

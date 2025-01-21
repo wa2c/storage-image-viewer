@@ -54,6 +54,7 @@ import coil.compose.AsyncImage
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
+import com.wa2c.android.storageimageviewer.domain.model.TreeData
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
@@ -70,13 +71,14 @@ import net.engawapg.lib.zoomable.zoomable
 @Composable
 fun TreeScreenViewerContainer(
     initialFile: State<FileModel?>,
-    fileListState: State<List<FileModel>>,
+    currentTreeState: State<TreeData>,
+    onChangeFile: (FileModel?) -> Unit,
     onClose: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
 
-    val fileList = fileListState.value.filter { !it.isDirectory }
+    val fileList = currentTreeState.value.fileList.filter { !it.isDirectory }
     val pagerState = rememberPagerState(
         pageCount = { fileList.size },
         initialPage = initialFile.value?.let { fileList.indexOf(it) } ?: 0,
@@ -149,6 +151,10 @@ fun TreeScreenViewerContainer(
                 Text(text = "Modal Bottom Sheet")
             }
         }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        onChangeFile(fileList.getOrNull(pagerState.currentPage))
     }
 
     BackHandler {
@@ -365,7 +371,8 @@ private fun TreeScreenContainerPreview() {
 
         TreeScreenViewerContainer(
             initialFile = remember { mutableStateOf(null) },
-            fileListState = remember { mutableStateOf(list) },
+            currentTreeState = remember { mutableStateOf(TreeData(null, list)) },
+            onChangeFile = {},
             onClose = {},
         )
     }

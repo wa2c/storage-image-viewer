@@ -44,11 +44,12 @@ class FileHelper @Inject internal constructor(
                         val uri = storageVolume.directory?.toUri()?.toString() ?: return@mapIndexedNotNull null
                         StorageEntity(
                             id = storageVolume.uuid ?: uri,
-                            name = storageVolume.mediaStoreVolumeName ?: storageVolume.getDescription(context),
+                            name = storageVolume.mediaStoreVolumeName
+                                ?: storageVolume.getDescription(context),
                             uri = uri,
                             path = "",
                             sortOrder = storageMax - index, // negative value
-                            storageType = storageVolume.getStorageType()
+                            storageType = storageVolume.getStorageType(),
                         )
                     }
                 }
@@ -62,7 +63,7 @@ class FileHelper @Inject internal constructor(
                             uri = uri,
                             path = "",
                             sortOrder = storageMax - index, // negative value
-                            storageType = storageVolume.getStorageType()
+                            storageType = storageVolume.getStorageType(),
                         )
                     }
                 }
@@ -92,7 +93,7 @@ class FileHelper @Inject internal constructor(
             isDirectory = isDirectory,
             mimeType = type ?: "",
             size = length(),
-            dateModified = lastModified()
+            dateModified = lastModified(),
         )
     }
 

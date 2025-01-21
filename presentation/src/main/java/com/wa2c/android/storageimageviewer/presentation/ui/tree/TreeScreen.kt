@@ -1,6 +1,7 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
+import android.provider.DocumentsContract
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -17,7 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Checkbox
@@ -40,7 +41,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -53,16 +59,19 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.SortType
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.SortModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
+import com.wa2c.android.storageimageviewer.domain.model.TreeData
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
@@ -80,10 +89,9 @@ fun TreeScreen(
     onNavigateBack: () -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
-    val fileListState = viewModel.currentList.collectAsStateWithLifecycle()
-    val currentDirState = viewModel.currentDir.collectAsStateWithLifecycle()
-    val treeHistoryState = viewModel.treeHistory.collectAsStateWithLifecycle()
-    val viewerFileState = viewModel.viewerFile.collectAsStateWithLifecycle()
+    val currentTreeState = viewModel.currentTree.collectAsStateWithLifecycle()
+    val focusedFileState = viewModel.focusedFile.collectAsStateWithLifecycle()
+    val isViewerModeState = viewModel.isViewerMode.collectAsStateWithLifecycle()
     val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
@@ -92,18 +100,20 @@ fun TreeScreen(
         TreeScreenContainer(
             modifier = Modifier.fillMaxSize(),
             snackBarHostState = snackBarHostState,
-            fileListState = fileListState,
-            treeHistoryState = treeHistoryState,
+            currentTreeState = currentTreeState,
+            focusedFileState = focusedFileState,
+            isViewerModeState = isViewerModeState,
             sortState = sortState,
             busyState = busyState,
             onSetSort = viewModel::sortFile,
+            onFocusItem = viewModel::focusFile,
             onClickItem = viewModel::openFile,
             onClickUp = viewModel::openParent,
             onClickBack = onNavigateBack,
         )
 
         AnimatedVisibility(
-            visible = (viewerFileState.value != null),
+            visible = isViewerModeState.value,
             enter = slideInVertically(
                 initialOffsetY = { fullHeight -> fullHeight },
             ),
@@ -112,9 +122,10 @@ fun TreeScreen(
             ),
             content = {
                 TreeScreenViewerContainer(
-                    initialFile = viewerFileState,
-                    fileListState = fileListState,
-                    onClose = viewModel::closeViewer
+                    initialFile = focusedFileState,
+                    currentTreeState = currentTreeState,
+                    onChangeFile = viewModel::focusFile,
+                    onClose = viewModel::closeViewer,
                 )
             },
         )
@@ -141,12 +152,14 @@ fun TreeScreen(
 private fun TreeScreenContainer(
     modifier: Modifier = Modifier,
     snackBarHostState: SnackbarHostState,
-    fileListState: State<List<FileModel>>,
-    treeHistoryState: State<List<TreeHistory>>,
+    currentTreeState: State<TreeData>,
+    focusedFileState: State<FileModel?>,
+    isViewerModeState: State<Boolean>,
     sortState: State<SortModel>,
     busyState: State<Boolean>,
     onSetSort: (SortModel) -> Unit,
-    onClickItem: (FileModel, Int, Int) -> Unit,
+    onFocusItem: (FileModel?) -> Unit,
+    onClickItem: (FileModel) -> Unit,
     onClickUp: () -> Unit,
     onClickBack: () -> Unit,
 ) {
@@ -248,18 +261,23 @@ private fun TreeScreenContainer(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            Column {
-                if (fileListState.value.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                if (currentTreeState.value.fileList.isEmpty()) {
                     TreeScreenEmpty(
                         modifier = Modifier
                             .weight(1f)
                     )
                 } else {
                     TreeScreenStorageList(
+                        isViewerModeState = isViewerModeState,
                         modifier = Modifier
                             .weight(1f),
-                        fileListState = fileListState,
-                        treeHistoryState = treeHistoryState,
+                        currentTreeState = currentTreeState,
+                        focusedFileState = focusedFileState,
+                        onFocusItem = onFocusItem,
                         onClickItem = onClickItem,
                     )
                 }
@@ -267,7 +285,7 @@ private fun TreeScreenContainer(
                 DividerNormal()
 
                 TreeScreenControlBar(
-                    dir = treeHistoryState.value.lastOrNull()?.file,
+                    dir = currentTreeState.value.dir,
                     onClickUp = onClickUp
                 )
             }
@@ -347,8 +365,16 @@ private fun TreeScreenControlBar(
                 contentDescription = "Up",
             )
         }
+
+        val context = LocalContext.current
+        val resolver = LocalContext.current.contentResolver
+        val path = dir?.uri?.uri?.toUri()?.let {
+            if (DocumentsContract.isDocumentUri(context, it)) DocumentsContract.findDocumentPath(resolver, it)?.path?.lastOrNull()
+            else ""
+        }
+
         Text(
-            text = dir?.uri?.uri ?: "",
+            text = path ?: "",
             maxLines = 1,
             modifier = Modifier
                 .padding(start = Size.SS)
@@ -377,53 +403,107 @@ private fun TreeScreenEmpty(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun TreeScreenStorageList(
+    isViewerModeState: State<Boolean>,
     modifier: Modifier,
-    fileListState: State<List<FileModel>>,
-    treeHistoryState: State<List<TreeHistory>>,
-    onClickItem: (FileModel, Int, Int) -> Unit,
+    currentTreeState: State<TreeData>,
+    focusedFileState: State<FileModel?>,
+    onFocusItem: (FileModel?) -> Unit,
+    onClickItem: (FileModel) -> Unit,
 ) {
+    val parentFocusRequester = remember { FocusRequester() }
+    val focusRequester = remember { FocusRequester() }
     val lazyListState = rememberLazyListState()
+    val focusedFile = focusedFileState.value
 
     LazyColumn(
+        modifier = modifier
+            .focusRequester(parentFocusRequester)
+            .focusProperties {
+                exit = {
+                    try {
+                        focusRequester.saveFocusedChild()
+                        FocusRequester.Default
+                    } catch (e: Exception) {
+                        FocusRequester.Default
+                    }
+                }
+                enter = {
+                    try {
+                        if (!focusRequester.restoreFocusedChild())
+                            focusRequester
+                        else
+                            FocusRequester.Default
+                    } catch (e: Exception) {
+                        FocusRequester.Default
+                    }
+                }
+            }
+        ,
         state = lazyListState,
-        modifier = modifier,
     ) {
-        items(
-            items = fileListState.value,
-            key = { it },
-        ) { file ->
+        val focusIndex = currentTreeState.value.fileList.indexOf(focusedFile) //.takeIf { it >= 0 } ?: 0
+        itemsIndexed(
+            items = currentTreeState.value.fileList,
+        ) { index, file ->
             TreeScreenItem(
+                modifier = Modifier
+                    .onFocusChanged {
+                        if (it.isFocused) { onFocusItem(file) } else { onFocusItem(null) }
+                    }
+                    .let {
+                        if (index == focusIndex) it.focusRequester(focusRequester)
+                        else it
+                    }
+                ,
                 file = file,
-                onClickItem = {
-                    onClickItem(it, lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset)
-                },
+                onClickItem = onClickItem,
             )
             DividerThin()
         }
     }
 
-    LaunchedEffect(treeHistoryState.value.lastOrNull()) {
-        treeHistoryState.value.lastOrNull()?.let {
-            lazyListState.scrollToItem(it.scrollIndex, it.scrollOffset)
+    LaunchedEffect(isViewerModeState.value) {
+        val list = currentTreeState.value.fileList
+        if (list.isNotEmpty() && !isViewerModeState.value) {
+            val index = list.indexOf(focusedFileState.value)
+            val offset = 0
+            if (index >= 0) {
+                lazyListState.scrollToItem(index, offset)
+            } else {
+                lazyListState.scrollToItem(0, 0)
+            }
+
+            try {
+                parentFocusRequester.requestFocus()
+                focusRequester.requestFocus()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }
 
 @Composable
 private fun TreeScreenItem(
+    modifier: Modifier,
     file: FileModel,
     onClickItem: (file: FileModel) -> Unit,
 ) {
     val context = LocalContext.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .clickable { onClickItem(file) }
             .fillMaxWidth()
             .padding(horizontal = Size.M)
-            .heightIn(min = Size.ListItem),
+            .heightIn(min = Size.ListItem)
+            .onFocusChanged {
+                Log.d("aaa")
+            }
+        ,
     ) {
         if (file.isDirectory) {
             Icon(
@@ -480,6 +560,16 @@ private fun TreeScreenContainerPreview() {
             type = StorageType.SAF,
             sortOrder = 1,
         )
+        val dir = FileModel(
+            storage = storage,
+            uri = UriModel( "content://dir1/"),
+            name = "Test directory",
+            isDirectory = true,
+            mimeType = "",
+            size = 0,
+            dateModified = 0,
+        )
+
         val list = listOf(
             FileModel(
                 storage = storage,
@@ -503,13 +593,14 @@ private fun TreeScreenContainerPreview() {
 
         TreeScreenContainer(
             snackBarHostState = SnackbarHostState(),
-            fileListState = remember { mutableStateOf(list) },
-            //currentFileState = remember { mutableStateOf(list.getOrNull(0)) },
-            treeHistoryState = remember { mutableStateOf(listOf()) },
+            currentTreeState = remember { mutableStateOf(TreeData(dir, list)) },
+            focusedFileState = remember { mutableStateOf(null) },
+            isViewerModeState = remember { mutableStateOf(false) },
             sortState = remember { mutableStateOf(SortModel()) },
             busyState = remember { mutableStateOf(false) },
             onSetSort = {},
-            onClickItem = { _, _, _ -> },
+            onFocusItem = {},
+            onClickItem = {},
             onClickUp = {},
             onClickBack = {},
         )
