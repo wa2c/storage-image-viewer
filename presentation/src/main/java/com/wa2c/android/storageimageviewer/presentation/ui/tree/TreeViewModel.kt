@@ -92,7 +92,7 @@ class TreeViewModel @Inject constructor(
                     val list = getChildren(file)
                     file to list
                 }.onSuccess { (file, list) ->
-                    _focusedFile.emit(file)
+                    _focusedFile.emit(list.firstOrNull())
                     _currentTree.emit(TreeData(file, list))
                     _resultState.emit(Result.success(AppResult.Success))
                 }.onFailure {

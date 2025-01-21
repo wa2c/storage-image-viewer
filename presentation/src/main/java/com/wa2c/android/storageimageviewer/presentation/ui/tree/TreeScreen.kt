@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -43,9 +45,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -54,6 +58,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -422,36 +427,21 @@ private fun TreeScreenStorageList(
         modifier = modifier
             .focusRequester(parentFocusRequester)
             .focusProperties {
-                exit = {
-                    try {
-                        focusRequester.saveFocusedChild()
-                        FocusRequester.Default
-                    } catch (e: Exception) {
-                        FocusRequester.Default
-                    }
-                }
-                enter = {
-                    try {
-                        if (!focusRequester.restoreFocusedChild())
-                            focusRequester
-                        else
-                            FocusRequester.Default
-                    } catch (e: Exception) {
-                        FocusRequester.Default
-                    }
-                }
+                exit = { FocusRequester.Default }
+                enter = { focusRequester }
             }
         ,
         state = lazyListState,
     ) {
-        val focusIndex = currentTreeState.value.fileList.indexOf(focusedFile) //.takeIf { it >= 0 } ?: 0
+        val focusIndex = currentTreeState.value.fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
         itemsIndexed(
             items = currentTreeState.value.fileList,
         ) { index, file ->
             TreeScreenItem(
                 modifier = Modifier
                     .onFocusChanged {
-                        if (it.isFocused) { onFocusItem(file) } else { onFocusItem(null) }
+                        if (it.isFocused) { onFocusItem(file) }
+                        // else { onFocusItem(null) } NOTE: keep focus
                     }
                     .let {
                         if (index == focusIndex) it.focusRequester(focusRequester)
@@ -465,26 +455,61 @@ private fun TreeScreenStorageList(
         }
     }
 
-    LaunchedEffect(isViewerModeState.value) {
-        val list = currentTreeState.value.fileList
-        if (list.isNotEmpty() && !isViewerModeState.value) {
-            val index = list.indexOf(focusedFileState.value)
-            val offset = 0
-            if (index >= 0) {
-                lazyListState.scrollToItem(index, offset)
-            } else {
-                lazyListState.scrollToItem(0, 0)
-            }
+    LaunchedEffect(currentTreeState.value.fileList) {
+        restoreFocus(
+            isViewerModeState = isViewerModeState,
+            currentTreeState = currentTreeState,
+            focusedFileState = focusedFileState,
+            lazyListState = lazyListState,
+            parentFocusRequester = parentFocusRequester,
+            focusRequester = focusRequester,
+        )
+    }
 
-            try {
-                parentFocusRequester.requestFocus()
-                focusRequester.requestFocus()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+    LaunchedEffect(isViewerModeState.value) {
+        restoreFocus(
+            isViewerModeState = isViewerModeState,
+            currentTreeState = currentTreeState,
+            focusedFileState = focusedFileState,
+            lazyListState = lazyListState,
+            parentFocusRequester = parentFocusRequester,
+            focusRequester = focusRequester,
+        )
+    }
+}
+
+/**
+ * Restore focus
+ */
+private suspend fun restoreFocus(
+    isViewerModeState: State<Boolean>,
+    currentTreeState: State<TreeData>,
+    focusedFileState: State<FileModel?>,
+    lazyListState: LazyListState,
+    parentFocusRequester: FocusRequester,
+    focusRequester: FocusRequester,
+) {
+    val list = currentTreeState.value.fileList
+    if (list.isNotEmpty() && !isViewerModeState.value) {
+        val index = list.indexOf(focusedFileState.value)
+        if (index >= 0) {
+            val listHeight = lazyListState.layoutInfo.viewportEndOffset
+            val itemHeight = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
+            val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
+            lazyListState.scrollToItem(index, -offset.toInt())
+        } else {
+            lazyListState.scrollToItem(0, 0)
+        }
+
+        try {
+            parentFocusRequester.requestFocus()
+            focusRequester.requestFocus()
+        } catch (e: Exception) {
+            Log.e(e)
         }
     }
 }
+
 
 @Composable
 private fun TreeScreenItem(
@@ -499,11 +524,7 @@ private fun TreeScreenItem(
             .clickable { onClickItem(file) }
             .fillMaxWidth()
             .padding(horizontal = Size.M)
-            .heightIn(min = Size.ListItem)
-            .onFocusChanged {
-                Log.d("aaa")
-            }
-        ,
+            .heightIn(min = Size.ListItem),
     ) {
         if (file.isDirectory) {
             Icon(
