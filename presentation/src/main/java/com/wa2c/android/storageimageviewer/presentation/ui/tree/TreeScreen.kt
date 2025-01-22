@@ -70,6 +70,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.SortType
 import com.wa2c.android.storageimageviewer.common.values.StorageType
@@ -87,6 +88,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
 
+@Suppress("DEPRECATION")
 @Composable
 fun TreeScreen(
     viewModel: TreeViewModel = hiltViewModel(),
@@ -100,6 +102,10 @@ fun TreeScreen(
     val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
+
+    val systemUiController = rememberSystemUiController()
+    systemUiController.isStatusBarVisible = !isViewerModeState.value
+    systemUiController.isNavigationBarVisible = !isViewerModeState.value
 
     Box {
         TreeScreenContainer(
@@ -134,6 +140,7 @@ fun TreeScreen(
                 )
             },
         )
+
     }
 
     LaunchedEffect(resultState) {

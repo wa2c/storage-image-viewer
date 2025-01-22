@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -41,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -48,9 +51,12 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.toSize
 import coil.compose.AsyncImage
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
@@ -64,10 +70,10 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
 import kotlinx.coroutines.launch
+import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TreeScreenViewerContainer(
     initialFile: State<FileModel?>,
@@ -83,18 +89,18 @@ fun TreeScreenViewerContainer(
         pageCount = { fileList.size },
         initialPage = initialFile.value?.let { fileList.indexOf(it) } ?: 0,
     )
+    val zoomState = rememberZoomState()
     var visibleOverlay by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        val sheetState = rememberModalBottomSheetState(false)
-
         // Viewer
         TreeScreenViewerContent(
             focusRequester = focusRequester,
             pagerState = pagerState,
+            zoomState = zoomState,
             fileList = fileList,
             onStepPage = { step ->
                 scope.launch {
@@ -105,11 +111,6 @@ fun TreeScreenViewerContainer(
             onClickShowOverlay = {
                 visibleOverlay = !visibleOverlay
             },
-            onClickShowBottomSheet = {
-                scope.launch {
-                    sheetState.show()
-                }
-            }
         )
 
         Box(
@@ -140,17 +141,6 @@ fun TreeScreenViewerContainer(
                 )
             },
         )
-
-        if (sheetState.isVisible) {
-            ModalBottomSheet(
-                sheetState = sheetState,
-                onDismissRequest = {
-                    scope.launch { sheetState.hide() }
-                },
-            ) {
-                Text(text = "Modal Bottom Sheet")
-            }
-        }
     }
 
     LaunchedEffect(pagerState.currentPage) {
@@ -158,9 +148,9 @@ fun TreeScreenViewerContainer(
     }
 
     BackHandler {
-        if (visibleOverlay) {
-            visibleOverlay = false
-        } else  {
+        if (zoomState.scale > 1.0f) {
+            scope.launch { zoomState.reset() }
+        } else {
             onClose()
         }
     }
@@ -170,14 +160,18 @@ fun TreeScreenViewerContainer(
 private fun TreeScreenViewerContent(
     focusRequester: FocusRequester,
     pagerState: PagerState,
+    zoomState: ZoomState,
     fileList: List<FileModel>,
     onStepPage: (step: Int) -> Unit,
     onClickShowOverlay: () -> Unit,
-    onClickShowBottomSheet: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+    var size = remember { androidx.compose.ui.geometry.Size.Unspecified }
+
     HorizontalPager(
         state = pagerState,
         modifier = Modifier
+            .onSizeChanged { size = it.toSize() }
             .onKeyEvent { keyEvent ->
                 if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
                 when (keyEvent.nativeKeyEvent.scanCode) {
@@ -190,9 +184,45 @@ private fun TreeScreenViewerContent(
                         return@onKeyEvent true
                     }
                 }
-
                 when (keyEvent.key) {
-                    Key.DirectionLeft,
+                    Key.DirectionLeft -> {
+                        if (zoomState.scale > 1.0f) {
+                            scope.launch {
+                                val offset = if (keyEvent.isShiftPressed) 300f else 100f
+                                zoomState.translate(size.center, x = -offset)
+                            }
+                        } else {
+                            if (keyEvent.isShiftPressed) onStepPage(-10) else onStepPage(-1)
+                        }
+                        true
+                    }
+                    Key.DirectionRight -> {
+                        if (zoomState.scale > 1.0f) {
+                            val offset = if (keyEvent.isShiftPressed) 300f else 100f
+                            scope.launch { zoomState.translate(size.center, x = +offset) }
+                        } else {
+                            if (keyEvent.isShiftPressed) onStepPage(10) else onStepPage(1)
+                        }
+                        true
+                    }
+                    Key.DirectionUp -> {
+                        if (zoomState.scale > 1.0f) {
+                            val offset = if (keyEvent.isShiftPressed) 300f else 100f
+                            scope.launch { zoomState.translate(size.center, y = -offset) }
+                        } else {
+                            // TODO
+                        }
+                        true
+                    }
+                    Key.DirectionDown -> {
+                        if (zoomState.scale > 1.0f) {
+                            val offset = if (keyEvent.isShiftPressed) 300f else 100f
+                            scope.launch { zoomState.translate(size.center, y = +offset) }
+                        } else {
+                            // TODO
+                        }
+                        true
+                    }
                     Key.MediaPrevious,
                     Key.MediaRewind,
                     Key.MediaStepBackward,
@@ -201,7 +231,6 @@ private fun TreeScreenViewerContent(
                         if (keyEvent.isShiftPressed) onStepPage(-10) else onStepPage(-1)
                         true
                     }
-                    Key.DirectionRight,
                     Key.MediaNext,
                     Key.MediaFastForward,
                     Key.MediaStepForward,
@@ -232,14 +261,19 @@ private fun TreeScreenViewerContent(
                     }
                     Key.Enter,
                     Key.NumPadEnter,
-                    Key.DirectionCenter,
-                    Key.MediaPlay,
-                    Key.MediaPlayPause, -> {
+                    Key.DirectionCenter, -> {
                         onClickShowOverlay()
                         true
                     }
-                    Key.DirectionUp -> {
-                        onClickShowBottomSheet()
+                    Key.Spacebar,
+                    Key.MediaPlay,
+                    Key.MediaPlayPause, -> {
+                        scope.launch {
+                            zoomState.changeScale(
+                                targetScale = zoomState.getNextScale(),
+                                position = size.center,
+                            )
+                        }
                         true
                     }
                     else -> {
@@ -271,7 +305,7 @@ private fun TreeScreenViewerContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .zoomable(
-                        zoomState = rememberZoomState(),
+                        zoomState = zoomState,
                         onTap = { offset ->
                             val width = Resources.getSystem().displayMetrics.widthPixels
                             if (offset.x <= width * 0.15f) {
@@ -292,8 +326,29 @@ private fun TreeScreenViewerContent(
         }
     }
 
+    LaunchedEffect(pagerState.currentPage) {
+        zoomState.reset()
+    }
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+}
+
+private suspend fun ZoomState.translate(center: Offset, x: Float = 0f, y: Float = 0f) {
+    val centerX = center.x - offsetX / scale
+    val centerY = center.y - offsetY / scale
+    centerByLayoutCoordinate(
+        offset = Offset(x = centerX + x, y = centerY + y),
+        scale,
+        tween(100)
+    )
+}
+
+private fun ZoomState.getNextScale(): Float {
+     return (scale + 1.0f).let {
+        if (it > maxScale) 1.0f
+        else it
     }
 }
 

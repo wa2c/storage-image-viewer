@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.reorderable)
+    implementation(libs.accompanist.systemuicontroller)
 
     // Injection
     implementation(libs.hilt.android)
