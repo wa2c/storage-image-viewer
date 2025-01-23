@@ -22,13 +22,9 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -37,11 +33,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -69,7 +63,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.wa2c.android.storageimageviewer.common.utils.Log
-import com.wa2c.android.storageimageviewer.common.values.SortType
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.SortModel
@@ -85,7 +78,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
 
-@Suppress("DEPRECATION")
 @Composable
 fun TreeScreen(
     viewModel: TreeViewModel = hiltViewModel(),
@@ -125,10 +117,8 @@ fun TreeScreen(
                 targetOffsetY = { fullHeight -> fullHeight },
             ),
             content = {
-                TreeScreenViewerContainer(
-                    initialFile = focusedFileState,
-                    currentTreeState = currentTreeState,
-                    onChangeFile = viewModel::focusFile,
+                TreeScreenViewer(
+                    initialFile = focusedFileState.value,
                     onClose = viewModel::closeViewer,
                 )
             },
@@ -168,7 +158,7 @@ private fun TreeScreenContainer(
     onClickUp: () -> Unit,
     onClickBack: () -> Unit,
 ) {
-    var sortMenuExpanded by remember { mutableStateOf(false) }
+    val sortMenuExpanded = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -183,81 +173,26 @@ private fun TreeScreenContainer(
                     }
                 },
                 actions = {
-                    Box {
-
-                        IconButton(
-                            onClick = { sortMenuExpanded = true }
-                        ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_sort),
-                                contentDescription = "Search",
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = sortMenuExpanded,
-                            onDismissRequest = { sortMenuExpanded = false },
-                        ) {
-                            // Type
-                            TreeScreenActionMenuRadio(
-                                text = "Name",
-                                selected = sortState.value.type == SortType.Name,
-                            ) {
-                                onSetSort(sortState.value.copy(type = SortType.Name))
-                            }
-                            TreeScreenActionMenuRadio(
-                                text = "Size",
-                                selected = sortState.value.type == SortType.Size,
-                            ) {
-                                onSetSort(sortState.value.copy(type = SortType.Size))
-                            }
-                            TreeScreenActionMenuRadio(
-                                text = "Date",
-                                selected = sortState.value.type == SortType.Date,
-                            ) {
-                                onSetSort(sortState.value.copy(type = SortType.Date))
-                            }
-
-                            // Option
-                            TreeScreenActionMenuCheck(
-                                text = "Descending",
-                                checked = sortState.value.isDescending
-                            ) {
-                                onSetSort(sortState.value.copy(isDescending = !sortState.value.isDescending))
-                            }
-                            TreeScreenActionMenuCheck(
-                                text = "Ignore case",
-                                checked = sortState.value.isIgnoreCase
-                            ) {
-                                onSetSort(sortState.value.copy(isIgnoreCase = !sortState.value.isIgnoreCase))
-                            }
-                            TreeScreenActionMenuCheck(
-                                text = "Number",
-                                checked = sortState.value.isNumberSort
-                            ) {
-                                onSetSort(sortState.value.copy(isNumberSort = !sortState.value.isNumberSort))
-                            }
-                            TreeScreenActionMenuCheck(
-                                text = "Folder mix",
-                                checked = sortState.value.isFolderMixed
-                            ) {
-                                onSetSort(sortState.value.copy(isFolderMixed = !sortState.value.isFolderMixed))
-                            }
-                        }
-                    }
-
+                    TreeSortAction(
+                        menuExpanded = sortMenuExpanded,
+                        sortState = sortState,
+                        onSetSort = onSetSort,
+                    )
                 }
             )
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
         modifier = Modifier
             .onPreviewKeyEvent { keyEvent ->
-                val keyCode = keyEvent.key
-                val isDown = keyEvent.type == KeyEventType.KeyDown
-                if (keyCode == Key.Menu && isDown) {
-                    sortMenuExpanded = true
-                    true
-                } else {
-                    false
+                if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when (keyEvent.key) {
+                    Key.Menu -> {
+                        sortMenuExpanded.value = true
+                        true
+                    }
+                    else -> {
+                        false
+                    }
                 }
             }
     ) { paddingValues ->
@@ -300,54 +235,6 @@ private fun TreeScreenContainer(
         }
     }
 }
-
-@Composable
-private fun TreeScreenActionMenuRadio(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) = DropdownMenuItem(
-    text = {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            RadioButton(
-                selected = selected,
-                onClick = null,
-            )
-            Text(
-                text = text,
-                modifier = Modifier
-                    .padding(start = Size.SS)
-            )
-        }
-    },
-    onClick = onClick,
-)
-
-@Composable
-private fun TreeScreenActionMenuCheck(
-    text: String,
-    checked: Boolean,
-    onClick: () -> Unit,
-) = DropdownMenuItem(
-    text = {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = null,
-            )
-            Text(
-                text = text,
-                modifier = Modifier
-                    .padding(start = Size.SS),
-            )
-        }
-    },
-    onClick = onClick,
-)
 
 @Composable
 private fun TreeScreenControlBar(
