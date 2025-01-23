@@ -28,6 +28,9 @@ object Color {
     /** Viewer overlay background */
     val ViewerOverlayBackground = Color(0x80808080)
 
+    /** Viewer overlay flash */
+    val ViewerOverlayFlash = Color(0x80C0C0C0)
+
     val Transparent = Color.Transparent
 
 }

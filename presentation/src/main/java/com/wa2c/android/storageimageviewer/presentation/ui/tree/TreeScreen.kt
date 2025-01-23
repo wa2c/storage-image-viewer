@@ -91,8 +91,14 @@ fun TreeScreen(
     val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
+    val inputNumber = remember { mutableStateOf<String?>(null) }
 
-    Box {
+    Box(
+        modifier = Modifier
+            .onPreviewKeyEvent { keyEvent ->
+                false
+            }
+    ) {
         TreeScreenContainer(
             modifier = Modifier.fillMaxSize(),
             snackBarHostState = snackBarHostState,
@@ -123,6 +129,15 @@ fun TreeScreen(
                 )
             },
         )
+
+        AnimatedVisibility(
+            visible = !inputNumber.value.isNullOrEmpty()
+        ) {
+            val number = inputNumber.value ?: return@AnimatedVisibility
+            InputNumber(
+                number = number
+            )
+        }
 
     }
 
@@ -473,6 +488,13 @@ private fun TreeScreenItem(
             )
         }
     }
+}
+
+@Composable
+private fun InputNumber(
+    number: String,
+) {
+
 }
 
 /**

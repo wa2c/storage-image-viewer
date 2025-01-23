@@ -5,7 +5,13 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree
 import android.content.res.Configuration
 import android.content.res.Resources
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector4D
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -73,6 +79,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Color
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.rememberZoomState
@@ -129,6 +136,10 @@ fun TreeScreenViewerContainer(
         systemUiController.isSystemBarsVisible = false
         systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
+    val pageRange = 0..<pagerState.pageCount
+    val animatedColor = remember { Animatable(Color.ViewerOverlayBackground) }
+
+
 
     Surface(
         modifier = Modifier
@@ -143,8 +154,10 @@ fun TreeScreenViewerContainer(
             fileList = fileList,
             onStepPage = { step ->
                 scope.launch {
-                    val page = (pagerState.currentPage + step).coerceIn(0, pagerState.pageCount - 1)
-                    pagerState.animateScrollToPage(page = page)
+                    // Change page
+                    val page = (pagerState.currentPage + step).coerceIn(pageRange)
+                    if (page != pagerState.currentPage) pagerState.animateScrollToPage(page = page)
+                    else animatedColor.flashPage()
                 }
             },
             onClickShowOverlay = {
@@ -155,10 +168,13 @@ fun TreeScreenViewerContainer(
                     zoomState = zoomState,
                     onStepPage = { isNext, isSkip ->
                         scope.launch {
+                            // Change page
                             val offset = if (isSkip == null) Int.MAX_VALUE else if (isSkip == true) 10 else 1
                             val value = (if (isNext) 1 else -1) * offset
-                            val page = (pagerState.currentPage + value).coerceIn(0, pagerState.pageCount - 1)
-                            pagerState.animateScrollToPage(page = page)
+
+                            val page = (pagerState.currentPage + value).coerceIn(pageRange)
+                            if (page != pagerState.currentPage) pagerState.animateScrollToPage(page = page)
+                            else animatedColor.flashPage()
                         }
                     },
                     onZoom = {
@@ -202,7 +218,7 @@ fun TreeScreenViewerContainer(
                 style = Typography.labelMedium,
                 modifier = Modifier
                     .clip(RoundedCornerShape(Size.L))
-                    .background(color = Color.ViewerOverlayBackground)
+                    .background(color = animatedColor.value)
                     .padding(horizontal = Size.S, Size.SS)
             )
         }
@@ -239,6 +255,26 @@ fun TreeScreenViewerContainer(
             onClose()
         }
     }
+}
+
+/**
+ * Flash page background (Indicates that page transition is not possible.)
+ */
+private suspend fun Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D>.flashPage() {
+    animateTo(
+        targetValue = Color.ViewerOverlayFlash,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+    )
+    animateTo(
+        targetValue = Color.ViewerOverlayBackground,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+    )
 }
 
 private fun Modifier.keyControl(
@@ -357,7 +393,6 @@ private fun Modifier.keyControl(
     }
 }
 
-
 @Composable
 private fun TreeScreenViewerContent(
     focusRequester: FocusRequester,
@@ -398,9 +433,9 @@ private fun TreeScreenViewerContent(
                         zoomState = zoomState,
                         onTap = { offset ->
                             val width = Resources.getSystem().displayMetrics.widthPixels
-                            if (offset.x <= width * 0.15f) {
+                            if (offset.x <= width * 0.2f) {
                                 onStepPage(-1)
-                            } else if (offset.x >= width * 0.85f) {
+                            } else if (offset.x >= width * 0.80f) {
                                 onStepPage(+1)
                             } else {
                                 onClickShowOverlay()

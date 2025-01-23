@@ -66,10 +66,10 @@ class TreeViewModel @Inject constructor(
     fun sortFile(sortModel: SortModel) {
         launch {
             _busyState.emit(true)
-            _sortState.emit(sortModel)
             currentTree.value.let { tree ->
                 _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(sortModel))))
             }
+            _sortState.emit(sortModel)
             _busyState.emit(false)
         }
     }
