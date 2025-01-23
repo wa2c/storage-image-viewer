@@ -8,7 +8,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,15 +40,15 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -58,7 +57,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -70,7 +68,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.SortType
 import com.wa2c.android.storageimageviewer.common.values.StorageType
@@ -102,10 +99,6 @@ fun TreeScreen(
     val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
-
-    val systemUiController = rememberSystemUiController()
-    systemUiController.isStatusBarVisible = !isViewerModeState.value
-    systemUiController.isNavigationBarVisible = !isViewerModeState.value
 
     Box {
         TreeScreenContainer(
@@ -429,6 +422,7 @@ private fun TreeScreenStorageList(
     val focusRequester = remember { FocusRequester() }
     val lazyListState = rememberLazyListState()
     val focusedFile = focusedFileState.value
+    val digits = rememberUpdatedState(currentTreeState.value.fileList.size.toString().length)
 
     LazyColumn(
         modifier = modifier
@@ -440,9 +434,10 @@ private fun TreeScreenStorageList(
         ,
         state = lazyListState,
     ) {
-        val focusIndex = currentTreeState.value.fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
+        val fileList = currentTreeState.value.fileList
+        val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
         itemsIndexed(
-            items = currentTreeState.value.fileList,
+            items = fileList,
         ) { index, file ->
             TreeScreenItem(
                 modifier = Modifier
@@ -456,6 +451,8 @@ private fun TreeScreenStorageList(
                     }
                 ,
                 file = file,
+                number = currentTreeState.value.imageFileList.indexOf(file) + 1,
+                maxDigit = digits.value,
                 onClickItem = onClickItem,
             )
             DividerThin()
@@ -522,6 +519,8 @@ private suspend fun restoreFocus(
 private fun TreeScreenItem(
     modifier: Modifier,
     file: FileModel,
+    number: Int,
+    maxDigit: Int,
     onClickItem: (file: FileModel) -> Unit,
 ) {
     val context = LocalContext.current
@@ -530,9 +529,27 @@ private fun TreeScreenItem(
         modifier = modifier
             .clickable { onClickItem(file) }
             .fillMaxWidth()
-            .padding(horizontal = Size.M)
+            .padding(horizontal = Size.ScreenMargin)
             .heightIn(min = Size.ListItem),
     ) {
+        Box(
+            contentAlignment = Alignment.CenterEnd,
+            modifier = Modifier
+                .padding(end = Size.S)
+        ){
+            Text(
+                text = number.takeIf { it >= 1 }?.toString() ?: "",
+                style = Typography.labelLarge,
+            )
+            // Dummy for width
+            Text(
+                text = "X".repeat(maxDigit),
+                style = Typography.labelLarge,
+                modifier = Modifier
+                    .alpha(0f)
+            )
+        }
+
         if (file.isDirectory) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_folder),

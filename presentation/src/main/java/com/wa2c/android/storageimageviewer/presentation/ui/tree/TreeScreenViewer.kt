@@ -13,8 +13,8 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -23,12 +23,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -55,6 +53,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.toSize
+import androidx.core.view.WindowInsetsControllerCompat
 import coil.compose.AsyncImage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.values.StorageType
@@ -92,6 +91,16 @@ fun TreeScreenViewerContainer(
     val zoomState = rememberZoomState()
     var visibleOverlay by remember { mutableStateOf(false) }
 
+
+    val systemUiController = rememberSystemUiController()
+    if (visibleOverlay) {
+        systemUiController.isSystemBarsVisible = true
+        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+    } else {
+        systemUiController.isSystemBarsVisible = false
+        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -113,11 +122,15 @@ fun TreeScreenViewerContainer(
             },
         )
 
+        // Page
         Box(
-            contentAlignment = Alignment.TopEnd,
+            contentAlignment = Alignment.BottomStart,
             modifier = Modifier
-                .statusBarsPadding()
-                .padding(end = Size.S)
+                .let {
+                    if (systemUiController.isSystemBarsVisible) it.navigationBarsPadding()
+                    else it.padding(bottom = Size.M)
+                }
+                .padding(start = Size.M)
         ) {
             Text(
                 text = "${(pagerState.currentPage + 1)} / ${pagerState.pageCount}",
@@ -137,7 +150,10 @@ fun TreeScreenViewerContainer(
             content = {
                 TreeScreenViewerOverlay(
                     file = fileList[pagerState.currentPage],
-                    onClose = onClose,
+                    onClose = {
+                        visibleOverlay = true
+                        onClose()
+                    },
                 )
             },
         )
@@ -151,6 +167,7 @@ fun TreeScreenViewerContainer(
         if (zoomState.scale > 1.0f) {
             scope.launch { zoomState.reset() }
         } else {
+            visibleOverlay = true
             onClose()
         }
     }
@@ -210,7 +227,7 @@ private fun TreeScreenViewerContent(
                             val offset = if (keyEvent.isShiftPressed) 300f else 100f
                             scope.launch { zoomState.translate(size.center, y = -offset) }
                         } else {
-                            // TODO
+                            onClickShowOverlay()
                         }
                         true
                     }
@@ -219,7 +236,7 @@ private fun TreeScreenViewerContent(
                             val offset = if (keyEvent.isShiftPressed) 300f else 100f
                             scope.launch { zoomState.translate(size.center, y = +offset) }
                         } else {
-                            // TODO
+                            onClickShowOverlay()
                         }
                         true
                     }
@@ -260,11 +277,11 @@ private fun TreeScreenViewerContent(
                         true
                     }
                     Key.Enter,
-                    Key.NumPadEnter,
-                    Key.DirectionCenter, -> {
+                    Key.NumPadEnter, -> {
                         onClickShowOverlay()
                         true
                     }
+                    Key.DirectionCenter,
                     Key.Spacebar,
                     Key.MediaPlay,
                     Key.MediaPlayPause, -> {
