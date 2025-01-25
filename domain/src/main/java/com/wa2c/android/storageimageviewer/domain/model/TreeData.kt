@@ -11,4 +11,7 @@ data class TreeData(
 ): Parcelable {
     @IgnoredOnParcel
     val imageFileList: List<FileModel> = fileList.filter { !it.isDirectory }
+
+    @IgnoredOnParcel
+    val dummyDigit = "0".repeat(imageFileList.size.toString().length)
 }

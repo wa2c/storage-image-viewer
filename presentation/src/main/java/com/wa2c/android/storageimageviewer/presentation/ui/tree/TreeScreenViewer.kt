@@ -10,7 +10,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -79,7 +78,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Color
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.rememberZoomState
@@ -88,27 +86,31 @@ import net.engawapg.lib.zoomable.zoomable
 @Composable
 fun TreeScreenViewer(
     viewModel: TreeViewModel = hiltViewModel(),
-    initialFile: FileModel?,
     onClose: () -> Unit,
 ) {
-    val initialIndex = remember { mutableStateOf(initialFile?.let { viewModel.currentTree.value.fileList.indexOf(it) } ?: 0) }
-    val fileList = viewModel.currentTree.collectAsStateWithLifecycle().value.imageFileList
+    val imageFileList = viewModel.currentTree.collectAsStateWithLifecycle().value.imageFileList
+    val focusedFile = viewModel.focusedFile.collectAsStateWithLifecycle().value
+
     val pagerState = rememberPagerState(
-        pageCount = { fileList.size },
-        initialPage = initialIndex.value,
+        pageCount = { imageFileList.size },
+        initialPage = focusedFile?.let { imageFileList.indexOf(it) } ?: 0,
     )
 
     TreeScreenViewerContainer(
         pagerState = pagerState,
-        fileList = fileList,
+        fileList = imageFileList,
         onChangeFile = viewModel::focusFile,
         sortState = viewModel.sortState.collectAsStateWithLifecycle(),
         onSetSort = viewModel::sortFile,
         onClose = onClose,
     )
 
-    LaunchedEffect(fileList) {
-        pagerState.requestScrollToPage(fileList.indexOf(viewModel.focusedFile.value))
+    LaunchedEffect(imageFileList) {
+        pagerState.requestScrollToPage(imageFileList.indexOf(viewModel.focusedFile.value))
+    }
+    LaunchedEffect(focusedFile) {
+        val focusedPage = imageFileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
+        if (pagerState.currentPage != focusedPage) pagerState.requestScrollToPage(focusedPage)
     }
 }
 
@@ -138,8 +140,6 @@ fun TreeScreenViewerContainer(
     }
     val pageRange = 0..<pagerState.pageCount
     val animatedColor = remember { Animatable(Color.ViewerOverlayBackground) }
-
-
 
     Surface(
         modifier = Modifier
@@ -300,7 +300,6 @@ private fun Modifier.keyControl(
         when (keyEvent.key) {
             Key.DirectionLeft -> {
                 if (zoomState.scale > 1.0f) {
-                    val offset = if (keyEvent.isShiftPressed) 300f else 100f
                     onZoomScroll(false, null, keyEvent.isShiftPressed)
                 } else {
                     onStepPage(false, keyEvent.isShiftPressed)
@@ -309,7 +308,6 @@ private fun Modifier.keyControl(
             }
             Key.DirectionRight -> {
                 if (zoomState.scale > 1.0f) {
-                    val offset = if (keyEvent.isShiftPressed) 300f else 100f
                     onZoomScroll(true, null, keyEvent.isShiftPressed)
                 } else {
                     onStepPage(true, keyEvent.isShiftPressed)
@@ -318,7 +316,6 @@ private fun Modifier.keyControl(
             }
             Key.DirectionUp -> {
                 if (zoomState.scale > 1.0f) {
-                    val offset = if (keyEvent.isShiftPressed) 300f else 100f
                     onZoomScroll(null, false, keyEvent.isShiftPressed)
                 } else {
                     onShowOverlay()
@@ -327,7 +324,6 @@ private fun Modifier.keyControl(
             }
             Key.DirectionDown -> {
                 if (zoomState.scale > 1.0f) {
-                    val offset = if (keyEvent.isShiftPressed) 300f else 100f
                     onZoomScroll(null, true, keyEvent.isShiftPressed)
                 } else {
                     onShowOverlay()

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 
@@ -21,8 +22,9 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageI
  */
 @Composable
 fun CommonDialog(
+    modifier: Modifier = Modifier,
     title: String? = null,
-    confirmButtons: List<DialogButton>?,
+    confirmButtons: List<DialogButton>? = null,
     dismissButton: DialogButton? = null,
     onDismiss: (() -> Unit)? = null,
     content: @Composable (() -> Unit)? = null
@@ -58,7 +60,13 @@ fun CommonDialog(
             if (onDismiss != null) {
                 onDismiss()
             }
-       },
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        ),
+        modifier = modifier
+            .padding(0.dp)
+
     )
 }
 
