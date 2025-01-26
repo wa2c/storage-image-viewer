@@ -166,13 +166,10 @@ fun TreeScreenViewerContainer(
             modifier = Modifier
                 .keyControl(
                     zoomState = zoomState,
-                    onStepPage = { isNext, isSkip ->
+                    onStepPage = { step ->
                         scope.launch {
                             // Change page
-                            val offset = if (isSkip == null) Int.MAX_VALUE else if (isSkip == true) 10 else 1
-                            val value = (if (isNext) 1 else -1) * offset
-
-                            val page = (pagerState.currentPage + value).coerceIn(pageRange)
+                            val page = (pagerState.currentPage + step).coerceIn(pageRange)
                             if (page != pagerState.currentPage) pagerState.animateScrollToPage(page = page)
                             else animatedColor.flashPage()
                         }
@@ -279,114 +276,54 @@ private suspend fun Animatable<androidx.compose.ui.graphics.Color, AnimationVect
 
 private fun Modifier.keyControl(
     zoomState: ZoomState,
-    onStepPage: (isNext: Boolean, isSkip: Boolean?) -> Unit,
+    onStepPage: (step: Int) -> Unit,
     onZoom: () -> Unit,
     onZoomScroll: (isXPositive: Boolean?, isYPositive: Boolean?, isSkip: Boolean?) -> Unit,
     onShowOverlay: () -> Unit,
     onShowMenu: () -> Unit,
 ): Modifier {
-    return this.onKeyEvent { keyEvent ->
-        if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
-        when (keyEvent.nativeKeyEvent.scanCode) {
-            104 -> {  // PageUp
-                onStepPage(false, true)
-                return@onKeyEvent true
-            }
-            109 -> { // PageDown
-                onStepPage(true, true)
-                return@onKeyEvent true
-            }
-        }
-        when (keyEvent.key) {
-            Key.DirectionLeft -> {
-                if (zoomState.scale > 1.0f) {
-                    onZoomScroll(false, null, keyEvent.isShiftPressed)
-                } else {
-                    onStepPage(false, keyEvent.isShiftPressed)
-                }
-                true
-            }
-            Key.DirectionRight -> {
-                if (zoomState.scale > 1.0f) {
-                    onZoomScroll(true, null, keyEvent.isShiftPressed)
-                } else {
-                    onStepPage(true, keyEvent.isShiftPressed)
-                }
-                true
-            }
-            Key.DirectionUp -> {
-                if (zoomState.scale > 1.0f) {
-                    onZoomScroll(null, false, keyEvent.isShiftPressed)
-                } else {
-                    onShowOverlay()
-                }
-                true
-            }
-            Key.DirectionDown -> {
-                if (zoomState.scale > 1.0f) {
-                    onZoomScroll(null, true, keyEvent.isShiftPressed)
-                } else {
-                    onShowOverlay()
-                }
-                true
-            }
-            Key.MediaPrevious,
-            Key.MediaRewind,
-            Key.MediaStepBackward,
-            Key.NavigatePrevious,
-            Key.SystemNavigationLeft, -> {
-                onStepPage(false, keyEvent.isShiftPressed)
-                true
-            }
-            Key.MediaNext,
-            Key.MediaFastForward,
-            Key.MediaStepForward,
-            Key.NavigateNext,
-            Key.SystemNavigationRight, -> {
-                onStepPage(true, keyEvent.isShiftPressed)
-                true
-            }
-            Key.PageUp,
-            Key.MediaSkipBackward, -> {
-                onStepPage(false, true)
-                true
-            }
-            Key.PageDown,
-            Key.MediaSkipForward, -> {
-                onStepPage(true, true)
-                true
-            }
-            Key.LeftBracket,
-            Key.MoveHome, -> {
-                onStepPage(false, null)
-                true
-            }
-            Key.RightBracket,
-            Key.MoveEnd, -> {
-                onStepPage(true, null)
-                true
-            }
-            Key.Enter,
-            Key.NumPadEnter, -> {
+    return this.treeKeyControl(
+        onEnter = onShowOverlay,
+        onPlay = onZoom,
+        onDirectionUp = { isShift ->
+            if (zoomState.scale > 1.0f) {
+                onZoomScroll(null, false, isShift)
+            } else {
                 onShowOverlay()
-                true
             }
-            Key.DirectionCenter,
-            Key.Spacebar,
-            Key.MediaPlay,
-            Key.MediaPlayPause, -> {
-                onZoom()
-                true
+        },
+        onDirectionDown = { isShift ->
+            if (zoomState.scale > 1.0f) {
+                onZoomScroll(null, true, isShift)
+            } else {
+                onShowOverlay()
             }
-            Key.Menu -> {
-                onShowMenu()
-                true
+        },
+        onDirectionLeft = { isShift ->
+            if (zoomState.scale > 1.0f) {
+                onZoomScroll(false, null, isShift)
+            } else {
+                if (isShift) onStepPage(-10) else onStepPage(-1)
             }
-            else -> {
-                false
+        },
+        onDirectionRight = { isShift ->
+            if (zoomState.scale > 1.0f) {
+                onZoomScroll(true, null, isShift)
+            } else {
+                if (isShift) onStepPage(10) else onStepPage(1)
             }
-        }
-    }
+        },
+        onForward = { onStepPage(+1) },
+        onBackward = { onStepPage(-1) },
+        onForwardSkip = { onStepPage(+10) },
+        onBackwardSkip = { onStepPage(-10) },
+        onForwardLast = { onStepPage(Int.MAX_VALUE) },
+        onBackwardFirst = { onStepPage(-Int.MAX_VALUE) },
+        //onNumber = {},
+        //onDelete = {},
+        onMenu = onShowMenu,
+        //onSearch = {},
+    )
 }
 
 @Composable

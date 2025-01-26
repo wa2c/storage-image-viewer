@@ -82,6 +82,17 @@ class TreeViewModel @Inject constructor(
         }
     }
 
+    fun openPage(
+        inputNumber: String
+    ) {
+        val imageFileList = currentTree.value.imageFileList
+        inputNumber.toIntOrNull()?.let {
+            imageFileList.getOrNull((it - 1).coerceIn(imageFileList.indices)) ?.let { file ->
+                openFile(file)
+            }
+        }
+    }
+
     fun openFile(
         file: FileModel,
     ) {

@@ -7,9 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,34 +18,28 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -56,7 +48,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
@@ -64,9 +55,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
@@ -85,12 +73,9 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.components.Div
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Color
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -108,20 +93,20 @@ fun TreeScreen(
     val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
-    val inputNumber = remember { mutableStateOf<String?>(null) }
+    val inputNumberState = remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
-            .onPreviewKeyEvent { keyEvent ->
-                if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-
-                keyEvent.key.toNumber()?.let {
-                    inputNumber.value = (inputNumber.value ?: "") + it.toString()
-                    return@onPreviewKeyEvent true
+            .treeKeyControl(
+                isPreview = true,
+                onNumber = { number ->
+                    inputNumberState.value = (inputNumberState.value ?: "") + number.toString()
+                },
+                onSearch = {
+                    inputNumberState.value = (currentTreeState.value.imageFileList.indexOf(focusedFileState.value) + 1).toString()
                 }
+            ),
 
-                false
-            },
     ) {
         TreeScreenContainer(
             modifier = Modifier.fillMaxSize(),
@@ -153,23 +138,11 @@ fun TreeScreen(
             },
         )
 
-        val number = inputNumber.value
-        if (!number.isNullOrEmpty()) {
-            InputNumber(
-                initialNumber = number,
-                onSetNumber = { num ->
-                    val imageFileList = currentTreeState.value.imageFileList
-                    num.toIntOrNull()?.let {
-                        imageFileList.getOrNull((it - 1).coerceIn(0..<imageFileList.size)) ?.let { file ->
-                            viewModel.openFile(file)
-                        }
-                    }
-                    inputNumber.value = null
-                },
-                onDismiss = {
-                    inputNumber.value = null
-                }
-            )
+        TreeScreenInputNumberDialog(
+            inputNumberState = inputNumberState,
+            maxPageNumber = currentTreeState.value.imageFileList.size,
+        ) { page ->
+            viewModel.openPage(page)
         }
     }
 
@@ -230,19 +203,12 @@ private fun TreeScreenContainer(
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
         modifier = Modifier
-            .onPreviewKeyEvent { keyEvent ->
-                if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                when (keyEvent.key) {
-                    Key.Menu -> {
-                        sortMenuExpanded.value = true
-                        true
-                    }
-
-                    else -> {
-                        false
-                    }
+            .treeKeyControl(
+                isPreview = true,
+                onMenu = {
+                    sortMenuExpanded.value = true
                 }
-            },
+            ),
     ) { paddingValues ->
         Box(
             modifier = modifier
@@ -542,87 +508,6 @@ private fun TreeScreenItem(
     }
 }
 
-@Composable
-private fun InputNumber(
-    initialNumber: String,
-    onSetNumber: (String) -> Unit,
-    onDismiss: () -> Unit = {},
-) {
-    var number by remember { mutableStateOf(initialNumber) }
-    Dialog(
-        onDismissRequest = { onDismiss() },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-        ),
-    ) {
-        Surface {
-            Box(
-                contentAlignment = Alignment.CenterEnd,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(Size.S))
-                    .background(Color.NumberInputBackground)
-                    .padding(Size.S)
-                    .widthIn(min = 100.dp)
-                    .focusable()
-                    .onKeyEvent { keyEvent ->
-                        if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
-
-                        keyEvent.key.toNumber()?.let {
-                            number += it
-                            return@onKeyEvent true
-                        }
-
-                        when (keyEvent.key) {
-                            Key.Backspace,
-                            Key.Delete -> {
-                                number = number.dropLast(1)
-                                return@onKeyEvent true
-                            }
-                            Key.Enter,
-                            Key.NumPadEnter,
-                            Key.DirectionCenter,
-                            Key.Spacebar -> {
-                                onSetNumber(number)
-                                return@onKeyEvent true
-                            }
-                        }
-
-                        false
-                    },
-            ) {
-                Text(
-                    text = number,
-                    style = Typography.titleLarge,
-                    modifier = Modifier
-                )
-            }
-        }
-    }
-
-    LaunchedEffect(number) {
-        launch {
-            delay(3000)
-            onDismiss()
-        }
-    }
-}
-
-private fun Key.toNumber(): Char? {
-    return when (this) {
-        Key.Zero, Key.NumPad0 -> '0'
-        Key.One, Key.NumPad1 -> '1'
-        Key.Two, Key.NumPad2 -> '2'
-        Key.Three, Key.NumPad3 -> '3'
-        Key.Four, Key.NumPad4 -> '4'
-        Key.Five, Key.NumPad5 -> '5'
-        Key.Six, Key.NumPad6 -> '6'
-        Key.Seven, Key.NumPad7 -> '7'
-        Key.Eight, Key.NumPad8 -> '8'
-        Key.Nine, Key.NumPad9 -> '9'
-        else -> null
-    }
-}
-
 /**
  * Preview
  */
@@ -683,23 +568,6 @@ private fun TreeScreenContainerPreview() {
             onClickItem = {},
             onClickUp = {},
             onClickBack = {},
-        )
-    }
-}
-/**
- * Preview
- */
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true,
-)
-@Composable
-private fun TreeScreenInputNumberPreview() {
-    StorageImageViewerTheme {
-        InputNumber(
-            initialNumber = "123",
-            onSetNumber = {},
-            onDismiss = {},
         )
     }
 }
