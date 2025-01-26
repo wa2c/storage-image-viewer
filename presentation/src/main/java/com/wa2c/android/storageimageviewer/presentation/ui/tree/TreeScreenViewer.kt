@@ -247,6 +247,8 @@ fun TreeScreenViewerContainer(
     BackHandler {
         if (zoomState.scale > 1.0f) {
             scope.launch { zoomState.reset() }
+        } else if (visibleOverlay) {
+            visibleOverlay = false
         } else {
             visibleOverlay = true
             onClose()
@@ -289,14 +291,14 @@ private fun Modifier.keyControl(
             if (zoomState.scale > 1.0f) {
                 onZoomScroll(null, false, isShift)
             } else {
-                onShowOverlay()
+                onStepPage(-10)
             }
         },
         onDirectionDown = { isShift ->
             if (zoomState.scale > 1.0f) {
                 onZoomScroll(null, true, isShift)
             } else {
-                onShowOverlay()
+                onStepPage(+10)
             }
         },
         onDirectionLeft = { isShift ->

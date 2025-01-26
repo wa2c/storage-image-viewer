@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +57,12 @@ fun TreeScreenInputNumberDialog(
                         inputNumberState.value = it.toString()
                     }
                 },
+                onFirst = {
+                    inputNumberState.value = "1"
+                },
+                onLast = {
+                    inputNumberState.value = maxPageNumber.toString()
+                },
                 onDelete = {
                     inputNumberState.value = inputNumberState.value?.dropLast(1)
                 },
@@ -85,11 +92,15 @@ private fun TreeScreenInputNumberDialogContent(
     onInputNumber: (Int) -> Unit,
     onUpNumber: (step: Int) -> Unit,
     onDownNumber: (step: Int) -> Unit,
+    onFirst: () -> Unit,
+    onLast: () -> Unit,
     onDelete: () -> Unit,
     onSet: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    Surface {
+    Surface(
+        color = androidx.compose.ui.graphics.Color.Transparent,
+    ) {
         Box(
             contentAlignment = Alignment.CenterEnd,
             modifier = Modifier
@@ -101,9 +112,9 @@ private fun TreeScreenInputNumberDialogContent(
                 .treeKeyControl(
                     onNumber = onInputNumber,
                     onDirectionRight = { onUpNumber(1) },
-                    onDirectionUp = { onUpNumber(1) },
+                    onDirectionUp = { onFirst() },
                     onDirectionLeft = { onDownNumber(1) },
-                    onDirectionDown = { onDownNumber(1) },
+                    onDirectionDown = { onLast() },
                     onForward = { onDownNumber(1) },
                     onBackward = { onDownNumber(1) },
                     onForwardSkip = { onDownNumber(10) },
@@ -140,6 +151,8 @@ private fun TreeScreenInputNumberPreview() {
             onInputNumber = {},
             onUpNumber = {},
             onDownNumber = {},
+            onFirst = {},
+            onLast = {},
             onDelete = {},
             onSet = {},
             onDismiss = {},

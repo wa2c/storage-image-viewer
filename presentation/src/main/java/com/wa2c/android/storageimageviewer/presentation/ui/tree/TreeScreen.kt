@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -55,6 +60,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
@@ -504,6 +510,104 @@ private fun TreeScreenItem(
                         .padding(start = Size.S)
                 )
             }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun TreeScreenStorageList2(
+    isViewerModeState: State<Boolean>,
+    modifier: Modifier,
+    currentTreeState: State<TreeData>,
+    focusedFileState: State<FileModel?>,
+    onFocusItem: (FileModel?) -> Unit,
+    onClickItem: (FileModel) -> Unit,
+) {
+    val parentFocusRequester = remember { FocusRequester() }
+    val focusRequester = remember { FocusRequester() }
+    val lazyListState = rememberLazyGridState()
+    val focusedFile = focusedFileState.value
+
+
+    LazyVerticalGrid(
+        modifier = modifier
+            .focusRequester(parentFocusRequester)
+            .focusProperties {
+                exit = { FocusRequester.Default }
+                enter = { focusRequester }
+            },
+        state = lazyListState,
+        columns = GridCells.Adaptive(minSize = 128.dp)
+    ) {
+        val fileList = currentTreeState.value.fileList
+        val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
+        itemsIndexed(
+            items = fileList,
+        ) { index, file ->
+            TreeScreenGridItem(
+                modifier = Modifier,
+                treeData = currentTreeState.value,
+                file = file,
+                onClickItem = onClickItem,
+            )
+        }
+    }
+//
+//    LaunchedEffect(currentTreeState.value.fileList) {
+//        restoreFocus(
+//            isViewerModeState = isViewerModeState,
+//            currentTreeState = currentTreeState,
+//            focusedFileState = focusedFileState,
+//            lazyListState = lazyListState,
+//            parentFocusRequester = parentFocusRequester,
+//            focusRequester = focusRequester,
+//        )
+//    }
+//
+//    LaunchedEffect(isViewerModeState.value) {
+//        restoreFocus(
+//            isViewerModeState = isViewerModeState,
+//            currentTreeState = currentTreeState,
+//            focusedFileState = focusedFileState,
+//            lazyListState = lazyListState,
+//            parentFocusRequester = parentFocusRequester,
+//            focusRequester = focusRequester,
+//        )
+//    }
+}
+
+
+@Composable
+private fun TreeScreenGridItem(
+    modifier: Modifier,
+    treeData: TreeData,
+    file: FileModel,
+    onClickItem: (file: FileModel) -> Unit,
+) {
+    val context = LocalContext.current
+    val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .clickable { onClickItem(file) }
+    ) {
+        if (file.isDirectory) {
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.ic_folder),
+                contentDescription = file.name,
+                modifier = Modifier
+                    .fillMaxSize()
+            )
+        } else {
+            AsyncImage(
+                model = file.uri.uri,
+                contentDescription = file.name,
+                modifier = Modifier
+                    .fillMaxSize()
+            )
         }
     }
 }
