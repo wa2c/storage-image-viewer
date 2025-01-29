@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         when (event.keyCode) {
             KeyEvent.KEYCODE_DEL -> {
-                dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_BACK))
+                return dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_BACK))
             }
         }
         return super.dispatchKeyEvent(event)

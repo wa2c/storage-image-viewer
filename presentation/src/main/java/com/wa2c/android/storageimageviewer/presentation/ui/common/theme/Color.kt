@@ -18,7 +18,6 @@ object Color {
     val Secondary = PurpleGrey80
     val Tertiary = Pink80
 
-
     /** Divider */
     val Divider = Color(0xFFBDBDBD)
 
@@ -30,6 +29,9 @@ object Color {
 
     /** Viewer overlay background */
     val ViewerOverlayBackground = Color(0x80808080)
+
+    /** Tree Badge background */
+    val TreeBadgeBackground = Color(0xC0808080)
 
     /** Viewer overlay flash */
     val ViewerOverlayFlash = Color(0x80C0C0C0)

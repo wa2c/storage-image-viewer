@@ -11,6 +11,7 @@ object Size {
     val LL = 32.dp
 
     val IconMiddle = 48.dp
+    val IconLarge = 80.dp
     val ListItem = 68.dp
 
     val ScreenMargin = 16.dp

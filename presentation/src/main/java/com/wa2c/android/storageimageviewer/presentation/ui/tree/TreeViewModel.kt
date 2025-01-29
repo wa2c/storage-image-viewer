@@ -4,10 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
-import com.wa2c.android.storageimageviewer.common.values.SortType
+import com.wa2c.android.storageimageviewer.common.values.TreeSortType
+import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
-import com.wa2c.android.storageimageviewer.domain.model.SortModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeData
+import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
+import com.wa2c.android.storageimageviewer.domain.model.TreeDataModel
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ScreenParam
@@ -27,7 +28,7 @@ class TreeViewModel @Inject constructor(
 ): ViewModel(), CoroutineScope by MainCoroutineScope() {
     private val paramId: String? = savedStateHandle[ScreenParam.ScreenParamId]
 
-    private val _currentTree = MutableStateFlow(TreeData())
+    private val _currentTree = MutableStateFlow(TreeDataModel())
     val currentTree = _currentTree.asStateFlow()
 
     private val _focusedFile = MutableStateFlow<FileModel?>(null)
@@ -42,7 +43,10 @@ class TreeViewModel @Inject constructor(
     private val _resultState = MutableStateFlow(Result.success<AppResult>(AppResult.Success))
     val resultState = _resultState.asStateFlow()
 
-    private val _sortState = MutableStateFlow(SortModel())
+    private val _viewState = MutableStateFlow(TreeViewType.ListSmall)
+    val viewState = _viewState.asStateFlow()
+
+    private val _sortState = MutableStateFlow(TreeSortModel())
     val sortState = _sortState.asStateFlow()
 
     val isRoot: Boolean
@@ -63,7 +67,13 @@ class TreeViewModel @Inject constructor(
         }
     }
 
-    fun sortFile(sortModel: SortModel) {
+    fun setView(type: TreeViewType) {
+        launch {
+            _viewState.emit(type)
+        }
+    }
+
+    fun sortFile(sortModel: TreeSortModel) {
         launch {
             _busyState.emit(true)
             currentTree.value.let { tree ->
@@ -77,15 +87,23 @@ class TreeViewModel @Inject constructor(
     fun focusFile(
         file: FileModel?,
     ) {
-        launch {
-            _focusedFile.emit(file)
-        }
+        _focusedFile.value = file
+    }
+
+    fun focusPage(
+        page: Int
+    ) {
+        val imageFileList = currentTree.value.imageFileList
+        val currentPage = imageFileList.indexOf(focusedFile.value).takeIf { it >= 0 } ?: return
+        val setPage = (currentPage + page).coerceIn(imageFileList.indices)
+        val file = imageFileList.getOrNull(setPage) ?: return
+        focusFile(file)
     }
 
     fun openPage(
         inputNumber: String
     ) {
-        val imageFileList = currentTree.value.imageFileList
+        val imageFileList = currentTree.value.imageFileList.ifEmpty { return }
         inputNumber.toIntOrNull()?.let {
             imageFileList.getOrNull((it - 1).coerceIn(imageFileList.indices)) ?.let { file ->
                 openFile(file)
@@ -104,7 +122,7 @@ class TreeViewModel @Inject constructor(
                     file to list
                 }.onSuccess { (file, list) ->
                     _focusedFile.emit(list.firstOrNull())
-                    _currentTree.emit(TreeData(file, list))
+                    _currentTree.emit(TreeDataModel(file, list))
                     _resultState.emit(Result.success(AppResult.Success))
                 }.onFailure {
                     _resultState.emit(Result.failure(it))
@@ -128,7 +146,7 @@ class TreeViewModel @Inject constructor(
                 parent to list
             }.onSuccess { (file, list) ->
                 _focusedFile.emit(currentTree.value.dir)
-                _currentTree.emit(TreeData(file, list))
+                _currentTree.emit(TreeDataModel(file, list))
                 _resultState.emit(Result.success(AppResult.Success))
             }.onFailure {
                 _resultState.emit(Result.failure(it))
@@ -157,7 +175,7 @@ class TreeViewModel @Inject constructor(
  * File comparator
  */
 private class FileComparator(
-    val sort: SortModel,
+    val sort: TreeSortModel,
 ): Comparator<FileModel> {
     override fun compare(f1: FileModel, f2: FileModel): Int {
         return compareFile(f1, f2).let {
@@ -173,13 +191,13 @@ private class FileComparator(
         }
 
         // Sort by size
-        if (sort.type == SortType.Size) {
+        if (sort.type == TreeSortType.Size) {
             val comp = f1.size.compareTo(f2.size)
             if (comp != 0) return comp
         }
 
         // Sort by date
-        if (sort.type == SortType.Date) {
+        if (sort.type == TreeSortType.Date) {
             val comp = f1.dateModified.compareTo(f2.dateModified)
             if (comp != 0) return comp
         }

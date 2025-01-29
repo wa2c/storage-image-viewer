@@ -51,12 +51,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isShiftPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,7 +62,7 @@ import coil.compose.AsyncImage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
-import com.wa2c.android.storageimageviewer.domain.model.SortModel
+import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
@@ -119,8 +113,8 @@ fun TreeScreenViewerContainer(
     pagerState: PagerState,
     fileList: List<FileModel>,
     onChangeFile: (FileModel?) -> Unit,
-    sortState: State<SortModel>,
-    onSetSort: (SortModel) -> Unit,
+    sortState: State<TreeSortModel>,
+    onSetSort: (TreeSortModel) -> Unit,
     onClose: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -417,8 +411,8 @@ private fun ZoomState.getNextScale(): Float {
 private fun TreeScreenViewerOverlay(
     file: FileModel,
     sortMenuExpanded: MutableState<Boolean>,
-    sortState: State<SortModel>,
-    onSetSort: (SortModel) -> Unit,
+    sortState: State<TreeSortModel>,
+    onSetSort: (TreeSortModel) -> Unit,
     onClose: () -> Unit,
 ) {
     Column(
@@ -498,7 +492,7 @@ private fun TreeScreenContainerPreview() {
             pagerState = rememberPagerState(pageCount = { list.size }),
             fileList = list,
             onChangeFile = {},
-            sortState = remember { mutableStateOf(SortModel()) },
+            sortState = remember { mutableStateOf(TreeSortModel()) },
             onSetSort = {},
             onClose = {},
         )

@@ -3,7 +3,7 @@ package com.wa2c.android.storageimageviewer.common.values
 /**
  * Sort type
  */
-enum class SortType {
+enum class TreeSortType {
     /** Name */
     Name,
     /** Size */

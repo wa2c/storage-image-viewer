@@ -17,16 +17,71 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import com.wa2c.android.storageimageviewer.common.values.SortType
-import com.wa2c.android.storageimageviewer.domain.model.SortModel
+import com.wa2c.android.storageimageviewer.common.values.TreeSortType
+import com.wa2c.android.storageimageviewer.common.values.TreeViewType
+import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
+
+@Composable
+fun TreeViewAction(
+    menuExpanded: MutableState<Boolean>,
+    viewState: State<TreeViewType>,
+    onSetView: (TreeViewType) -> Unit,
+) {
+
+    Box {
+        IconButton(
+            onClick = { menuExpanded.value = true }
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_view),
+                contentDescription = "View",
+            )
+        }
+        DropdownMenu(
+            expanded = menuExpanded.value,
+            onDismissRequest = { menuExpanded.value = false },
+        ) {
+            // Type
+            TreeScreenActionMenuRadio(
+                text = "List",
+                selected = viewState.value.isList,
+            ) {
+                onSetView(if (viewState.value.isLarge) TreeViewType.ListLarge else TreeViewType.ListSmall)
+            }
+            TreeScreenActionMenuRadio(
+                text = "Grid",
+                selected = !viewState.value.isList,
+            ) {
+                onSetView(if (viewState.value.isLarge) TreeViewType.GridLarge else TreeViewType.GridSmall)
+            }
+
+            DividerThin()
+
+            TreeScreenActionMenuRadio(
+                text = "Large",
+                selected = viewState.value.isLarge,
+            ) {
+                onSetView(if (viewState.value.isList) TreeViewType.ListLarge else TreeViewType.GridLarge)
+            }
+            TreeScreenActionMenuRadio(
+                text = "Small",
+                selected = !viewState.value.isLarge,
+            ) {
+                onSetView(if (viewState.value.isList) TreeViewType.ListSmall else TreeViewType.GridSmall)
+            }
+        }
+
+    }
+}
 
 @Composable
 fun TreeSortAction(
     menuExpanded: MutableState<Boolean>,
-    sortState: State<SortModel>,
-    onSetSort: (SortModel) -> Unit,
+    sortState: State<TreeSortModel>,
+    onSetSort: (TreeSortModel) -> Unit,
 ) {
     Box {
         IconButton(
@@ -44,22 +99,24 @@ fun TreeSortAction(
             // Type
             TreeScreenActionMenuRadio(
                 text = "Name",
-                selected = sortState.value.type == SortType.Name,
+                selected = sortState.value.type == TreeSortType.Name,
             ) {
-                onSetSort(sortState.value.copy(type = SortType.Name))
+                onSetSort(sortState.value.copy(type = TreeSortType.Name))
             }
             TreeScreenActionMenuRadio(
                 text = "Size",
-                selected = sortState.value.type == SortType.Size,
+                selected = sortState.value.type == TreeSortType.Size,
             ) {
-                onSetSort(sortState.value.copy(type = SortType.Size))
+                onSetSort(sortState.value.copy(type = TreeSortType.Size))
             }
             TreeScreenActionMenuRadio(
                 text = "Date",
-                selected = sortState.value.type == SortType.Date,
+                selected = sortState.value.type == TreeSortType.Date,
             ) {
-                onSetSort(sortState.value.copy(type = SortType.Date))
+                onSetSort(sortState.value.copy(type = TreeSortType.Date))
             }
+
+            DividerThin()
 
             // Option
             TreeScreenActionMenuCheck(
@@ -89,7 +146,6 @@ fun TreeSortAction(
         }
     }
 }
-
 
 @Composable
 private fun TreeScreenActionMenuRadio(
