@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,11 +53,9 @@ import my.nanihadesuka.compose.ScrollbarSettings
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TreeScreenLazyGrid(
-    isViewerModeState: State<Boolean>,
     modifier: Modifier,
     currentTreeState: State<TreeDataModel>,
     focusedFileState: State<FileModel?>,
@@ -64,25 +63,25 @@ fun TreeScreenLazyGrid(
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
 ) {
-    val parentFocusRequester = remember { FocusRequester() }
-    val focusRequester = remember { FocusRequester() }
-    val lazyListState = rememberLazyGridState()
+    val lazyState = rememberLazyGridState()
     val focusedFile = focusedFileState.value
+    val parentFocusRequester = remember { FocusRequester() }
+    val childFocusRequester = remember { FocusRequester() }
 
     LazyVerticalGridScrollbar(
-        state = lazyListState,
+        state = lazyState,
         settings = ScrollbarSettings.Default
     ) {
         LazyVerticalGrid(
+            state = lazyState,
+            columns = GridCells
+                .Adaptive(minSize = if (viewState.value.isLarge) 128.dp else 96.dp),
             modifier = modifier
                 .focusRequester(parentFocusRequester)
                 .focusProperties {
                     exit = { FocusRequester.Default }
-                    enter = { focusRequester }
+                    enter = { childFocusRequester }
                 },
-            state = lazyListState,
-            columns = GridCells
-                .Adaptive(minSize = if (viewState.value.isLarge) 128.dp else 96.dp)
         ) {
             val fileList = currentTreeState.value.fileList
             val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
@@ -99,27 +98,30 @@ fun TreeScreenLazyGrid(
         }
     }
 
-//    LaunchedEffect(currentTreeState.value.fileList) {
-//        restoreFocus(
-//            isViewerModeState = isViewerModeState,
-//            currentTreeState = currentTreeState,
-//            focusedFileState = focusedFileState.value,
-//            lazyListState = lazyListState,
-//            parentFocusRequester = parentFocusRequester,
-//            focusRequester = focusRequester,
-//        )
-//    }
-//
-//    LaunchedEffect(isViewerModeState.value) {
-//        restoreFocus(
-//            isViewerModeState = isViewerModeState,
-//            currentTreeState = currentTreeState,
-//            focusedFileState = focusedFileState,
-//            lazyListState = lazyListState,
-//            parentFocusRequester = parentFocusRequester,
-//            focusRequester = focusRequester,
-//        )
-//    }
+
+    val setFocus = remember {
+        fun() {
+            if (!isViewerModeState.value) return
+            restoreFocus(
+                fileList = currentTreeState.value.fileList,
+                focusedFile = focusedFileState.value,
+                listHeight = lazyState.layoutInfo.viewportEndOffset,
+                itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?.height ?: 0 ,
+                parentFocusRequester = parentFocusRequester,
+                childFocusRequester = childFocusRequester,
+            ) { index, offset ->
+                lazyState.requestScrollToItem(index, offset)
+            }
+        }
+    }
+
+    LaunchedEffect(currentTreeState.value.fileList) {
+        setFocus()
+    }
+
+    LaunchedEffect(isViewerModeState.value) {
+        setFocus()
+    }
 }
 
 
@@ -268,7 +270,6 @@ private fun TreeScreenLazyGridPreview() {
         )
 
         TreeScreenLazyGrid(
-            isViewerModeState = remember { mutableStateOf(false) },
             modifier = Modifier,
             currentTreeState = remember { mutableStateOf(TreeDataModel(dir, list)) },
             focusedFileState = remember { mutableStateOf(null) },

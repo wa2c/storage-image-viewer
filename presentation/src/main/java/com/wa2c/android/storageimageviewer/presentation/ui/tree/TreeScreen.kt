@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,7 +30,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -38,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
@@ -172,7 +179,7 @@ private fun Modifier.keyControl(
         //onSearch = {},
     )
 }
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun TreeScreenContainer(
     modifier: Modifier = Modifier,
@@ -254,7 +261,6 @@ private fun TreeScreenContainer(
                 } else {
                     if (viewState.value.isList) {
                         TreeScreenLazyList(
-                            isViewerModeState = isViewerModeState,
                             modifier = Modifier
                                 .weight(1f),
                             currentTreeState = currentTreeState,
@@ -265,7 +271,6 @@ private fun TreeScreenContainer(
                         )
                     } else {
                         TreeScreenLazyGrid(
-                            isViewerModeState = isViewerModeState,
                             modifier = Modifier
                                 .weight(1f),
                             currentTreeState = currentTreeState,
@@ -290,6 +295,7 @@ private fun TreeScreenContainer(
         }
     }
 }
+
 
 @Composable
 private fun TreeScreenControlBar(

@@ -60,7 +60,6 @@ import java.util.Locale
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TreeScreenLazyList(
-    isViewerModeState: State<Boolean>,
     modifier: Modifier,
     currentTreeState: State<TreeDataModel>,
     focusedFileState: State<FileModel?>,
@@ -68,23 +67,23 @@ fun TreeScreenLazyList(
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
 ) {
-    val parentFocusRequester = remember { FocusRequester() }
-    val focusRequester = remember { FocusRequester() }
-    val lazyListState = rememberLazyListState()
     val focusedFile = focusedFileState.value
+    val lazyState = rememberLazyListState()
+    val parentFocusRequester = remember { FocusRequester() }
+    val childFocusRequester = remember { FocusRequester() }
 
     LazyColumnScrollbar(
-        state = lazyListState,
+        state = lazyState,
         settings = ScrollbarSettings.Default
     ) {
         LazyColumn(
+            state = lazyState,
             modifier = modifier
                 .focusRequester(parentFocusRequester)
                 .focusProperties {
                     exit = { FocusRequester.Default }
-                    enter = { focusRequester }
+                    enter = { childFocusRequester }
                 },
-            state = lazyListState,
         ) {
             val fileList = currentTreeState.value.fileList
             val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
@@ -100,7 +99,7 @@ fun TreeScreenLazyList(
                             // else { onFocusItem(null) } NOTE: keep focus
                         }
                         .let {
-                            if (index == focusIndex) it.focusRequester(focusRequester)
+                            if (index == focusIndex) it.focusRequester(childFocusRequester)
                             else it
                         },
                     imageList = currentTreeState.value.imageFileList,
@@ -113,26 +112,29 @@ fun TreeScreenLazyList(
         }
     }
 
+    val setFocus = remember {
+        fun() {
+            if (!isViewerModeState.value) return
+            restoreFocus(
+                fileList = currentTreeState.value.fileList,
+                focusedFile = focusedFileState.value,
+                listHeight = lazyState.layoutInfo.viewportEndOffset,
+                itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size
+                    ?: 0,
+                parentFocusRequester = parentFocusRequester,
+                childFocusRequester = childFocusRequester,
+            ) { index, offset ->
+                lazyState.requestScrollToItem(index, offset)
+            }
+        }
+    }
+
     LaunchedEffect(currentTreeState.value.fileList) {
-        restoreFocus(
-            isViewerModeState = isViewerModeState,
-            currentTreeState = currentTreeState,
-            focusedFileState = focusedFile,
-            lazyListState = lazyListState,
-            parentFocusRequester = parentFocusRequester,
-            focusRequester = focusRequester,
-        )
+        setFocus()
     }
 
     LaunchedEffect(isViewerModeState.value) {
-        restoreFocus(
-            isViewerModeState = isViewerModeState,
-            currentTreeState = currentTreeState,
-            focusedFileState = focusedFile,
-            lazyListState = lazyListState,
-            parentFocusRequester = parentFocusRequester,
-            focusRequester = focusRequester,
-        )
+        setFocus()
     }
 }
 
@@ -237,37 +239,37 @@ private fun TreeScreenItem(
     }
 }
 
-/**
- * Restore focus
- */
-private fun restoreFocus(
-    isViewerModeState: State<Boolean>,
-    currentTreeState: State<TreeDataModel>,
-    focusedFileState: FileModel?,
-    lazyListState: LazyListState,
-    parentFocusRequester: FocusRequester,
-    focusRequester: FocusRequester,
-) {
-    val list = currentTreeState.value.fileList
-    if (list.isNotEmpty() && !isViewerModeState.value) {
-        val index = list.indexOf(focusedFileState)
-        if (index >= 0) {
-            val listHeight = lazyListState.layoutInfo.viewportEndOffset
-            val itemHeight = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
-            val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
-            lazyListState.requestScrollToItem(index, -offset.toInt())
-        } else {
-            lazyListState.requestScrollToItem(0, 0)
-        }
-
-        try {
-            parentFocusRequester.requestFocus()
-            focusRequester.requestFocus()
-        } catch (e: Exception) {
-            Log.e(e)
-        }
-    }
-}
+///**
+// * Restore focus
+// */
+//private fun restoreFocus(
+//    isViewerModeState: State<Boolean>,
+//    currentTreeState: State<TreeDataModel>,
+//    focusedFileState: FileModel?,
+//    lazyListState: LazyListState,
+//    parentFocusRequester: FocusRequester,
+//    focusRequester: FocusRequester,
+//) {
+//    val list = currentTreeState.value.fileList
+//    if (list.isNotEmpty() && !isViewerModeState.value) {
+//        val index = list.indexOf(focusedFileState)
+//        if (index >= 0) {
+//            val listHeight = lazyListState.layoutInfo.viewportEndOffset
+//            val itemHeight = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
+//            val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
+//            lazyListState.requestScrollToItem(index, -offset.toInt())
+//        } else {
+//            lazyListState.requestScrollToItem(0, 0)
+//        }
+//
+//        try {
+//            parentFocusRequester.requestFocus()
+//            focusRequester.requestFocus()
+//        } catch (e: Exception) {
+//            Log.e(e)
+//        }
+//    }
+//}
 
 /**
  * Preview

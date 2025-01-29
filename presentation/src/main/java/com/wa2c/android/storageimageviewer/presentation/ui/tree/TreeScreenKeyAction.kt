@@ -1,6 +1,7 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isShiftPressed
@@ -8,6 +9,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import com.wa2c.android.storageimageviewer.common.utils.Log
+import com.wa2c.android.storageimageviewer.domain.model.FileModel
 
 fun Modifier.treeKeyControl(
     isPreview: Boolean = false,
@@ -145,5 +148,37 @@ fun Key.toNumber(): Int? {
         Key.Eight, Key.NumPad8 -> 8
         Key.Nine, Key.NumPad9 -> 9
         else -> null
+    }
+}
+
+
+
+/**
+ * Restore focus
+ */
+fun restoreFocus(
+    fileList: List<FileModel>,
+    focusedFile: FileModel?,
+    listHeight: Int,
+    itemHeight: Int,
+    parentFocusRequester: FocusRequester,
+    childFocusRequester: FocusRequester,
+    onScroll: (index: Int, offset: Int) -> Unit,
+) {
+    if (fileList.isEmpty()) return
+
+    val index = fileList.indexOf(focusedFile)
+    if (index >= 0) {
+        val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
+        onScroll(index, -offset.toInt())
+    } else {
+        onScroll(0, 0)
+    }
+
+    try {
+        parentFocusRequester.requestFocus()
+        childFocusRequester.requestFocus()
+    } catch (e: Exception) {
+        Log.e(e)
     }
 }
