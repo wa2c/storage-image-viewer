@@ -51,6 +51,8 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.components.Div
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import my.nanihadesuka.compose.LazyColumnScrollbar
+import my.nanihadesuka.compose.ScrollbarSettings
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -71,38 +73,43 @@ fun TreeScreenLazyList(
     val lazyListState = rememberLazyListState()
     val focusedFile = focusedFileState.value
 
-    LazyColumn(
-        modifier = modifier
-            .focusRequester(parentFocusRequester)
-            .focusProperties {
-                exit = { FocusRequester.Default }
-                enter = { focusRequester }
-            },
+    LazyColumnScrollbar(
         state = lazyListState,
+        settings = ScrollbarSettings.Default
     ) {
-        val fileList = currentTreeState.value.fileList
-        val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
-        itemsIndexed(
-            items = fileList,
-        ) { index, file ->
-            TreeScreenItem(
-                modifier = Modifier
-                    .onFocusChanged {
-                        if (it.isFocused) {
-                            onFocusItem(file)
+        LazyColumn(
+            modifier = modifier
+                .focusRequester(parentFocusRequester)
+                .focusProperties {
+                    exit = { FocusRequester.Default }
+                    enter = { focusRequester }
+                },
+            state = lazyListState,
+        ) {
+            val fileList = currentTreeState.value.fileList
+            val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
+            itemsIndexed(
+                items = fileList,
+            ) { index, file ->
+                TreeScreenItem(
+                    modifier = Modifier
+                        .onFocusChanged {
+                            if (it.isFocused) {
+                                onFocusItem(file)
+                            }
+                            // else { onFocusItem(null) } NOTE: keep focus
                         }
-                        // else { onFocusItem(null) } NOTE: keep focus
-                    }
-                    .let {
-                        if (index == focusIndex) it.focusRequester(focusRequester)
-                        else it
-                    },
-                imageList = currentTreeState.value.imageFileList,
-                file = file,
-                viewState = viewState,
-                onClickItem = onClickItem,
-            )
-            DividerThin()
+                        .let {
+                            if (index == focusIndex) it.focusRequester(focusRequester)
+                            else it
+                        },
+                    imageList = currentTreeState.value.imageFileList,
+                    file = file,
+                    viewState = viewState,
+                    onClickItem = onClickItem,
+                )
+                DividerThin()
+            }
         }
     }
 

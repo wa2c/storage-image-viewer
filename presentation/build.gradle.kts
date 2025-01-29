@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.reorderable)
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.lazycolumnscrollbar)
 
     // Injection
     implementation(libs.hilt.android)

@@ -67,6 +67,8 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import my.nanihadesuka.compose.LazyColumnScrollbar
+import my.nanihadesuka.compose.ScrollbarSettings
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -219,29 +221,34 @@ private fun HomeScreenStorageList(
     val state = rememberReorderableLazyListState(onMove = { from, to ->
         onDragAndDrop(from.index, to.index)
     })
-    LazyColumn(
+    LazyColumnScrollbar(
         state = state.listState,
-        modifier = Modifier
-            .reorderable(state)
-            .detectReorderAfterLongPress(state)
+        settings = ScrollbarSettings.Default
     ) {
-        items(
-            items = storageListState.value,
-            key = { it.id },
-        ) { storage ->
-            ReorderableItem(state, key = storage) { isDragging ->
+        LazyColumn(
+            state = state.listState,
+            modifier = Modifier
+                .reorderable(state)
+                .detectReorderAfterLongPress(state)
+        ) {
+            items(
+                items = storageListState.value,
+                key = { it.id },
+            ) { storage ->
+                ReorderableItem(state, key = storage) { isDragging ->
 
-                val elevation = animateDpAsState(if (isDragging) Size.S else 0.dp, label = "")
-                HomeScreenStorageItem(
-                    storage = storage,
-                    modifier = Modifier
-                        .shadow(elevation.value)
-                        .background(MaterialTheme.colorScheme.surface),
-                    onClickItem = onClickItem,
-                    onClickEdit = onClickEdit,
-                )
+                    val elevation = animateDpAsState(if (isDragging) Size.S else 0.dp, label = "")
+                    HomeScreenStorageItem(
+                        storage = storage,
+                        modifier = Modifier
+                            .shadow(elevation.value)
+                            .background(MaterialTheme.colorScheme.surface),
+                        onClickItem = onClickItem,
+                        onClickEdit = onClickEdit,
+                    )
+                }
+                DividerThin()
             }
-            DividerThin()
         }
     }
 }

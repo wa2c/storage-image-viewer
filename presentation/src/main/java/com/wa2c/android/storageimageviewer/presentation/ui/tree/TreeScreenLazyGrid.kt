@@ -45,6 +45,8 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Color
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import my.nanihadesuka.compose.LazyVerticalGridScrollbar
+import my.nanihadesuka.compose.ScrollbarSettings
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -65,28 +67,33 @@ fun TreeScreenLazyGrid(
     val lazyListState = rememberLazyGridState()
     val focusedFile = focusedFileState.value
 
-    LazyVerticalGrid(
-        modifier = modifier
-            .focusRequester(parentFocusRequester)
-            .focusProperties {
-                exit = { FocusRequester.Default }
-                enter = { focusRequester }
-            },
+    LazyVerticalGridScrollbar(
         state = lazyListState,
-        columns = GridCells
-            .Adaptive(minSize = if (viewState.value.isLarge) 128.dp else 80.dp)
+        settings = ScrollbarSettings.Default
     ) {
-        val fileList = currentTreeState.value.fileList
-        val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
-        itemsIndexed(
-            items = fileList,
-        ) { index, file ->
-            TreeScreenGridItem(
-                modifier = Modifier
-                    .clickable { onClickItem(file) },
-                imageList = currentTreeState.value.imageFileList,
-                file = file,
-            )
+        LazyVerticalGrid(
+            modifier = modifier
+                .focusRequester(parentFocusRequester)
+                .focusProperties {
+                    exit = { FocusRequester.Default }
+                    enter = { focusRequester }
+                },
+            state = lazyListState,
+            columns = GridCells
+                .Adaptive(minSize = if (viewState.value.isLarge) 128.dp else 96.dp)
+        ) {
+            val fileList = currentTreeState.value.fileList
+            val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
+            itemsIndexed(
+                items = fileList,
+            ) { index, file ->
+                TreeScreenGridItem(
+                    modifier = Modifier
+                        .clickable { onClickItem(file) },
+                    imageList = currentTreeState.value.imageFileList,
+                    file = file,
+                )
+            }
         }
     }
 
@@ -141,7 +148,7 @@ private fun TreeScreenGridItem(
         } else {
             val number = (imageList.indexOf(file) + 1).toString() + " "
             Box (
-                contentAlignment = Alignment.TopStart,
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize()
@@ -156,6 +163,7 @@ private fun TreeScreenGridItem(
                     text = number,
                     style = Typography.labelMedium,
                     modifier = Modifier
+                        .align(Alignment.TopStart)
                         .background(Color.TreeBadgeBackground)
                         .padding(horizontal = Size.SS)
                 )
@@ -165,8 +173,8 @@ private fun TreeScreenGridItem(
         Text(
             text = file.name,
             style = Typography.titleMedium,
-            maxLines = 2,
-            minLines = 2,
+            maxLines = 1,
+            minLines = 1,
             softWrap = true,
             textAlign = TextAlign.Center,
             overflow = TextOverflow.Ellipsis,
