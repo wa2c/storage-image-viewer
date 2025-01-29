@@ -29,6 +29,8 @@ fun TreeViewAction(
     menuExpanded: MutableState<Boolean>,
     viewState: State<TreeViewType>,
     onSetView: (TreeViewType) -> Unit,
+    onKeyLeft: () -> Unit = {},
+    onKeyRight: () -> Unit = {},
 ) {
 
     Box {
@@ -43,6 +45,12 @@ fun TreeViewAction(
         DropdownMenu(
             expanded = menuExpanded.value,
             onDismissRequest = { menuExpanded.value = false },
+            modifier = Modifier
+                .treeKeyControl(
+                    isPreview = true,
+                    onDirectionLeft = { onKeyLeft() },
+                    onDirectionRight = { onKeyRight() },
+                )
         ) {
             // Type
             TreeScreenActionMenuRadio(
@@ -82,6 +90,8 @@ fun TreeSortAction(
     menuExpanded: MutableState<Boolean>,
     sortState: State<TreeSortModel>,
     onSetSort: (TreeSortModel) -> Unit,
+    onKeyLeft: () -> Unit = {},
+    onKeyRight: () -> Unit = {},
 ) {
     Box {
         IconButton(
@@ -95,6 +105,12 @@ fun TreeSortAction(
         DropdownMenu(
             expanded = menuExpanded.value,
             onDismissRequest = { menuExpanded.value = false },
+            modifier = Modifier
+                .treeKeyControl(
+                    isPreview = true,
+                    onDirectionLeft = { onKeyLeft() },
+                    onDirectionRight = { onKeyRight() },
+                )
         ) {
             // Type
             TreeScreenActionMenuRadio(

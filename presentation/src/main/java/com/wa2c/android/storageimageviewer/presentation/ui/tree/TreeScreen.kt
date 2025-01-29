@@ -211,11 +211,19 @@ private fun TreeScreenContainer(
                         menuExpanded = viewMenuExpanded,
                         viewState = viewState,
                         onSetView = onSetView,
+                        onKeyRight = {
+                            viewMenuExpanded.value = false
+                            sortMenuExpanded.value = true
+                        }
                     )
                     TreeSortAction(
                         menuExpanded = sortMenuExpanded,
                         sortState = sortState,
                         onSetSort = onSetSort,
+                        onKeyLeft = {
+                            sortMenuExpanded.value = false
+                            viewMenuExpanded.value = true
+                        }
                     )
                 },
             )

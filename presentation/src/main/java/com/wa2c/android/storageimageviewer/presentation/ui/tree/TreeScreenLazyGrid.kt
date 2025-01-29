@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
@@ -183,6 +185,37 @@ private fun TreeScreenGridItem(
     }
 }
 
+/**
+ * Restore focus
+ */
+private fun restoreFocus(
+    isViewerModeState: State<Boolean>,
+    currentTreeState: State<TreeDataModel>,
+    focusedFileState: FileModel?,
+    lazyListState: LazyGridState,
+    parentFocusRequester: FocusRequester,
+    focusRequester: FocusRequester,
+) {
+    val list = currentTreeState.value.fileList
+    if (list.isNotEmpty() && !isViewerModeState.value) {
+        val index = list.indexOf(focusedFileState)
+        if (index >= 0) {
+            val listHeight = lazyListState.layoutInfo.viewportEndOffset
+            val itemHeight = lazyListState.layoutInfo.visibleItemsInfo.size
+            val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
+            lazyListState.requestScrollToItem(index, -offset.toInt())
+        } else {
+            lazyListState.requestScrollToItem(0, 0)
+        }
+
+        try {
+            parentFocusRequester.requestFocus()
+            focusRequester.requestFocus()
+        } catch (e: Exception) {
+            Log.e(e)
+        }
+    }
+}
 
 /**
  * Preview
