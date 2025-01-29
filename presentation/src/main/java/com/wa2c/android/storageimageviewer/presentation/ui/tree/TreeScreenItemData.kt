@@ -1,15 +1,11 @@
-package com.wa2c.android.storageimageviewer.domain.model
+package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
-import android.os.Parcelable
-import kotlinx.parcelize.IgnoredOnParcel
-import kotlinx.parcelize.Parcelize
+import com.wa2c.android.storageimageviewer.domain.model.FileModel
 
-@Parcelize
-data class TreeDataModel(
+data class TreeScreenItemData(
     val dir: FileModel? = null,
     val fileList: List<FileModel> = emptyList(),
-): Parcelable {
-    @IgnoredOnParcel
+) {
     val imageFileList: List<FileModel> = fileList.filter { !it.isDirectory }
 
     companion object {

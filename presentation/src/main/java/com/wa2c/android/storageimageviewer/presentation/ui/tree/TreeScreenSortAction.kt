@@ -27,7 +27,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
 @Composable
 fun TreeViewAction(
     menuExpanded: MutableState<Boolean>,
-    viewState: State<TreeViewType>,
+    viewType: TreeViewType,
     onSetView: (TreeViewType) -> Unit,
     onKeyLeft: () -> Unit = {},
     onKeyRight: () -> Unit = {},
@@ -55,30 +55,30 @@ fun TreeViewAction(
             // Type
             TreeScreenActionMenuRadio(
                 text = "List",
-                selected = viewState.value.isList,
+                selected = viewType.isList,
             ) {
-                onSetView(if (viewState.value.isLarge) TreeViewType.ListLarge else TreeViewType.ListSmall)
+                onSetView(if (viewType.isLarge) TreeViewType.ListLarge else TreeViewType.ListSmall)
             }
             TreeScreenActionMenuRadio(
                 text = "Grid",
-                selected = !viewState.value.isList,
+                selected = !viewType.isList,
             ) {
-                onSetView(if (viewState.value.isLarge) TreeViewType.GridLarge else TreeViewType.GridSmall)
+                onSetView(if (viewType.isLarge) TreeViewType.GridLarge else TreeViewType.GridSmall)
             }
 
             DividerThin()
 
             TreeScreenActionMenuRadio(
                 text = "Large",
-                selected = viewState.value.isLarge,
+                selected = viewType.isLarge,
             ) {
-                onSetView(if (viewState.value.isList) TreeViewType.ListLarge else TreeViewType.GridLarge)
+                onSetView(if (viewType.isList) TreeViewType.ListLarge else TreeViewType.GridLarge)
             }
             TreeScreenActionMenuRadio(
                 text = "Small",
-                selected = !viewState.value.isLarge,
+                selected = !viewType.isLarge,
             ) {
-                onSetView(if (viewState.value.isList) TreeViewType.ListSmall else TreeViewType.GridSmall)
+                onSetView(if (viewType.isList) TreeViewType.ListSmall else TreeViewType.GridSmall)
             }
         }
 
@@ -88,7 +88,7 @@ fun TreeViewAction(
 @Composable
 fun TreeSortAction(
     menuExpanded: MutableState<Boolean>,
-    sortState: State<TreeSortModel>,
+    sort: TreeSortModel,
     onSetSort: (TreeSortModel) -> Unit,
     onKeyLeft: () -> Unit = {},
     onKeyRight: () -> Unit = {},
@@ -115,21 +115,21 @@ fun TreeSortAction(
             // Type
             TreeScreenActionMenuRadio(
                 text = "Name",
-                selected = sortState.value.type == TreeSortType.Name,
+                selected = sort.type == TreeSortType.Name,
             ) {
-                onSetSort(sortState.value.copy(type = TreeSortType.Name))
+                onSetSort(sort.copy(type = TreeSortType.Name))
             }
             TreeScreenActionMenuRadio(
                 text = "Size",
-                selected = sortState.value.type == TreeSortType.Size,
+                selected = sort.type == TreeSortType.Size,
             ) {
-                onSetSort(sortState.value.copy(type = TreeSortType.Size))
+                onSetSort(sort.copy(type = TreeSortType.Size))
             }
             TreeScreenActionMenuRadio(
                 text = "Date",
-                selected = sortState.value.type == TreeSortType.Date,
+                selected = sort.type == TreeSortType.Date,
             ) {
-                onSetSort(sortState.value.copy(type = TreeSortType.Date))
+                onSetSort(sort.copy(type = TreeSortType.Date))
             }
 
             DividerThin()
@@ -137,27 +137,27 @@ fun TreeSortAction(
             // Option
             TreeScreenActionMenuCheck(
                 text = "Descending",
-                checked = sortState.value.isDescending
+                checked = sort.isDescending
             ) {
-                onSetSort(sortState.value.copy(isDescending = !sortState.value.isDescending))
+                onSetSort(sort.copy(isDescending = !sort.isDescending))
             }
             TreeScreenActionMenuCheck(
                 text = "Ignore case",
-                checked = sortState.value.isIgnoreCase
+                checked = sort.isIgnoreCase
             ) {
-                onSetSort(sortState.value.copy(isIgnoreCase = !sortState.value.isIgnoreCase))
+                onSetSort(sort.copy(isIgnoreCase = !sort.isIgnoreCase))
             }
             TreeScreenActionMenuCheck(
                 text = "Number",
-                checked = sortState.value.isNumberSort
+                checked = sort.isNumberSort
             ) {
-                onSetSort(sortState.value.copy(isNumberSort = !sortState.value.isNumberSort))
+                onSetSort(sort.copy(isNumberSort = !sort.isNumberSort))
             }
             TreeScreenActionMenuCheck(
                 text = "Folder mix",
-                checked = sortState.value.isFolderMixed
+                checked = sort.isFolderMixed
             ) {
-                onSetSort(sortState.value.copy(isFolderMixed = !sortState.value.isFolderMixed))
+                onSetSort(sort.copy(isFolderMixed = !sort.isFolderMixed))
             }
         }
     }

@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,9 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -44,12 +39,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeDataModel
 import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
@@ -68,9 +61,10 @@ fun TreeScreen(
     val snackBarHostState = remember { SnackbarHostState() }
     val currentTreeState = viewModel.currentTree.collectAsStateWithLifecycle()
     val focusedFileState = viewModel.focusedFile.collectAsStateWithLifecycle()
-    val isViewerModeState = viewModel.isViewerMode.collectAsStateWithLifecycle()
-    val viewState = viewModel.viewState.collectAsStateWithLifecycle()
-    val sortState = viewModel.sortState.collectAsStateWithLifecycle()
+    val displayState = viewModel.displayData.collectAsStateWithLifecycle()
+//    val isViewerModeState = viewModel.isViewerMode.collectAsStateWithLifecycle()
+//    val viewState = viewModel.viewState.collectAsStateWithLifecycle()
+//    val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
     val inputNumberState = remember { mutableStateOf<String?>(null) }
@@ -92,9 +86,7 @@ fun TreeScreen(
             snackBarHostState = snackBarHostState,
             currentTreeState = currentTreeState,
             focusedFileState = focusedFileState,
-            isViewerModeState = isViewerModeState,
-            viewState = viewState,
-            sortState = sortState,
+            displayState = displayState,
             busyState = busyState,
             onSetView = viewModel::setView,
             onSetSort = viewModel::sortFile,
@@ -108,7 +100,7 @@ fun TreeScreen(
         )
 
         AnimatedVisibility(
-            visible = isViewerModeState.value,
+            visible = displayState.value.isViewerMode,
             enter = slideInVertically(
                 initialOffsetY = { fullHeight -> fullHeight },
             ),
@@ -147,48 +139,46 @@ fun TreeScreen(
 }
 
 
-private fun Modifier.keyControl(
-    onStepPage: (step: Int) -> Unit,
-    onShowMenu: () -> Unit
-): Modifier {
-    return this.treeKeyControl(
-        isPreview = true,
-//        onEnter = onShowOverlay,
-//        onPlay = onZoom,
-//        onDirectionUp = { isShift ->
-//            onStepPage(-1)
+//private fun Modifier.keyControl(
+//    onStepPage: (step: Int) -> Unit,
+//    onShowMenu: () -> Unit
+//): Modifier {
+//    return this.treeKeyControl(
+//        isPreview = true,
+////        onEnter = onShowOverlay,
+////        onPlay = onZoom,
+////        onDirectionUp = { isShift ->
+////            onStepPage(-1)
+////        },
+////        onDirectionDown = { isShift ->
+////            onStepPage(+1)
+////        },
+//        onDirectionLeft = {
+//            onStepPage(-10)
 //        },
-//        onDirectionDown = { isShift ->
-//            onStepPage(+1)
+//        onDirectionRight = {
+//            onStepPage(+10)
 //        },
-        onDirectionLeft = {
-            onStepPage(-10)
-        },
-        onDirectionRight = {
-            onStepPage(+10)
-        },
-        onForward = { onStepPage(+1) },
-        onBackward = { onStepPage(-1) },
-        onForwardSkip = { onStepPage(+10) },
-        onBackwardSkip = { onStepPage(-10) },
-        onForwardLast = { onStepPage(Int.MAX_VALUE) },
-        onBackwardFirst = { onStepPage(-Int.MAX_VALUE) },
-        //onNumber = {},
-        //onDelete = {},
-        onMenu = onShowMenu,
-        //onSearch = {},
-    )
-}
+//        onForward = { onStepPage(+1) },
+//        onBackward = { onStepPage(-1) },
+//        onForwardSkip = { onStepPage(+10) },
+//        onBackwardSkip = { onStepPage(-10) },
+//        onForwardLast = { onStepPage(Int.MAX_VALUE) },
+//        onBackwardFirst = { onStepPage(-Int.MAX_VALUE) },
+//        //onNumber = {},
+//        //onDelete = {},
+//        onMenu = onShowMenu,
+//        //onSearch = {},
+//    )
+//}
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun TreeScreenContainer(
     modifier: Modifier = Modifier,
     snackBarHostState: SnackbarHostState,
-    currentTreeState: State<TreeDataModel>,
+    currentTreeState: State<TreeScreenItemData>,
     focusedFileState: State<FileModel?>,
-    isViewerModeState: State<Boolean>,
-    viewState: State<TreeViewType>,
-    sortState: State<TreeSortModel>,
+    displayState: State<TreeScreenDisplayData>,
     busyState: State<Boolean>,
     onSetView: (TreeViewType) -> Unit,
     onSetSort: (TreeSortModel) -> Unit,
@@ -216,7 +206,7 @@ private fun TreeScreenContainer(
                 actions = {
                     TreeViewAction(
                         menuExpanded = viewMenuExpanded,
-                        viewState = viewState,
+                        viewType = displayState.value.viewType,
                         onSetView = onSetView,
                         onKeyRight = {
                             viewMenuExpanded.value = false
@@ -225,7 +215,7 @@ private fun TreeScreenContainer(
                     )
                     TreeSortAction(
                         menuExpanded = sortMenuExpanded,
-                        sortState = sortState,
+                        sort = displayState.value.sort,
                         onSetSort = onSetSort,
                         onKeyLeft = {
                             sortMenuExpanded.value = false
@@ -259,13 +249,13 @@ private fun TreeScreenContainer(
                             .weight(1f),
                     )
                 } else {
-                    if (viewState.value.isList) {
+                    if (displayState.value.viewType.isList) {
                         TreeScreenLazyList(
                             modifier = Modifier
                                 .weight(1f),
                             currentTreeState = currentTreeState,
                             focusedFileState = focusedFileState,
-                            viewState = viewState,
+                            displayState = displayState,
                             onFocusItem = onFocusItem,
                             onClickItem = onClickItem,
                         )
@@ -275,7 +265,7 @@ private fun TreeScreenContainer(
                                 .weight(1f),
                             currentTreeState = currentTreeState,
                             focusedFileState = focusedFileState,
-                            viewState = viewState,
+                            displayState = displayState,
                             onFocusItem = onFocusItem,
                             onClickItem = onClickItem,
                         )
@@ -406,11 +396,9 @@ private fun TreeScreenContainerPreview() {
 
         TreeScreenContainer(
             snackBarHostState = SnackbarHostState(),
-            currentTreeState = remember { mutableStateOf(TreeDataModel(dir, list)) },
+            currentTreeState = remember { mutableStateOf(TreeScreenItemData(dir, list)) },
             focusedFileState = remember { mutableStateOf(null) },
-            isViewerModeState = remember { mutableStateOf(false) },
-            sortState = remember { mutableStateOf(TreeSortModel()) },
-            viewState = remember { mutableStateOf(TreeViewType.ListSmall) },
+            displayState = remember { mutableStateOf(TreeScreenDisplayData()) },
             busyState = remember { mutableStateOf(false) },
             onSetView = {},
             onSetSort = {},

@@ -62,8 +62,8 @@ import coil.compose.AsyncImage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
+import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
@@ -84,6 +84,7 @@ fun TreeScreenViewer(
 ) {
     val imageFileList = viewModel.currentTree.collectAsStateWithLifecycle().value.imageFileList
     val focusedFile = viewModel.focusedFile.collectAsStateWithLifecycle().value
+    val displayData = viewModel.displayData.collectAsStateWithLifecycle().value
 
     val pagerState = rememberPagerState(
         pageCount = { imageFileList.size },
@@ -93,8 +94,8 @@ fun TreeScreenViewer(
     TreeScreenViewerContainer(
         pagerState = pagerState,
         fileList = imageFileList,
+        displayData = displayData,
         onChangeFile = viewModel::focusFile,
-        sortState = viewModel.sortState.collectAsStateWithLifecycle(),
         onSetSort = viewModel::sortFile,
         onClose = onClose,
     )
@@ -112,8 +113,8 @@ fun TreeScreenViewer(
 fun TreeScreenViewerContainer(
     pagerState: PagerState,
     fileList: List<FileModel>,
+    displayData: TreeScreenDisplayData,
     onChangeFile: (FileModel?) -> Unit,
-    sortState: State<TreeSortModel>,
     onSetSort: (TreeSortModel) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -223,7 +224,7 @@ fun TreeScreenViewerContainer(
                 TreeScreenViewerOverlay(
                     file = fileList[pagerState.currentPage],
                     sortMenuExpanded = sortMenuExpanded,
-                    sortState = sortState,
+                    displayData = displayData,
                     onSetSort = onSetSort,
                     onClose = {
                         visibleOverlay = true
@@ -411,7 +412,7 @@ private fun ZoomState.getNextScale(): Float {
 private fun TreeScreenViewerOverlay(
     file: FileModel,
     sortMenuExpanded: MutableState<Boolean>,
-    sortState: State<TreeSortModel>,
+    displayData: TreeScreenDisplayData,
     onSetSort: (TreeSortModel) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -440,7 +441,7 @@ private fun TreeScreenViewerOverlay(
             actions = {
                 TreeSortAction(
                     menuExpanded = sortMenuExpanded,
-                    sortState = sortState,
+                    sort = displayData.sort,
                     onSetSort = onSetSort,
                 )
             },
@@ -491,8 +492,8 @@ private fun TreeScreenContainerPreview() {
         TreeScreenViewerContainer(
             pagerState = rememberPagerState(pageCount = { list.size }),
             fileList = list,
+            displayData = TreeScreenDisplayData(),
             onChangeFile = {},
-            sortState = remember { mutableStateOf(TreeSortModel()) },
             onSetSort = {},
             onClose = {},
         )

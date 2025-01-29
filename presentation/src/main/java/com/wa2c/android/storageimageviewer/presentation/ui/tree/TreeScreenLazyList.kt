@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
@@ -38,13 +37,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeDataModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeDataModel.Companion.dummyDigits
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.TreeScreenItemData.Companion.dummyDigits
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
@@ -61,9 +58,9 @@ import java.util.Locale
 @Composable
 fun TreeScreenLazyList(
     modifier: Modifier,
-    currentTreeState: State<TreeDataModel>,
+    currentTreeState: State<TreeScreenItemData>,
     focusedFileState: State<FileModel?>,
-    viewState: State<TreeViewType>,
+    displayState: State<TreeScreenDisplayData>,
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
 ) {
@@ -101,11 +98,11 @@ fun TreeScreenLazyList(
                         .let {
                             if (index == focusIndex) it.focusRequester(childFocusRequester)
                             else it
-                        },
+                        }
+                        .clickable { onClickItem(file) },
                     imageList = currentTreeState.value.imageFileList,
                     file = file,
-                    viewState = viewState,
-                    onClickItem = onClickItem,
+                    viewType = displayState.value.viewType,
                 )
                 DividerThin()
             }
@@ -114,7 +111,7 @@ fun TreeScreenLazyList(
 
     val setFocus = remember {
         fun() {
-            if (!isViewerModeState.value) return
+            if (displayState.value.isViewerMode) return
             restoreFocus(
                 fileList = currentTreeState.value.fileList,
                 focusedFile = focusedFileState.value,
@@ -133,7 +130,7 @@ fun TreeScreenLazyList(
         setFocus()
     }
 
-    LaunchedEffect(isViewerModeState.value) {
+    LaunchedEffect(displayState.value.isViewerMode) {
         setFocus()
     }
 }
@@ -143,8 +140,7 @@ private fun TreeScreenItem(
     modifier: Modifier,
     imageList: List<FileModel>,
     file: FileModel,
-    viewState: State<TreeViewType>,
-    onClickItem: (file: FileModel) -> Unit,
+    viewType: TreeViewType,
 ) {
     val context = LocalContext.current
     val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
@@ -152,7 +148,6 @@ private fun TreeScreenItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .clickable { onClickItem(file) }
             .padding(horizontal = Size.ScreenMargin, vertical = 2.dp)
             .heightIn(min = Size.ListItem)
             .fillMaxWidth()
@@ -179,7 +174,7 @@ private fun TreeScreenItem(
             }
         }
 
-        val iconSize = if (viewState.value.isLarge) Size.IconLarge else Size.IconMiddle
+        val iconSize = if (viewType.isLarge) Size.IconLarge else Size.IconMiddle
         if (file.isDirectory) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_folder),
@@ -320,11 +315,10 @@ private fun TreeScreenLazyListPreview() {
         )
 
         TreeScreenLazyList(
-            isViewerModeState = remember { mutableStateOf(false) },
             modifier = Modifier,
-            currentTreeState = remember { mutableStateOf(TreeDataModel(dir, list)) },
+            currentTreeState = remember { mutableStateOf(TreeScreenItemData(dir, list)) },
             focusedFileState = remember { mutableStateOf(null) },
-            viewState = remember { mutableStateOf(TreeViewType.ListSmall) },
+            displayState = remember { mutableStateOf(TreeScreenDisplayData()) },
             onFocusItem = {},
             onClickItem = {},
         )

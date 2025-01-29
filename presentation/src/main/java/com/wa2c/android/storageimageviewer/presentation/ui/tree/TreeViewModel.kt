@@ -8,7 +8,6 @@ import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeDataModel
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ScreenParam
@@ -28,26 +27,20 @@ class TreeViewModel @Inject constructor(
 ): ViewModel(), CoroutineScope by MainCoroutineScope() {
     private val paramId: String? = savedStateHandle[ScreenParam.ScreenParamId]
 
-    private val _currentTree = MutableStateFlow(TreeDataModel())
+    private val _currentTree = MutableStateFlow(TreeScreenItemData())
     val currentTree = _currentTree.asStateFlow()
+
+    private val _displayData = MutableStateFlow(TreeScreenDisplayData())
+    val displayData = _displayData.asStateFlow()
 
     private val _focusedFile = MutableStateFlow<FileModel?>(null)
     val focusedFile = _focusedFile.asStateFlow()
-
-    private val _isViewerMode = MutableStateFlow<Boolean>(false)
-    val isViewerMode = _isViewerMode.asStateFlow()
 
     private val _busyState = MutableStateFlow(false)
     val busyState = _busyState.asStateFlow()
 
     private val _resultState = MutableStateFlow(Result.success<AppResult>(AppResult.Success))
     val resultState = _resultState.asStateFlow()
-
-    private val _viewState = MutableStateFlow(TreeViewType.ListSmall)
-    val viewState = _viewState.asStateFlow()
-
-    private val _sortState = MutableStateFlow(TreeSortModel())
-    val sortState = _sortState.asStateFlow()
 
     val isRoot: Boolean
         get() = currentTree.value.dir?.isRoot ?: true
@@ -69,7 +62,7 @@ class TreeViewModel @Inject constructor(
 
     fun setView(type: TreeViewType) {
         launch {
-            _viewState.emit(type)
+            _displayData.emit(displayData.value.copy(viewType = type))
         }
     }
 
@@ -79,7 +72,7 @@ class TreeViewModel @Inject constructor(
             currentTree.value.let { tree ->
                 _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(sortModel))))
             }
-            _sortState.emit(sortModel)
+            _displayData.emit(displayData.value.copy(sort = sortModel))
             _busyState.emit(false)
         }
     }
@@ -122,7 +115,7 @@ class TreeViewModel @Inject constructor(
                     file to list
                 }.onSuccess { (file, list) ->
                     _focusedFile.emit(list.firstOrNull())
-                    _currentTree.emit(TreeDataModel(file, list))
+                    _currentTree.emit(TreeScreenItemData(file, list))
                     _resultState.emit(Result.success(AppResult.Success))
                 }.onFailure {
                     _resultState.emit(Result.failure(it))
@@ -130,7 +123,7 @@ class TreeViewModel @Inject constructor(
                     _busyState.emit(false)
                 }
             } else {
-                _isViewerMode.emit(true)
+                _displayData.emit(displayData.value.copy(isViewerMode = true))
                 _focusedFile.emit(file)
             }
         }
@@ -146,7 +139,7 @@ class TreeViewModel @Inject constructor(
                 parent to list
             }.onSuccess { (file, list) ->
                 _focusedFile.emit(currentTree.value.dir)
-                _currentTree.emit(TreeDataModel(file, list))
+                _currentTree.emit(TreeScreenItemData(file, list))
                 _resultState.emit(Result.success(AppResult.Success))
             }.onFailure {
                 _resultState.emit(Result.failure(it))
@@ -157,12 +150,12 @@ class TreeViewModel @Inject constructor(
     }
 
     private suspend fun getChildren(file: FileModel): List<FileModel> {
-        return storageRepository.getChildren(file).sortedWith(FileComparator(sortState.value))
+        return storageRepository.getChildren(file).sortedWith(FileComparator(displayData.value.sort))
     }
 
     fun closeViewer() {
         launch {
-            _isViewerMode.emit(false)
+            _displayData.emit(displayData.value.copy(isViewerMode = false))
         }
     }
 
