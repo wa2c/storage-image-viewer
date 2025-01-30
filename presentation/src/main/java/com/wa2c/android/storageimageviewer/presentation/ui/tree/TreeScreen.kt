@@ -62,9 +62,6 @@ fun TreeScreen(
     val currentTreeState = viewModel.currentTree.collectAsStateWithLifecycle()
     val focusedFileState = viewModel.focusedFile.collectAsStateWithLifecycle()
     val displayState = viewModel.displayData.collectAsStateWithLifecycle()
-//    val isViewerModeState = viewModel.isViewerMode.collectAsStateWithLifecycle()
-//    val viewState = viewModel.viewState.collectAsStateWithLifecycle()
-//    val sortState = viewModel.sortState.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
     val inputNumberState = remember { mutableStateOf<String?>(null) }
@@ -270,14 +267,14 @@ private fun TreeScreenContainer(
                             onClickItem = onClickItem,
                         )
                     }
+
+                    DividerNormal()
+
+                    TreeScreenControlBar(
+                        dir = currentTreeState.value.dir,
+                        onClickUp = onClickUp,
+                    )
                 }
-
-                DividerNormal()
-
-                TreeScreenControlBar(
-                    dir = currentTreeState.value.dir,
-                    onClickUp = onClickUp,
-                )
             }
             LoadingBox(
                 isLoading = busyState.value,

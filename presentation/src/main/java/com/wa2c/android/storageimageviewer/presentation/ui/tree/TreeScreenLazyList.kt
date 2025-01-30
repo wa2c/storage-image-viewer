@@ -71,11 +71,12 @@ fun TreeScreenLazyList(
 
     LazyColumnScrollbar(
         state = lazyState,
-        settings = ScrollbarSettings.Default
+        settings = ScrollbarSettings.Default,
+        modifier = modifier,
     ) {
         LazyColumn(
             state = lazyState,
-            modifier = modifier
+            modifier = Modifier
                 .focusRequester(parentFocusRequester)
                 .focusProperties {
                     exit = { FocusRequester.Default }
