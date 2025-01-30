@@ -1,4 +1,4 @@
-package com.wa2c.android.storageimageviewer.presentation.ui.tree
+package com.wa2c.android.storageimageviewer.presentation.ui.tree.model
 
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 

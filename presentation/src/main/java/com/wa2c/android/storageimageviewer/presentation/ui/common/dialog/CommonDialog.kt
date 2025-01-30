@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 
 /**
  * Common dialog
@@ -38,9 +38,9 @@ fun CommonDialog(
                     confirmButtons.forEach {
                         Button(
                             onClick = it.onClick,
-                            contentPadding = PaddingValues(horizontal = Size.S, vertical = Size.SS),
+                            contentPadding = PaddingValues(horizontal = AppSize.S, vertical = AppSize.SS),
                             modifier = Modifier
-                                .padding(start = Size.S)
+                                .padding(start = AppSize.S)
                                 .heightIn(min = 0.dp)
                         ) {
                             Text(it.label)
@@ -86,7 +86,7 @@ class DialogButton(
 )
 @Composable
 private fun CommonDialogPreview() {
-    StorageImageViewerTheme {
+    AppTheme {
         CommonDialog(
             title = "Title",
             confirmButtons = listOf(

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -37,17 +36,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
-import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Color
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import my.nanihadesuka.compose.LazyVerticalGridScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import java.text.SimpleDateFormat
@@ -176,18 +175,18 @@ private fun TreeScreenGridItem(
                 )
                 Text(
                     text = number,
-                    style = Typography.labelMedium,
+                    style = AppTypography.labelMedium,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .background(Color.TreeBadgeBackground)
-                        .padding(horizontal = Size.SS)
+                        .background(AppColor.TreeBadgeBackground)
+                        .padding(horizontal = AppSize.SS)
                 )
             }
         }
 
         Text(
             text = file.name,
-            style = Typography.titleMedium,
+            style = AppTypography.titleMedium,
             maxLines = 1,
             minLines = 1,
             softWrap = true,
@@ -207,7 +206,7 @@ private fun TreeScreenGridItem(
 )
 @Composable
 private fun TreeScreenLazyGridPreview() {
-    StorageImageViewerTheme {
+    AppTheme {
         val storage = StorageModel(
             id = "1",
             uri = UriModel(uri = "content://test1/"),

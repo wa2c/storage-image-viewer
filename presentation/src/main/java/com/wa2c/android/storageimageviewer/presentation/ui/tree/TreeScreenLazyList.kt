@@ -41,13 +41,15 @@ import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.TreeScreenItemData.Companion.dummyDigits
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData.Companion.dummyDigits
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import java.text.SimpleDateFormat
@@ -149,33 +151,33 @@ private fun TreeScreenItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .padding(horizontal = Size.ScreenMargin, vertical = 2.dp)
-            .heightIn(min = Size.ListItem)
+            .padding(horizontal = AppSize.ScreenMargin, vertical = 2.dp)
+            .heightIn(min = AppSize.ListItem)
             .fillMaxWidth()
     ) {
         if (imageList.isNotEmpty()) {
             Box(
                 contentAlignment = Alignment.CenterEnd,
                 modifier = Modifier
-                    .padding(end = Size.S),
+                    .padding(end = AppSize.S),
             ) {
                 val number = if (file.isDirectory) "" else (imageList.indexOf(file) + 1).toString()
 
                 Text(
                     text = number,
-                    style = Typography.labelLarge,
+                    style = AppTypography.labelLarge,
                 )
                 // Dummy for width
                 Text(
                     text = imageList.dummyDigits,
-                    style = Typography.labelLarge,
+                    style = AppTypography.labelLarge,
                     modifier = Modifier
                         .alpha(0f),
                 )
             }
         }
 
-        val iconSize = if (viewType.isLarge) Size.IconLarge else Size.IconMiddle
+        val iconSize = if (viewType.isLarge) AppSize.IconLarge else AppSize.IconMiddle
         if (file.isDirectory) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_folder),
@@ -195,12 +197,12 @@ private fun TreeScreenItem(
         }
         Column(
             modifier = Modifier
-                .padding(start = Size.M)
-                .padding(vertical = Size.SS),
+                .padding(start = AppSize.M)
+                .padding(vertical = AppSize.SS),
         ) {
             Text(
                 text = file.name,
-                style = Typography.titleLarge,
+                style = AppTypography.titleLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -215,7 +217,7 @@ private fun TreeScreenItem(
                 if (!file.isDirectory) {
                     Text(
                         text = Formatter.formatFileSize(context, file.size),
-                        style = Typography.bodyLarge,
+                        style = AppTypography.bodyLarge,
                         maxLines = 1,
                         textAlign = TextAlign.End,
                         overflow = TextOverflow.Ellipsis,
@@ -223,11 +225,11 @@ private fun TreeScreenItem(
                 }
                 Text(
                     text = dateFormatter.format(Date(file.dateModified)),
-                    style = Typography.bodyLarge,
+                    style = AppTypography.bodyLarge,
                     maxLines = 1,
                     textAlign = TextAlign.End,
                     modifier = Modifier
-                        .padding(start = Size.S)
+                        .padding(start = AppSize.S)
                         .weight(1f)
                 )
             }
@@ -276,7 +278,7 @@ private fun TreeScreenItem(
 )
 @Composable
 private fun TreeScreenLazyListPreview() {
-    StorageImageViewerTheme {
+    AppTheme {
         val storage = StorageModel(
             id = "1",
             uri = UriModel(uri = "content://test1/"),

@@ -9,7 +9,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.rememberNavController
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             val navController = rememberNavController()
-            StorageImageViewerTheme {
+            AppTheme {
                 MainNavHost(
                     navController = navController,
                 )

@@ -49,8 +49,10 @@ import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 
 @Composable
 fun TreeScreen(
@@ -292,13 +294,13 @@ private fun TreeScreenControlBar(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .padding(horizontal = Size.S),
+            .padding(horizontal = AppSize.S),
     ) {
         val pathScroll = rememberScrollState()
         IconButton(
             onClick = onClickUp,
             modifier = Modifier
-                .size(Size.IconMiddle),
+                .size(AppSize.IconMiddle),
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_folder_up),
@@ -317,7 +319,7 @@ private fun TreeScreenControlBar(
             text = path ?: "",
             maxLines = 1,
             modifier = Modifier
-                .padding(start = Size.SS)
+                .padding(start = AppSize.SS)
                 .weight(1f)
                 .horizontalScroll(pathScroll),
         )
@@ -352,7 +354,7 @@ private fun TreeScreenEmpty(
 )
 @Composable
 private fun TreeScreenContainerPreview() {
-    StorageImageViewerTheme {
+    AppTheme {
         val storage = StorageModel(
             id = "1",
             uri = UriModel(uri = "content://test1/"),

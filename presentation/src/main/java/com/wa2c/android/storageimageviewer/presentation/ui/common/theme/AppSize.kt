@@ -2,7 +2,7 @@ package com.wa2c.android.storageimageviewer.presentation.ui.common.theme
 
 import androidx.compose.ui.unit.dp
 
-object Size {
+object AppSize {
 
     val SS = 4.dp
     val S = 8.dp

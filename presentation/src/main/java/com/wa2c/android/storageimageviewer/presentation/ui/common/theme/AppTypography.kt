@@ -5,7 +5,7 @@ import androidx.compose.ui.text.font.FontWeight
 
 private val base = Typography()
 // Set of Material typography styles to start with
-val Typography = Typography(
+val AppTypography = Typography(
     titleLarge = base.titleLarge.copy(fontWeight = FontWeight.Bold)
 //    bodyLarge = TextStyle(
 //        fontFamily = FontFamily.Default,

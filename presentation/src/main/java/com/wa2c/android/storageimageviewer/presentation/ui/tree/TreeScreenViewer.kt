@@ -37,7 +37,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +49,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.center
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.vectorResource
@@ -68,10 +68,11 @@ import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Color
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 import kotlinx.coroutines.launch
 import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.rememberZoomState
@@ -134,7 +135,7 @@ fun TreeScreenViewerContainer(
         systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
     val pageRange = 0..<pagerState.pageCount
-    val animatedColor = remember { Animatable(Color.ViewerOverlayBackground) }
+    val animatedColor = remember { Animatable(AppColor.ViewerOverlayBackground) }
 
     Surface(
         modifier = Modifier
@@ -201,17 +202,17 @@ fun TreeScreenViewerContainer(
             modifier = Modifier
                 .let {
                     if (visibleOverlay) it.navigationBarsPadding()
-                    else it.padding(bottom = Size.M)
+                    else it.padding(bottom = AppSize.M)
                 }
-                .padding(start = Size.M)
+                .padding(start = AppSize.M)
         ) {
             Text(
                 text = "${(pagerState.currentPage + 1)} / ${pagerState.pageCount}",
-                style = Typography.labelMedium,
+                style = AppTypography.labelMedium,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(Size.L))
+                    .clip(RoundedCornerShape(AppSize.L))
                     .background(color = animatedColor.value)
-                    .padding(horizontal = Size.S, Size.SS)
+                    .padding(horizontal = AppSize.S, AppSize.SS)
             )
         }
 
@@ -254,16 +255,16 @@ fun TreeScreenViewerContainer(
 /**
  * Flash page background (Indicates that page transition is not possible.)
  */
-private suspend fun Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D>.flashPage() {
+private suspend fun Animatable<Color, AnimationVector4D>.flashPage() {
     animateTo(
-        targetValue = Color.ViewerOverlayFlash,
+        targetValue = AppColor.ViewerOverlayFlash,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessHigh
         ),
     )
     animateTo(
-        targetValue = Color.ViewerOverlayBackground,
+        targetValue = AppColor.ViewerOverlayBackground,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessLow
@@ -445,7 +446,7 @@ private fun TreeScreenViewerOverlay(
                     onSetSort = onSetSort,
                 )
             },
-            colors = TopAppBarDefaults.topAppBarColors( containerColor = Color.ViewerOverlayBackground),
+            colors = TopAppBarDefaults.topAppBarColors( containerColor = AppColor.ViewerOverlayBackground),
         )
     }
 }
@@ -460,7 +461,7 @@ private fun TreeScreenViewerOverlay(
 )
 @Composable
 private fun TreeScreenContainerPreview() {
-    StorageImageViewerTheme {
+    AppTheme {
         val storage = StorageModel(
             id = "1",
             uri = UriModel(uri = "content://test1/"),

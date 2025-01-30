@@ -19,10 +19,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Color
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.max
@@ -98,14 +98,14 @@ private fun TreeScreenInputNumberDialogContent(
     onDismiss: () -> Unit,
 ) {
     Surface(
-        color = androidx.compose.ui.graphics.Color.Transparent,
+        color = AppColor.Transparent,
     ) {
         Box(
             contentAlignment = Alignment.CenterEnd,
             modifier = Modifier
-                .clip(RoundedCornerShape(Size.S))
-                .background(Color.NumberInputBackground)
-                .padding(Size.S)
+                .clip(RoundedCornerShape(AppSize.S))
+                .background(AppColor.NumberInputBackground)
+                .padding(AppSize.S)
                 .widthIn(min = 100.dp)
                 .focusable()
                 .treeKeyControl(
@@ -128,7 +128,7 @@ private fun TreeScreenInputNumberDialogContent(
         ) {
             Text(
                 text = inputNumber,
-                style = Typography.titleLarge,
+                style = AppTypography.titleLarge,
                 modifier = Modifier
             )
         }
@@ -144,7 +144,7 @@ private fun TreeScreenInputNumberDialogContent(
 )
 @Composable
 private fun TreeScreenInputNumberPreview() {
-    StorageImageViewerTheme {
+    AppTheme {
         TreeScreenInputNumberDialogContent(
             inputNumber = "123",
             onInputNumber = {},

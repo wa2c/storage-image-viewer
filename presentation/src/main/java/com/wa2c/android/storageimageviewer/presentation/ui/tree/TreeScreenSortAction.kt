@@ -12,7 +12,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -22,7 +21,7 @@ import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 
 @Composable
 fun TreeViewAction(
@@ -180,7 +179,7 @@ private fun TreeScreenActionMenuRadio(
             Text(
                 text = text,
                 modifier = Modifier
-                    .padding(start = Size.SS)
+                    .padding(start = AppSize.SS)
             )
         }
     },
@@ -204,7 +203,7 @@ private fun TreeScreenActionMenuCheck(
             Text(
                 text = text,
                 modifier = Modifier
-                    .padding(start = Size.SS),
+                    .padding(start = AppSize.SS),
             )
         }
     },

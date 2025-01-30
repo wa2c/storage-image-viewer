@@ -64,9 +64,9 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.CommonDialog
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.DialogButton
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Size
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.StorageImageViewerTheme
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.Typography
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -237,7 +237,7 @@ private fun HomeScreenStorageList(
             ) { storage ->
                 ReorderableItem(state, key = storage) { isDragging ->
 
-                    val elevation = animateDpAsState(if (isDragging) Size.S else 0.dp, label = "")
+                    val elevation = animateDpAsState(if (isDragging) AppSize.S else 0.dp, label = "")
                     HomeScreenStorageItem(
                         storage = storage,
                         modifier = Modifier
@@ -278,7 +278,7 @@ private fun HomeScreenStorageItem(
     }.let { permission ->
         permission == PackageManager.PERMISSION_GRANTED
     }
-    //var color by remember { mutableStateOf(Color.Green) }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -293,24 +293,23 @@ private fun HomeScreenStorageItem(
                 }
             }
             .fillMaxWidth()
-            //.background(color=  color)
-            .padding(horizontal = Size.M, vertical = Size.SS)
-            .heightIn(min = Size.ListItem)
+            .padding(horizontal = AppSize.M, vertical = AppSize.SS)
+            .heightIn(min = AppSize.ListItem)
     ) {
         Icon(
             imageVector = ImageVector.vectorResource(storage.type.drawableResId()),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .size(Size.IconMiddle)
+                .size(AppSize.IconMiddle)
         )
         Column(
             modifier = Modifier
-                .padding(start = Size.M)
+                .padding(start = AppSize.M)
         ) {
             Text(
                 text = storage.name,
-                style = Typography.titleLarge,
+                style = AppTypography.titleLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -322,7 +321,7 @@ private fun HomeScreenStorageItem(
 
             Text(
                 text = subText,
-                style = Typography.bodyLarge,
+                style = AppTypography.bodyLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -381,13 +380,13 @@ fun HomeScreenStorageEditDialog(
                     maxLines = 1,
                     singleLine = true,
                     modifier = Modifier
-                        .padding(top = Size.M)
+                        .padding(top = AppSize.M)
                 )
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .padding(top = Size.L)
-                        .clip(RoundedCornerShape(Size.SS))
+                        .padding(top = AppSize.L)
+                        .clip(RoundedCornerShape(AppSize.SS))
                         .clickable { onClickUri(storage.uri) }
                 )
             }
@@ -404,7 +403,7 @@ fun HomeScreenStorageEditDialog(
 )
 @Composable
 private fun HomeScreenContainerPreview() {
-    StorageImageViewerTheme {
+    AppTheme {
         val storageList = listOf(
             StorageModel(
                 id = "1",
@@ -442,7 +441,7 @@ private fun HomeScreenContainerPreview() {
 )
 @Composable
 private fun HomeScreenStorageEditDialogPreview() {
-    StorageImageViewerTheme {
+    AppTheme {
         val storage = StorageModel(
             id = "1",
             uri = UriModel(uri = "content://test1/"),
