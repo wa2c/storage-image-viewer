@@ -10,6 +10,9 @@ enum class StorageType {
     SD,
     /** External storage */
     External,
+    /** Download */
+    Download,
     /** Storage Access Framework storage */
     SAF,
+    ;
 }

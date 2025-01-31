@@ -1,14 +1,15 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.home
 
-import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.os.Build
+import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -35,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -50,23 +51,26 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.wa2c.android.storageimageviewer.common.utils.Utils
+import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
-import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
-import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUriModel
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.drawableResId
+import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
+import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.CommonDialog
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.DialogButton
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.treeKeyControl
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -74,49 +78,32 @@ import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
+
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onSelectStorage: (storage: StorageModel) -> Unit,
 ) {
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     val snackBarHostState = remember { SnackbarHostState() }
-    val resolver = LocalContext.current.contentResolver
+    val context = LocalContext.current
+    val resolver = context.contentResolver
     val storageListState = viewModel.storageList.collectAsStateWithLifecycle()
-    val editStorage = remember { mutableStateOf<StorageModel?>(null) }
-    val resultState = viewModel.resultState.collectAsStateWithLifecycle()
+    val editStorage = viewModel.editStorage.collectAsStateWithLifecycle()
 
     val treeOpenLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        if (uri == null) {
-            // todo message
-            return@rememberLauncherForActivityResult
-        }
-        editStorage.value?.let {
-            editStorage.value = it.copy(uri = uri.toUriModel())
-        }
+        viewModel.setUri(uri?.toString(), uri?.lastPathSegment)
     }
-
-    // Register ActivityResult handler
-    val requestPermissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        //todo message
-    }
-
 
     HomeScreenContainer(
         snackBarHostState = snackBarHostState,
         storageListState = storageListState,
         onClickAdd = {
-            editStorage.value = StorageModel(
-                id = Utils.generateUUID(),
-                uri = UriModel(uri = ""),
-                name = "",
-                type = StorageType.SAF,
-                sortOrder = 0,
-            )
+            viewModel.newStorage()
+
         },
         onClickEdit = { storage ->
-            if (storage.type != StorageType.SAF) return@HomeScreenContainer
-            editStorage.value = storage
+            viewModel.updateEditStorage(storage)
         },
         onClickItem = onSelectStorage,
         onDragAndDrop = viewModel::onItemMove,
@@ -128,6 +115,9 @@ fun HomeScreen(
         onClickUri = { uri ->
             treeOpenLauncher.launch(uri.toUri())
         },
+        onEditName = { text ->
+            viewModel.updateEditStorage(storage = editStorage.value?.copy(name = text))
+        },
         onClickSet = { storage ->
             if (storage.uri.isInvalidUri) {
                 // todo message
@@ -136,29 +126,20 @@ fun HomeScreen(
             } else {
                 resolver.takePersistableUriPermission(
                     storage.uri.toUri() ?: return@HomeScreenStorageEditDialog,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
                 viewModel.setStorage(storage)
-                editStorage.value = null
             }
         },
         onDismiss = {
-            editStorage.value = null
-        }
+            viewModel.updateEditStorage(null)
+        },
     )
 
-
-
     LaunchedEffect(Unit) {
-       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requestPermissions.launch(Manifest.permission.READ_MEDIA_IMAGES)
-        } else {
-            requestPermissions.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+        viewModel.resultState.collectIn(lifecycleOwner = lifecycleOwner) {
+            snackBarHostState.showMessage(it)
         }
-    }
-
-    LaunchedEffect(resultState) {
-        snackBarHostState.showMessage(resultState.value)
     }
 
 }
@@ -179,7 +160,7 @@ private fun HomeScreenContainer(
                 title = { Text(stringResource(id = R.string.app_name)) },
                 navigationIcon = {
                     // todo
-                }
+                },
             )
         },
         floatingActionButton = {
@@ -194,12 +175,12 @@ private fun HomeScreenContainer(
                 )
             }
         },
-        snackbarHost = { SnackbarHost(snackBarHostState) }
+        snackbarHost = { SnackbarHost(snackBarHostState) },
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
         ) {
             HomeScreenStorageList(
                 storageListState = storageListState,
@@ -218,18 +199,20 @@ private fun HomeScreenStorageList(
     onClickEdit: (storage: StorageModel) -> Unit,
     onDragAndDrop: (from: Int, to: Int) -> Unit,
 ) {
-    val state = rememberReorderableLazyListState(onMove = { from, to ->
-        onDragAndDrop(from.index, to.index)
-    })
+    val state = rememberReorderableLazyListState(
+        onMove = { from, to ->
+            onDragAndDrop(from.index, to.index)
+        },
+    )
     LazyColumnScrollbar(
         state = state.listState,
-        settings = ScrollbarSettings.Default
+        settings = ScrollbarSettings.Default,
     ) {
         LazyColumn(
             state = state.listState,
             modifier = Modifier
                 .reorderable(state)
-                .detectReorderAfterLongPress(state)
+                .detectReorderAfterLongPress(state),
         ) {
             items(
                 items = storageListState.value,
@@ -262,22 +245,7 @@ private fun HomeScreenStorageItem(
     onClickEdit: (storage: StorageModel) -> Unit,
 ) {
     val context = LocalContext.current
-    val granted = when (storage.type) {
-        StorageType.Device,
-        StorageType.SD -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
-            } else {
-                context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-        StorageType.External,
-        StorageType.SAF -> {
-            context.checkCallingOrSelfUriPermission(storage.uri.toUri(), Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-    }.let { permission ->
-        permission == PackageManager.PERMISSION_GRANTED
-    }
+    val granted = context.checkCallingOrSelfUriPermission(storage.uri.toUri(), Intent.FLAG_GRANT_READ_URI_PERMISSION) == PackageManager.PERMISSION_GRANTED
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -294,18 +262,52 @@ private fun HomeScreenStorageItem(
             }
             .fillMaxWidth()
             .padding(horizontal = AppSize.M, vertical = AppSize.SS)
-            .heightIn(min = AppSize.ListItem)
+            .heightIn(min = AppSize.ListItem),
     ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(storage.type.drawableResId()),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
-                .size(AppSize.IconMiddle)
-        )
+        if (storage.type == StorageType.SAF) {
+            try {
+                storage.uri.toUri()?.authority?.let { authority ->
+                    val packages: List<PackageInfo> = context.packageManager.getInstalledPackages(PackageManager.GET_PROVIDERS)
+                    packages.firstOrNull { pack ->
+                        pack.providers?.firstOrNull { provider ->
+                            provider.authority?.let { authority.contains(it) } ?: false
+                        } != null
+                    }?.applicationInfo?.loadIcon(context.packageManager)
+                }
+            } catch (e: Exception) {
+                Log.w(e)
+                null
+            }?.let { drawable ->
+                // App Icon
+                Image(
+                    bitmap = drawable.toBitmap().asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .size(AppSize.IconMiddle),
+                )
+            } ?: let {
+                Icon(
+                    imageVector = ImageVector.vectorResource(storage.type.drawableResId()),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .size(AppSize.IconMiddle),
+                )
+            }
+        } else {
+            Icon(
+                imageVector = ImageVector.vectorResource(storage.type.drawableResId()),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .size(AppSize.IconMiddle),
+            )
+        }
+
         Column(
             modifier = Modifier
-                .padding(start = AppSize.M)
+                .padding(start = AppSize.M),
         ) {
             Text(
                 text = storage.name,
@@ -314,7 +316,7 @@ private fun HomeScreenStorageItem(
                 overflow = TextOverflow.Ellipsis,
             )
             val subText = if (granted) {
-                storage.uri.uri
+                 DocumentsContract.getTreeDocumentId(storage.uri.toUri())
             } else {
                 "Not granted" // FIXME
             }
@@ -331,8 +333,9 @@ private fun HomeScreenStorageItem(
 
 @Composable
 fun HomeScreenStorageEditDialog(
-    editStorage: MutableState<StorageModel?>,
+    editStorage: State<StorageModel?>,
     onClickUri: (uri: UriModel) -> Unit,
+    onEditName: (name: String) -> Unit,
     onClickSet: (storage: StorageModel) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -343,30 +346,22 @@ fun HomeScreenStorageEditDialog(
         confirmButtons = listOf(
             DialogButton(
                 label = "Save", // FIXME
+                enabled = storage.name.isNotEmpty() && !storage.uri.isInvalidUri,
                 onClick = {
                     onClickSet(storage)
-                }
-            )
+                },
+            ),
         ),
         dismissButton = DialogButton(
             label = "Cancel", // FIXME
             onClick = onDismiss,
         ),
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
     ) {
-        Column {
-            // Name
-            OutlinedTextField(
-                value = storage.name,
-                label = { Text("Name") }, // fixme
-                placeholder = { Text("Input name") }, // fixme
-                onValueChange = { value ->
-                    editStorage.value = storage.copy(name = value)
-                },
-                maxLines = 1,
-                singleLine = true,
-            )
-
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             // URI
             Box {
                 OutlinedTextField(
@@ -374,22 +369,41 @@ fun HomeScreenStorageEditDialog(
                     label = { Text("URI") }, // fixme
                     placeholder = { Text("Select URI") }, // fixme
                     readOnly = true,
-                    onValueChange = { value ->
-                        editStorage.value = storage.copy(uri = UriModel(value))
-                    },
+                    onValueChange = { },
                     maxLines = 1,
                     singleLine = true,
                     modifier = Modifier
-                        .padding(top = AppSize.M)
+                        .treeKeyControl(
+                            isPreview = true,
+                            onEnter = { onClickUri(storage.uri) },
+                            onPlay = { onClickUri(storage.uri) }
+
+                        )
+                        .padding(top = AppSize.M),
                 )
                 Box(
                     modifier = Modifier
                         .matchParentSize()
                         .padding(top = AppSize.L)
                         .clip(RoundedCornerShape(AppSize.SS))
-                        .clickable { onClickUri(storage.uri) }
+                        .clickable { onClickUri(storage.uri) },
                 )
             }
+
+            // Name
+            OutlinedTextField(
+                value = storage.name,
+                label = { Text("Name") }, // fixme
+                placeholder = { Text("Input name") }, // fixme
+                onValueChange = { value ->
+                    onEditName(value)
+                },
+                maxLines = 1,
+                singleLine = true,
+                modifier = Modifier
+                    .padding(top = AppSize.S)
+            )
+
         }
     }
 }
@@ -453,6 +467,7 @@ private fun HomeScreenStorageEditDialogPreview() {
         HomeScreenStorageEditDialog(
             editStorage = remember { mutableStateOf(storage) },
             onClickUri = {},
+            onEditName = {},
             onClickSet = {},
             onDismiss = {},
         )

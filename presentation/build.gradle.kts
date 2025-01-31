@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.lazycolumnscrollbar)
+    implementation(libs.accompanist.drawablepainter)
+    implementation(libs.androidx.documentfile)
 
     // Injection
     implementation(libs.hilt.android)

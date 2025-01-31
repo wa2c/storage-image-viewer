@@ -10,6 +10,7 @@ object ValueResource {
             StorageType.Device -> R.drawable.ic_storage_device
             StorageType.SD -> R.drawable.ic_storage_sd
             StorageType.External -> R.drawable.ic_storage_usb
+            StorageType.Download -> R.drawable.ic_storage_device
             StorageType.SAF -> R.drawable.ic_storage_saf
         }
     }

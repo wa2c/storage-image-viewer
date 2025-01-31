@@ -20,6 +20,10 @@ suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
                     is AppException.StorageNotFoundException -> {
                         "Storage not found: ${it.id}"
                     }
+
+                    is AppException.StorageSelectCancelledException -> {
+                        "Storage select cancelled"
+                    }
                 }
             }
             is CancellationException -> {

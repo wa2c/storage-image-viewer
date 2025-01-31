@@ -39,6 +39,7 @@ fun CommonDialog(
                         Button(
                             onClick = it.onClick,
                             contentPadding = PaddingValues(horizontal = AppSize.S, vertical = AppSize.SS),
+                            enabled = it.enabled,
                             modifier = Modifier
                                 .padding(start = AppSize.S)
                                 .heightIn(min = 0.dp)
@@ -51,7 +52,10 @@ fun CommonDialog(
         },
         dismissButton = {
             if (dismissButton != null) {
-                TextButton(onClick = dismissButton.onClick) {
+                TextButton(
+                    onClick = dismissButton.onClick,
+                    enabled = dismissButton.enabled,
+                ) {
                     Text(dismissButton.label)
                 }
             }
@@ -61,9 +65,9 @@ fun CommonDialog(
                 onDismiss()
             }
         },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false
-        ),
+//        properties = DialogProperties(
+//            usePlatformDefaultWidth = false
+//        ),
         modifier = modifier
             .padding(0.dp)
 
@@ -76,8 +80,10 @@ fun CommonDialog(
 class DialogButton(
     /** Button label */
     val label: String,
+    /** Enabled */
+    val enabled: Boolean = true,
     /** Click event */
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
 )
 
 @Preview(

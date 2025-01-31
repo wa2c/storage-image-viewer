@@ -27,7 +27,7 @@ class MainCoroutineScope: CoroutineScope {
 fun <T> Flow<T>.collectIn(
     lifecycleOwner: LifecycleOwner,
     state: Lifecycle.State = Lifecycle.State.STARTED,
-    observer: (T) -> Unit = { },
+    observer: suspend (T) -> Unit = { },
 ) {
     lifecycleOwner.lifecycleScope.launch {
         lifecycleOwner.repeatOnLifecycle(state) {

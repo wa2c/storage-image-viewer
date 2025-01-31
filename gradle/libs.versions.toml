@@ -1,4 +1,5 @@
 [versions]
+accompanistDrawablepainter = "0.32.0"
 accompanistSystemuicontroller = "0.36.0"
 agp = "8.8.0"
 kotlin = "2.1.0"
@@ -25,6 +26,7 @@ coilCompose = "2.6.0"
 zoomable = "2.0.0"
 
 [libraries]
+accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainter" }
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

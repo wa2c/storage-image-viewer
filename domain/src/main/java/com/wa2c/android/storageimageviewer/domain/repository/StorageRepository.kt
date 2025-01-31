@@ -2,7 +2,6 @@ package com.wa2c.android.storageimageviewer.domain.repository
 
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.utils.Utils
-import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.data.db.SafStorageEntity
 import com.wa2c.android.storageimageviewer.data.db.StorageDao
 import com.wa2c.android.storageimageviewer.data.file.FileHelper
@@ -25,25 +24,15 @@ class StorageRepository @Inject internal constructor(
 ) {
     val storageListFlow = storageDao.getList().map {
         withContext(dispatcher) {
-            val volumeList = fileHelper.getStorageList().map { entity ->
+            it.map { entity ->
                 StorageModel(
                     id = entity.id,
                     name = entity.name,
                     uri = UriModel(entity.uri),
-                    type = entity.storageType,
+                    type = fileHelper.getStorageType(entity.uri),
                     sortOrder = entity.sortOrder,
                 )
             }
-            val safList = it.map { entity ->
-                StorageModel(
-                    id = entity.id,
-                    name = entity.name,
-                    uri = UriModel(entity.uri),
-                    type = StorageType.SAF,
-                    sortOrder = entity.sortOrder,
-                )
-            }
-            volumeList + safList
         }
     }
 

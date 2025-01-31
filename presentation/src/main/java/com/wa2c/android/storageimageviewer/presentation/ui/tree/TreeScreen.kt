@@ -137,39 +137,6 @@ fun TreeScreen(
     }
 }
 
-
-//private fun Modifier.keyControl(
-//    onStepPage: (step: Int) -> Unit,
-//    onShowMenu: () -> Unit
-//): Modifier {
-//    return this.treeKeyControl(
-//        isPreview = true,
-////        onEnter = onShowOverlay,
-////        onPlay = onZoom,
-////        onDirectionUp = { isShift ->
-////            onStepPage(-1)
-////        },
-////        onDirectionDown = { isShift ->
-////            onStepPage(+1)
-////        },
-//        onDirectionLeft = {
-//            onStepPage(-10)
-//        },
-//        onDirectionRight = {
-//            onStepPage(+10)
-//        },
-//        onForward = { onStepPage(+1) },
-//        onBackward = { onStepPage(-1) },
-//        onForwardSkip = { onStepPage(+10) },
-//        onBackwardSkip = { onStepPage(-10) },
-//        onForwardLast = { onStepPage(Int.MAX_VALUE) },
-//        onBackwardFirst = { onStepPage(-Int.MAX_VALUE) },
-//        //onNumber = {},
-//        //onDelete = {},
-//        onMenu = onShowMenu,
-//        //onSearch = {},
-//    )
-//}
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun TreeScreenContainer(
@@ -269,14 +236,14 @@ private fun TreeScreenContainer(
                             onClickItem = onClickItem,
                         )
                     }
-
-                    DividerNormal()
-
-                    TreeScreenControlBar(
-                        dir = currentTreeState.value.dir,
-                        onClickUp = onClickUp,
-                    )
                 }
+
+                DividerNormal()
+
+                TreeScreenControlBar(
+                    dir = currentTreeState.value.dir,
+                    onClickUp = onClickUp,
+                )
             }
             LoadingBox(
                 isLoading = busyState.value,
