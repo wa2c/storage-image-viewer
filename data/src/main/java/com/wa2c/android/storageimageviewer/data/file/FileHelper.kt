@@ -7,23 +7,20 @@ import android.os.Build
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import android.provider.DocumentsContract
-import android.webkit.MimeTypeMap
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
-import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.StorageType.Device
 import com.wa2c.android.storageimageviewer.common.values.StorageType.Download
-import com.wa2c.android.storageimageviewer.common.values.StorageType.External
+import com.wa2c.android.storageimageviewer.common.values.StorageType.USB
 import com.wa2c.android.storageimageviewer.common.values.StorageType.SAF
 import com.wa2c.android.storageimageviewer.common.values.StorageType.SD
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.max
@@ -56,23 +53,18 @@ class FileHelper @Inject internal constructor(
         } ?: emptyList()
     }
 
-    fun getStorageType(uriText: String): StorageType {
-        val uri = uriText.toUri()
-        return if (uri.authority == ANDROID_STORAGE_AUTHORITY) {
-            val volumeName = DocumentsContract.getTreeDocumentId(uri).split(':').firstOrNull()
-            if (volumeName == ANDROID_STORAGE_PRIMARY) {
-                Device
-            } else if (volumeName == DOWNLOAD_STORAGE_AUTHORITY) {
-                Download
+    @SuppressLint("DiscouragedPrivateApi")
+    private fun StorageVolume.mountedPath(): String? {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                directory ?.canonicalPath
             } else {
-                val storageVolume = getStorageList().firstOrNull { it.uuid == volumeName } ?: return SD
-                val description = storageVolume.getDescription(context)
-                if (description.contains("usb")) External
-                else if (description.contains("sd")) SD
-                else External
+                val getPath = StorageVolume::class.java.getDeclaredMethod("getPath")
+                (getPath.invoke(this) as? String)
             }
-        } else {
-            SAF
+        } catch (e: Exception) {
+            Log.e(e)
+            null
         }
     }
 
@@ -87,6 +79,36 @@ class FileHelper @Inject internal constructor(
         )
     }
 
+    suspend fun getStorageType(uriText: String): StorageType {
+        return withContext(Dispatchers.IO) {
+            val uri = uriText.toUri()
+            if (uri.authority == ANDROID_STORAGE_AUTHORITY) {
+                val volumeName = DocumentsContract.getTreeDocumentId(uri)
+                    .split(':').firstOrNull() ?: return@withContext SAF
+                if (volumeName == ANDROID_STORAGE_PRIMARY) {
+                    Device
+                } else {
+                    val storageVolume = getStorageList()
+                        .firstOrNull { it.uuid == volumeName } ?: return@withContext SAF
+                    if (storageVolume.isPrimary) return@withContext Device
+
+                    // by description
+                    val description = storageVolume.getDescription(context)
+                    if (description.contains("usb",true)) USB
+                    else if (description.contains("sd", true)) SD
+                    // by path
+                    val path = storageVolume.mountedPath() ?: return@withContext SAF
+                    if (path.startsWith("/storage")) SD
+                    else if (path.startsWith("/mnt")) USB
+                    else SAF
+                }
+            } else if (uri.authority == DOWNLOAD_STORAGE_AUTHORITY) {
+                Download
+            } else {
+                SAF
+            }
+        }
+    }
 
     /**
      * Get tree files
@@ -131,8 +153,8 @@ class FileHelper @Inject internal constructor(
     companion object {
         private const val SEPARATOR = "%2F"
 
-        private const val ANDROID_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
         private const val ANDROID_STORAGE_PRIMARY = "primary"
+        private const val ANDROID_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
         private const val DOWNLOAD_STORAGE_AUTHORITY = "com.android.providers.downloads.documents"
 
         private fun Cursor.getStringValue(name: String): String? {

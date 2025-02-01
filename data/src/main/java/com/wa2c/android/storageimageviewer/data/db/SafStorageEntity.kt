@@ -22,8 +22,8 @@ data class SafStorageEntity(
     /** URI */
     @ColumnInfo(name = "uri")
     val uri: String,
-    @ColumnInfo(name = "path")
-    val path: String,
+    @ColumnInfo(name = "type")
+    val type: String,
     /** Sort Order */
     @ColumnInfo(name = "sort_order")
     val sortOrder: Int,

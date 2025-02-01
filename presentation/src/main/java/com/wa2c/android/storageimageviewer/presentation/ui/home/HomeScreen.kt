@@ -1,7 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.home
 
 import android.content.Intent
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.provider.DocumentsContract
@@ -39,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,15 +55,15 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.wa2c.android.storageimageviewer.common.utils.Log
+import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
-import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.drawableResId
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
+import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.CommonDialog
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.DialogButton
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
@@ -71,6 +71,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.treeKeyControl
+import kotlinx.coroutines.launch
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -78,13 +79,13 @@ import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
-
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onSelectStorage: (storage: StorageModel) -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
     val snackBarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val resolver = context.contentResolver
@@ -119,16 +120,16 @@ fun HomeScreen(
             viewModel.updateEditStorage(storage = editStorage.value?.copy(name = text))
         },
         onClickSet = { storage ->
-            if (storage.uri.isInvalidUri) {
-                // todo message
-            } else if (storage.name.isEmpty()) {
-                // todo message
-            } else {
+            try {
                 resolver.takePersistableUriPermission(
                     storage.uri.toUri() ?: return@HomeScreenStorageEditDialog,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
                 viewModel.setStorage(storage)
+            } catch (e: Exception) {
+                scope.launch {
+                    snackBarHostState.showMessage(Result.failure(AppException.StorageAccessException(e)))
+                }
             }
         },
         onDismiss = {
@@ -154,12 +155,20 @@ private fun HomeScreenContainer(
     onClickItem: (storage: StorageModel) -> Unit,
     onDragAndDrop: (from: Int, to: Int) -> Unit,
 ) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
                 navigationIcon = {
-                    // todo
+                    val icon = context.packageManager.getApplicationIcon(context.packageName)
+                    Image(
+                        bitmap = icon.toBitmap().asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(AppSize.IconMiddle),
+                    )
                 },
             )
         },
@@ -264,46 +273,11 @@ private fun HomeScreenStorageItem(
             .padding(horizontal = AppSize.M, vertical = AppSize.SS)
             .heightIn(min = AppSize.ListItem),
     ) {
-        if (storage.type == StorageType.SAF) {
-            try {
-                storage.uri.toUri()?.authority?.let { authority ->
-                    val packages: List<PackageInfo> = context.packageManager.getInstalledPackages(PackageManager.GET_PROVIDERS)
-                    packages.firstOrNull { pack ->
-                        pack.providers?.firstOrNull { provider ->
-                            provider.authority?.let { authority.contains(it) } ?: false
-                        } != null
-                    }?.applicationInfo?.loadIcon(context.packageManager)
-                }
-            } catch (e: Exception) {
-                Log.w(e)
-                null
-            }?.let { drawable ->
-                // App Icon
-                Image(
-                    bitmap = drawable.toBitmap().asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .size(AppSize.IconMiddle),
-                )
-            } ?: let {
-                Icon(
-                    imageVector = ImageVector.vectorResource(storage.type.drawableResId()),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .size(AppSize.IconMiddle),
-                )
-            }
-        } else {
-            Icon(
-                imageVector = ImageVector.vectorResource(storage.type.drawableResId()),
-                contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .size(AppSize.IconMiddle),
-            )
-        }
+        StorageIcon(
+            modifier = Modifier
+                .align(Alignment.CenterVertically),
+            storage = storage,
+        )
 
         Column(
             modifier = Modifier
@@ -316,7 +290,7 @@ private fun HomeScreenStorageItem(
                 overflow = TextOverflow.Ellipsis,
             )
             val subText = if (granted) {
-                 DocumentsContract.getTreeDocumentId(storage.uri.toUri())
+                DocumentsContract.getTreeDocumentId(storage.uri.toUri())
             } else {
                 "Not granted" // FIXME
             }
@@ -373,6 +347,7 @@ fun HomeScreenStorageEditDialog(
                     maxLines = 1,
                     singleLine = true,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .treeKeyControl(
                             isPreview = true,
                             onEnter = { onClickUri(storage.uri) },
@@ -402,6 +377,7 @@ fun HomeScreenStorageEditDialog(
                 singleLine = true,
                 modifier = Modifier
                     .padding(top = AppSize.S)
+                    .fillMaxWidth()
             )
 
         }

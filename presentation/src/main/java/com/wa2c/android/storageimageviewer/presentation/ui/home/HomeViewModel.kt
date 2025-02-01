@@ -1,5 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.home
 
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wa2c.android.storageimageviewer.common.result.AppException
@@ -9,6 +10,7 @@ import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +52,7 @@ class HomeViewModel @Inject constructor(
                 updateEditStorage(storage.copy(
                     uri = UriModel(uri),
                     name = name,
+                    type = storageRepository.getStorageType(uri),
                 ))
             }
         }

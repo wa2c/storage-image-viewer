@@ -7,12 +7,7 @@ import kotlinx.coroutines.CancellationException
 
 suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
     result.onSuccess {
-//        val message = when (it) {
-//            is AppResult.Success -> {
-//                null
-//            }
-//        }
-//        message?.let { showSnackbar(it) }
+        // Do Nothing
     }.onFailure {
         val message = when (it) {
             is AppException -> {
@@ -23,6 +18,9 @@ suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
 
                     is AppException.StorageSelectCancelledException -> {
                         "Storage select cancelled"
+                    }
+                    is AppException.StorageAccessException -> {
+                        "Storage access error: ${it.message}"
                     }
                 }
             }

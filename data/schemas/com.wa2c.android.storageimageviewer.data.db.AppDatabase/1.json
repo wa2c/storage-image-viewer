@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "43e9a44a8bf9419a057ea6c90439852d",
+    "identityHash": "0c278751fa5a11f9b11e0e6402a20037",
     "entities": [
       {
         "tableName": "saf_storage",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `uri` TEXT NOT NULL, `path` TEXT NOT NULL, `sort_order` INTEGER NOT NULL, `modified_date` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `uri` TEXT NOT NULL, `type` TEXT NOT NULL, `sort_order` INTEGER NOT NULL, `modified_date` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -27,8 +27,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "path",
-            "columnName": "path",
+            "fieldPath": "type",
+            "columnName": "type",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -68,7 +68,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '43e9a44a8bf9419a057ea6c90439852d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0c278751fa5a11f9b11e0e6402a20037')"
     ]
   }
 }

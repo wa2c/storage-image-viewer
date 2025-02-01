@@ -2,6 +2,7 @@ package com.wa2c.android.storageimageviewer.domain.repository
 
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.utils.Utils
+import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.data.db.SafStorageEntity
 import com.wa2c.android.storageimageviewer.data.db.StorageDao
 import com.wa2c.android.storageimageviewer.data.file.FileHelper
@@ -29,7 +30,7 @@ class StorageRepository @Inject internal constructor(
                     id = entity.id,
                     name = entity.name,
                     uri = UriModel(entity.uri),
-                    type = fileHelper.getStorageType(entity.uri),
+                    type = StorageType.fromValue(entity.type),
                     sortOrder = entity.sortOrder,
                 )
             }
@@ -63,7 +64,7 @@ class StorageRepository @Inject internal constructor(
                     id = model.id,
                     name = model.name,
                     uri = model.uri.uri,
-                    path = "",
+                    type = model.type.value,
                     sortOrder = model.sortOrder,
                     modifiedDate = Utils.currentTime,
                 )
@@ -102,6 +103,12 @@ class StorageRepository @Inject internal constructor(
                     dateModified = parent.dateModified,
                 )
             }
+        }
+    }
+
+    suspend fun getStorageType(uri: String): StorageType {
+        return withContext(dispatcher) {
+            fileHelper.getStorageType(uri)
         }
     }
 

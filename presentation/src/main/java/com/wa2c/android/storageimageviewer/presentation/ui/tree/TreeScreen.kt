@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
+import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
@@ -160,13 +162,23 @@ private fun TreeScreenContainer(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(currentTreeState.value.dir?.name ?: "") },
+                title = {
+                    Text(
+                        text= currentTreeState.value.dir?.name ?: "",
+                        maxLines = 1,
+                        modifier = Modifier
+                            .basicMarquee(),
+                    )
+                },
                 navigationIcon = {
-                    IconButton(onClick = onClickBack) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_back),
-                            contentDescription = "Back",
-                        )
+                    currentTreeState.value.dir?.let { dir ->
+                        IconButton(onClick = onClickBack) {
+                            StorageIcon(
+                                storage = dir.storage,
+                                modifier = Modifier
+                                    .size(AppSize.IconMiddle),
+                            )
+                        }
                     }
                 },
                 actions = {
