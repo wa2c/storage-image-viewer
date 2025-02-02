@@ -10,6 +10,7 @@ object AppSize {
     val L = 24.dp
     val LL = 32.dp
 
+    val IconSmall = 24.dp
     val IconMiddle = 48.dp
     val IconLarge = 80.dp
     val ListItem = 68.dp

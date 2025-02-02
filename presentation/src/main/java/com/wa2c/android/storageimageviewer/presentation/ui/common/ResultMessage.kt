@@ -19,7 +19,7 @@ suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
                     is AppException.StorageSelectCancelledException -> {
                         "Storage select cancelled"
                     }
-                    is AppException.StorageAccessException -> {
+                    is AppException.StorageEditException -> {
                         "Storage access error: ${it.message}"
                     }
                 }

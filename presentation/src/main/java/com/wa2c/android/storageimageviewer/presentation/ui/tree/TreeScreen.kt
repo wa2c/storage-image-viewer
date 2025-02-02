@@ -167,6 +167,7 @@ private fun TreeScreenContainer(
                         text= currentTreeState.value.dir?.name ?: "",
                         maxLines = 1,
                         modifier = Modifier
+                            .padding(start = AppSize.S)
                             .basicMarquee(),
                     )
                 },

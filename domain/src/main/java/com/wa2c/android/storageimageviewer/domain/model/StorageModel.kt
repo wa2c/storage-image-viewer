@@ -13,6 +13,9 @@ data class StorageModel(
     val sortOrder: Int,
 ): Parcelable {
 
+    val isNew: Boolean
+        get() = id.isEmpty()
+
     companion object {
         val Empty = StorageModel(
             id = "",

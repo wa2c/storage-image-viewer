@@ -29,7 +29,6 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,8 +48,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import my.nanihadesuka.compose.LazyVerticalGridScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -141,8 +138,6 @@ private fun TreeScreenGridItem(
     imageList: List<FileModel>,
     file: FileModel,
 ) {
-    val context = LocalContext.current
-    val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -176,6 +171,7 @@ private fun TreeScreenGridItem(
                 Text(
                     text = number,
                     style = AppTypography.labelMedium,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .background(AppColor.TreeBadgeBackground)

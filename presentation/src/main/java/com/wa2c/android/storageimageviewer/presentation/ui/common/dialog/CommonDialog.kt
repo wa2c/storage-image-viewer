@@ -17,20 +17,23 @@ import androidx.compose.ui.window.DialogProperties
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 
+
+
+
 /**
  * Common dialog
  */
 @Composable
 fun CommonDialog(
     modifier: Modifier = Modifier,
-    title: String? = null,
+    title: @Composable (() -> Unit)? = null,
     confirmButtons: List<DialogButton>? = null,
     dismissButton: DialogButton? = null,
     onDismiss: (() -> Unit)? = null,
     content: @Composable (() -> Unit)? = null
 ) {
     AlertDialog(
-        title =  { title?.let { Text(text = title) } },
+        title = title,
         text = content,
         confirmButton = {
             if (!confirmButtons.isNullOrEmpty()) {
@@ -94,7 +97,7 @@ class DialogButton(
 private fun CommonDialogPreview() {
     AppTheme {
         CommonDialog(
-            title = "Title",
+            title = { Text("Title") },
             confirmButtons = listOf(
                 DialogButton(label = "Button1") { },
                 DialogButton(label = "Button2") { },

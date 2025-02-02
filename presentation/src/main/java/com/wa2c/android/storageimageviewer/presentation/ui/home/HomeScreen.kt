@@ -7,23 +7,26 @@ import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,26 +39,36 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wa2c.android.storageimageviewer.common.result.AppException
+import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
@@ -119,16 +132,29 @@ fun HomeScreen(
         onEditName = { text ->
             viewModel.updateEditStorage(storage = editStorage.value?.copy(name = text))
         },
-        onClickSet = { storage ->
+        onClickSave = { storage ->
             try {
                 resolver.takePersistableUriPermission(
-                    storage.uri.toUri() ?: return@HomeScreenStorageEditDialog,
+                    storage.uri.toUri(),
                     Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
-                viewModel.setStorage(storage)
+                viewModel.saveStorage(storage)
             } catch (e: Exception) {
                 scope.launch {
-                    snackBarHostState.showMessage(Result.failure(AppException.StorageAccessException(e)))
+                    snackBarHostState.showMessage(Result.failure(AppException.StorageEditException(e)))
+                }
+            }
+        },
+        onClickDelete = { storage ->
+            try {
+                resolver.releasePersistableUriPermission(
+                    storage.uri.toUri(),
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+                viewModel.deleteStorage(storage)
+            } catch (e: Exception) {
+                scope.launch {
+                    snackBarHostState.showMessage(Result.failure(AppException.StorageEditException(e)))
                 }
             }
         },
@@ -160,27 +186,37 @@ private fun HomeScreenContainer(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(id = R.string.app_name)) },
-                navigationIcon = {
-                    val icon = context.packageManager.getApplicationIcon(context.packageName)
-                    Image(
-                        bitmap = icon.toBitmap().asImageBitmap(),
-                        contentDescription = null,
+                title = {
+                    Text(
+                        stringResource(id = R.string.app_name),
                         modifier = Modifier
-                            .size(AppSize.IconMiddle),
+                            .padding(start = AppSize.S)
                     )
+                },
+                navigationIcon = {
+                   try {
+                        context.packageManager.getApplicationIcon(context.packageName)
+                    } catch (e: Exception) {
+                        Log.w(e)
+                        ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
+                    }?.let { icon ->
+                        Image(
+                            bitmap = icon.toBitmap().asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(AppSize.IconMiddle)
+                        )
+                    }
                 },
             )
         },
         floatingActionButton = {
-            SmallFloatingActionButton(
+            FloatingActionButton(
                 onClick = onClickAdd,
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.ic_folder_add),
                     contentDescription = null,
-                    modifier = Modifier
-                        .padding(end = 8.dp),
                 )
             }
         },
@@ -245,7 +281,6 @@ private fun HomeScreenStorageList(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun HomeScreenStorageItem(
     storage: StorageModel,
@@ -259,25 +294,31 @@ private fun HomeScreenStorageItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .let {
-                if (storage.type == StorageType.SAF) {
-                    it.combinedClickable(
-                        onClick = { onClickItem(storage) },
-                        onLongClick = { onClickEdit(storage) },
-                    )
-                } else {
-                    it.clickable { onClickItem(storage) }
-                }
+            .clickable {
+                onClickItem(storage)
             }
+            .focusable()
             .fillMaxWidth()
             .padding(horizontal = AppSize.M, vertical = AppSize.SS)
             .heightIn(min = AppSize.ListItem),
     ) {
-        StorageIcon(
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterVertically),
-            storage = storage,
-        )
+                .clickable { onClickEdit(storage) }
+                .focusable()
+        ) {
+            StorageIcon(
+                storage = storage,
+            )
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.ic_arrow_drop_down),
+                contentDescription = "",
+                modifier = Modifier
+                    .size(AppSize.IconSmall)
+                    .align(Alignment.BottomCenter)
+                    .offset(y = AppSize.M)
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -290,7 +331,12 @@ private fun HomeScreenStorageItem(
                 overflow = TextOverflow.Ellipsis,
             )
             val subText = if (granted) {
-                DocumentsContract.getTreeDocumentId(storage.uri.toUri())
+                try {
+                    DocumentsContract.getTreeDocumentId(storage.uri.toUri())
+                } catch (e: Exception) {
+                    Log.w(e)
+                    "Not granted" // FIXME
+                }
             } else {
                 "Not granted" // FIXME
             }
@@ -310,22 +356,48 @@ fun HomeScreenStorageEditDialog(
     editStorage: State<StorageModel?>,
     onClickUri: (uri: UriModel) -> Unit,
     onEditName: (name: String) -> Unit,
-    onClickSet: (storage: StorageModel) -> Unit,
+    onClickSave: (storage: StorageModel) -> Unit,
+    onClickDelete: (storage: StorageModel) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val focusRequester = remember { FocusRequester() }
     val storage = editStorage.value ?: return
+    var visibleDeleteConfirm by remember { mutableStateOf(false) }
 
     CommonDialog(
-        title = "Edit",
-        confirmButtons = listOf(
-            DialogButton(
-                label = "Save", // FIXME
-                enabled = storage.name.isNotEmpty() && !storage.uri.isInvalidUri,
-                onClick = {
-                    onClickSet(storage)
-                },
-            ),
-        ),
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                StorageIcon(
+                    storage = storage,
+                    modifier = Modifier
+                        .padding(end = AppSize.S)
+                        .size(AppSize.IconMiddle)
+                )
+                val text = if (storage.isNew) "Add" else "Edit"
+                Text(text)
+            }
+        },
+        confirmButtons = buildList {
+            if (!storage.isNew) {
+                add(
+                    DialogButton(
+                        label = "Delete", // FIXME
+                        onClick = { visibleDeleteConfirm = true }
+                    ),
+                )
+            }
+            add(
+                DialogButton(
+                    label = "Save", // FIXME
+                    enabled = storage.name.isNotEmpty() && !storage.uri.isInvalidUri,
+                    onClick = { onClickSave(storage) },
+                ),
+            )
+        }
+
+        ,
         dismissButton = DialogButton(
             label = "Cancel", // FIXME
             onClick = onDismiss,
@@ -376,11 +448,41 @@ fun HomeScreenStorageEditDialog(
                 maxLines = 1,
                 singleLine = true,
                 modifier = Modifier
+                    .focusRequester(focusRequester)
                     .padding(top = AppSize.S)
                     .fillMaxWidth()
             )
 
         }
+    }
+
+    if (visibleDeleteConfirm) {
+        CommonDialog(
+            title = { Text("Delete") },
+            confirmButtons = listOf(
+                DialogButton(
+                    label = "Delete", // FIXME
+                    onClick = {
+                        visibleDeleteConfirm = false
+                        onClickDelete(storage)
+                    }
+                )
+            ),
+            dismissButton =
+                DialogButton(
+                    label = "Cancel", // FIXME
+                    onClick = {
+                        visibleDeleteConfirm = false
+                    }
+                ),
+        ) {
+            Text("Are you sure to delete?")
+        }
+    }
+
+    LaunchedEffect(storage.uri) {
+        if (storage.uri.isInvalidUri) return@LaunchedEffect
+        focusRequester.requestFocus()
     }
 }
 
@@ -444,7 +546,8 @@ private fun HomeScreenStorageEditDialogPreview() {
             editStorage = remember { mutableStateOf(storage) },
             onClickUri = {},
             onEditName = {},
-            onClickSet = {},
+            onClickSave = {},
+            onClickDelete = {},
             onDismiss = {},
         )
     }

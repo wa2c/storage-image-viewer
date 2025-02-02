@@ -14,6 +14,9 @@ interface StorageDao {
     @Query("SELECT count(id) FROM ${SafStorageEntity.TABLE_NAME}")
     suspend fun getCount(): Int
 
+    @Query("SELECT IFNULL(MAX(sort_order), 0) + 1 FROM ${SafStorageEntity.TABLE_NAME}")
+    fun getNextSortOrder(): Int
+
     @Query("SELECT * FROM ${SafStorageEntity.TABLE_NAME} WHERE id = :id")
     suspend fun getEntity(id: String): SafStorageEntity?
 
