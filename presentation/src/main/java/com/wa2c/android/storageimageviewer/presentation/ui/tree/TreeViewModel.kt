@@ -17,6 +17,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,6 +53,12 @@ class TreeViewModel @Inject constructor(
         get() = currentTree.value.dir?.isRoot ?: true
 
     private val _isViewerMode = MutableStateFlow(false)
+
+    val showTreeViewOverlayFlow: Flow<Boolean> = storageRepository.showTreeViewOverlayFlow
+    fun setShowTreeViewOverlay(value: Boolean) {
+        launch { storageRepository.setShowTreeViewOverlay(value) }
+    }
+
 
     val displayData = combine(
         storageRepository.sortFlow,

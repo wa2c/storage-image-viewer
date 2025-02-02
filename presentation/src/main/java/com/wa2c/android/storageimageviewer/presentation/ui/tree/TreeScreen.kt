@@ -37,8 +37,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
@@ -59,7 +57,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 @Composable
 fun TreeScreen(
     viewModel: TreeViewModel = hiltViewModel(),
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     onNavigateBack: () -> Unit,
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
@@ -173,12 +170,27 @@ private fun TreeScreenContainer(
                 },
                 navigationIcon = {
                     currentTreeState.value.dir?.let { dir ->
-                        IconButton(onClick = onClickBack) {
-                            StorageIcon(
-                                storage = dir.storage,
+                        Box(
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_back_arrow),
+                                contentDescription = "Back",
                                 modifier = Modifier
-                                    .size(AppSize.IconMiddle),
+                                    .size(AppSize.IconSmall)
+                                    .align(Alignment.CenterStart)
                             )
+                            IconButton(
+                                onClick = onClickBack,
+                                modifier = Modifier
+                                    .padding(start = AppSize.M)
+                            ) {
+                                StorageIcon(
+                                    storage = dir.storage,
+                                    modifier = Modifier
+                                        .size(AppSize.IconMiddle)
+                                )
+                            }
                         }
                     }
                 },

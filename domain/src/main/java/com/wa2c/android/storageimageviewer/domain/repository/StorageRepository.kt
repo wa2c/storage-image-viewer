@@ -3,7 +3,6 @@ package com.wa2c.android.storageimageviewer.domain.repository
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.utils.Utils
 import com.wa2c.android.storageimageviewer.common.values.StorageType
-import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.data.db.SafStorageEntity
 import com.wa2c.android.storageimageviewer.data.db.StorageDao
@@ -15,6 +14,7 @@ import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -47,6 +47,11 @@ class StorageRepository @Inject internal constructor(
     /** Tree view type */
     val treeViewTypeFlow = dataStore.treeViewTypeFlow
     suspend fun setTreeViewType(type: TreeViewType) = dataStore.setTreeViewType(type)
+
+    /** Tree view overlay */
+    val showTreeViewOverlayFlow: Flow<Boolean> = dataStore.showTreeViewOverlayFlow
+    suspend fun setShowTreeViewOverlay(value: Boolean) = dataStore.setShowTreeViewOverlay(value)
+
 
     val sortFlow = combine(
         dataStore.treeSortTypeFlow,

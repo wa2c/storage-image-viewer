@@ -44,21 +44,23 @@ class AppPreferencesDataStore @Inject constructor(
 
     /** Tree sort descending */
     val treeSortDescendingFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_DESCENDING] ?: false }
-    suspend fun setTreeSortDescending(descending: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_DESCENDING, descending)
+    suspend fun setTreeSortDescending(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_DESCENDING, value)
 
     /** Tree sort ignore case */
     val treeSortIgnoreCaseFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_IGNORE_CASE] ?: false }
-    suspend fun setTreeSortIgnoreCase(ignoreCase: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_IGNORE_CASE, ignoreCase)
+    suspend fun setTreeSortIgnoreCase(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_IGNORE_CASE, value)
 
     /** Tree sort number */
     val treeSortNumberFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_NUMBER] ?: false }
-    suspend fun setTreeSortNumber(number: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_NUMBER, number)
+    suspend fun setTreeSortNumber(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_NUMBER, value)
 
     /** Tree mix folder */
     val treeMixFolderFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_MIX_FOLDER] ?: false }
-    suspend fun setTreeMixFolder(mixFolder: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_MIX_FOLDER, mixFolder)
+    suspend fun setTreeMixFolder(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_MIX_FOLDER, value)
 
-
+    /** Tree view overlay */
+    val showTreeViewOverlayFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_MIX_FOLDER] ?: false }
+    suspend fun setShowTreeViewOverlay(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_MIX_FOLDER, value)
 
     companion object {
 
@@ -68,6 +70,7 @@ class AppPreferencesDataStore @Inject constructor(
         private val PREFKEY_TREE_SORT_IGNORE_CASE = booleanPreferencesKey("prefkey_tree_sort_ignore_case")
         private val PREFKEY_TREE_SORT_NUMBER = booleanPreferencesKey("prefkey_tree_sort_number")
         private val PREFKEY_TREE_SORT_MIX_FOLDER = booleanPreferencesKey("prefkey_tree_mix_folder")
+        private val PREFKEY_TREE_VIEW_OVERLAY = booleanPreferencesKey("prefkey_tree_view_overlay")
 
         /**
          * Get first value.

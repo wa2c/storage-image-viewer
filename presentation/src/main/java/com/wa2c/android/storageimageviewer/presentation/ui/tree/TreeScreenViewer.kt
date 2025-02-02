@@ -37,11 +37,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,7 +56,7 @@ import androidx.compose.ui.unit.toSize
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
@@ -67,6 +65,7 @@ import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
+import com.wa2c.android.storageimageviewer.presentation.ui.common.MutableStateAdapter
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
@@ -86,6 +85,10 @@ fun TreeScreenViewer(
     val imageFileList = viewModel.currentTree.collectAsStateWithLifecycle().value.imageFileList
     val focusedFile = viewModel.focusedFile.collectAsStateWithLifecycle().value
     val displayData = viewModel.displayData.collectAsStateWithLifecycle().value
+    var showTreeViewOverlay = MutableStateAdapter(
+        viewModel.showTreeViewOverlayFlow.collectAsStateWithLifecycle(false),
+        viewModel::setShowTreeViewOverlay
+    )
 
     val pagerState = rememberPagerState(
         pageCount = { imageFileList.size },
@@ -96,6 +99,7 @@ fun TreeScreenViewer(
         pagerState = pagerState,
         fileList = imageFileList,
         displayData = displayData,
+        showTreeViewOverlay = showTreeViewOverlay,
         onChangeFile = viewModel::focusFile,
         onSetSort = viewModel::sortFile,
         onClose = onClose,
@@ -115,6 +119,7 @@ fun TreeScreenViewerContainer(
     pagerState: PagerState,
     fileList: List<FileModel>,
     displayData: TreeScreenDisplayData,
+    showTreeViewOverlay: MutableState<Boolean>,
     onChangeFile: (FileModel?) -> Unit,
     onSetSort: (TreeSortModel) -> Unit,
     onClose: () -> Unit,
@@ -123,11 +128,11 @@ fun TreeScreenViewerContainer(
     val focusRequester = remember { FocusRequester() }
     val zoomState = rememberZoomState()
     var size = remember { androidx.compose.ui.geometry.Size.Unspecified }
-    var visibleOverlay by remember { mutableStateOf(false) }
+
     val sortMenuExpanded = remember { mutableStateOf(false) }
 
     val systemUiController = rememberSystemUiController()
-    if (visibleOverlay) {
+    if (showTreeViewOverlay.value) {
         systemUiController.isSystemBarsVisible = true
         systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
     } else {
@@ -157,7 +162,7 @@ fun TreeScreenViewerContainer(
                 }
             },
             onClickShowOverlay = {
-                visibleOverlay = !visibleOverlay
+                showTreeViewOverlay.value = !showTreeViewOverlay.value
             },
             modifier = Modifier
                 .keyControl(
@@ -187,10 +192,10 @@ fun TreeScreenViewerContainer(
                         }
                     },
                     onShowOverlay = {
-                        visibleOverlay = !visibleOverlay
+                        showTreeViewOverlay.value = !showTreeViewOverlay.value
                     },
                     onShowMenu = {
-                        visibleOverlay = true
+                        showTreeViewOverlay.value = true
                         sortMenuExpanded.value = true
                     }
                 )
@@ -201,7 +206,7 @@ fun TreeScreenViewerContainer(
             contentAlignment = Alignment.BottomStart,
             modifier = Modifier
                 .let {
-                    if (visibleOverlay) it.navigationBarsPadding()
+                    if (showTreeViewOverlay.value) it.navigationBarsPadding()
                     else it.padding(bottom = AppSize.M)
                 }
                 .padding(start = AppSize.M)
@@ -218,7 +223,7 @@ fun TreeScreenViewerContainer(
 
         // Overlay
         AnimatedVisibility(
-            visible = visibleOverlay,
+            visible = showTreeViewOverlay.value,
             enter = fadeIn(),
             exit = fadeOut(),
             content = {
@@ -228,7 +233,7 @@ fun TreeScreenViewerContainer(
                     displayData = displayData,
                     onSetSort = onSetSort,
                     onClose = {
-                        visibleOverlay = true
+                        showTreeViewOverlay.value = true
                         onClose()
                     },
                 )
@@ -243,10 +248,8 @@ fun TreeScreenViewerContainer(
     BackHandler {
         if (zoomState.scale > 1.0f) {
             scope.launch { zoomState.reset() }
-        } else if (visibleOverlay) {
-            visibleOverlay = false
         } else {
-            visibleOverlay = true
+            showTreeViewOverlay.value = true
             onClose()
         }
     }
@@ -342,44 +345,29 @@ private fun TreeScreenViewerContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) { page ->
-        Box {
-            var isLoading by remember { mutableStateOf(false) }
-            val file = fileList.getOrNull(page)
-
-            AsyncImage(
-                model = file?.uri?.toUri(),
-                contentDescription = file?.name,
-                onLoading = {
-                    isLoading = true
-                },
-                onSuccess = {
-                    isLoading = false
-                },
-                onError = {
-                    isLoading = false
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zoomable(
-                        zoomState = zoomState,
-                        onTap = { offset ->
-                            val width = Resources.getSystem().displayMetrics.widthPixels
-                            if (offset.x <= width * 0.2f) {
-                                onStepPage(-1)
-                            } else if (offset.x >= width * 0.80f) {
-                                onStepPage(+1)
-                            } else {
-                                onClickShowOverlay()
-                            }
+        val file = fileList.getOrNull(page)
+        SubcomposeAsyncImage(
+            model = file?.uri?.toUri(),
+            contentDescription = file?.name,
+            loading = {
+                LoadingBox(isLoading = true)
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .zoomable(
+                    zoomState = zoomState,
+                    onTap = { offset ->
+                        val width = Resources.getSystem().displayMetrics.widthPixels
+                        if (offset.x <= width * 0.2f) {
+                            onStepPage(-1)
+                        } else if (offset.x >= width * 0.80f) {
+                            onStepPage(+1)
+                        } else {
+                            onClickShowOverlay()
                         }
-                        ,
-                    )
-            )
-
-            LoadingBox(
-                isLoading = isLoading
-            )
-        }
+                    },
+                ),
+        )
     }
 
     LaunchedEffect(pagerState.currentPage) {
@@ -494,6 +482,7 @@ private fun TreeScreenContainerPreview() {
             pagerState = rememberPagerState(pageCount = { list.size }),
             fileList = list,
             displayData = TreeScreenDisplayData(),
+            showTreeViewOverlay = remember { mutableStateOf(false) },
             onChangeFile = {},
             onSetSort = {},
             onClose = {},
