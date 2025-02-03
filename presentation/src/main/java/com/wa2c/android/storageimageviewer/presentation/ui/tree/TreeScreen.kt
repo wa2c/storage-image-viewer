@@ -172,6 +172,7 @@ private fun TreeScreenContainer(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_back_arrow),
                                 contentDescription = "Back",
                                 modifier = Modifier
+                                    .padding(start = AppSize.SS)
                                     .size(AppSize.IconSmall)
                                     .align(Alignment.CenterStart)
                             )

@@ -24,16 +24,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.waterfallPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -41,26 +36,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,13 +65,10 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toU
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
-import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.CommonDialog
-import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.DialogButton
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.treeKeyControl
 import kotlinx.coroutines.launch
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -108,7 +91,9 @@ fun HomeScreen(
     val editStorage = viewModel.editStorage.collectAsStateWithLifecycle()
 
     val treeOpenLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        viewModel.setUri(uri?.toString(), uri?.lastPathSegment)
+        uri ?: return@rememberLauncherForActivityResult
+        val initialName = DocumentsContract.getTreeDocumentId(uri).split(":").getOrElse(1) { "" }
+        viewModel.setUri(uri.toString(), initialName)
     }
 
     HomeScreenContainer(
@@ -356,141 +341,6 @@ private fun HomeScreenStorageItem(
     }
 }
 
-@Composable
-fun HomeScreenStorageEditDialog(
-    editStorage: State<StorageModel?>,
-    onClickUri: (uri: UriModel) -> Unit,
-    onEditName: (name: String) -> Unit,
-    onClickSave: (storage: StorageModel) -> Unit,
-    onClickDelete: (storage: StorageModel) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val focusRequester = remember { FocusRequester() }
-    val storage = editStorage.value ?: return
-    var visibleDeleteConfirm by remember { mutableStateOf(false) }
-
-    CommonDialog(
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                StorageIcon(
-                    storage = storage,
-                    modifier = Modifier
-                        .padding(end = AppSize.S)
-                        .size(AppSize.IconMiddle)
-                )
-                val text = if (storage.isNew) "Add" else "Edit"
-                Text(text)
-            }
-        },
-        confirmButtons = buildList {
-            if (!storage.isNew) {
-                add(
-                    DialogButton(
-                        label = "Delete", // FIXME
-                        onClick = { visibleDeleteConfirm = true }
-                    ),
-                )
-            }
-            add(
-                DialogButton(
-                    label = "Save", // FIXME
-                    enabled = storage.name.isNotEmpty() && !storage.uri.isInvalidUri,
-                    onClick = { onClickSave(storage) },
-                ),
-            )
-        }
-
-        ,
-        dismissButton = DialogButton(
-            label = "Cancel", // FIXME
-            onClick = onDismiss,
-        ),
-        onDismiss = onDismiss,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            // URI
-            Box {
-                OutlinedTextField(
-                    value = storage.uri.uri,
-                    label = { Text("URI") }, // fixme
-                    placeholder = { Text("Select URI") }, // fixme
-                    readOnly = true,
-                    onValueChange = { },
-                    maxLines = 1,
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .treeKeyControl(
-                            isPreview = true,
-                            onEnter = { onClickUri(storage.uri) },
-                            onPlay = { onClickUri(storage.uri) }
-
-                        )
-                        .padding(top = AppSize.M),
-                )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .padding(top = AppSize.L)
-                        .clip(RoundedCornerShape(AppSize.SS))
-                        .clickable { onClickUri(storage.uri) },
-                )
-            }
-
-            // Name
-            OutlinedTextField(
-                value = storage.name,
-                label = { Text("Name") }, // fixme
-                placeholder = { Text("Input name") }, // fixme
-                onValueChange = { value ->
-                    onEditName(value)
-                },
-                maxLines = 1,
-                singleLine = true,
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .padding(top = AppSize.S)
-                    .fillMaxWidth()
-            )
-
-        }
-    }
-
-    if (visibleDeleteConfirm) {
-        CommonDialog(
-            title = { Text("Delete") },
-            confirmButtons = listOf(
-                DialogButton(
-                    label = "Delete", // FIXME
-                    onClick = {
-                        visibleDeleteConfirm = false
-                        onClickDelete(storage)
-                    }
-                )
-            ),
-            dismissButton =
-                DialogButton(
-                    label = "Cancel", // FIXME
-                    onClick = {
-                        visibleDeleteConfirm = false
-                    }
-                ),
-        ) {
-            Text("Are you sure to delete?")
-        }
-    }
-
-    LaunchedEffect(storage.uri) {
-        if (storage.uri.isInvalidUri) return@LaunchedEffect
-        focusRequester.requestFocus()
-    }
-}
-
 /**
  * Preview
  */
@@ -525,35 +375,6 @@ private fun HomeScreenContainerPreview() {
             onClickEdit = {},
             onClickItem = {},
             onDragAndDrop = { _, _ -> },
-        )
-    }
-}
-
-/**
- * Preview
- */
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true,
-)
-@Composable
-private fun HomeScreenStorageEditDialogPreview() {
-    AppTheme {
-        val storage = StorageModel(
-            id = "1",
-            uri = UriModel(uri = "content://test1/"),
-            name = "Test Storage 1",
-            type = StorageType.SAF,
-            sortOrder = 1,
-        )
-
-        HomeScreenStorageEditDialog(
-            editStorage = remember { mutableStateOf(storage) },
-            onClickUri = {},
-            onEditName = {},
-            onClickSave = {},
-            onClickDelete = {},
-            onDismiss = {},
         )
     }
 }

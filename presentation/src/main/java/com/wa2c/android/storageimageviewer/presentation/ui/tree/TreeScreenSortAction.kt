@@ -1,8 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
-import android.net.Uri
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -13,26 +11,19 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
-import com.wa2c.android.storageimageviewer.domain.model.FileModel
-import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
-import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
@@ -40,7 +31,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 
 @Composable
 fun TreeAction(
@@ -53,7 +43,7 @@ fun TreeAction(
             onClick = { menuExpanded.value = true }
         ) {
             Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.ic_sort),
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_menu),
                 contentDescription = "Search",
             )
         }
@@ -80,13 +70,24 @@ private fun ColumnScope.TreeSortAction(
 ) {
     // Sort
 
-    Text(
-        text = "Sort",
-        style = AppTypography.titleMedium,
+    Row(
         modifier = Modifier
             .align(alignment = Alignment.CenterHorizontally)
             .padding(AppSize.SS)
-    )
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(id = R.drawable.ic_sort),
+            contentDescription = "Sort",
+            modifier = Modifier
+                .padding(end = AppSize.S)
+        )
+
+        Text(
+            text = "Sort",
+            style = AppTypography.titleMedium,
+            modifier = Modifier
+        )
+    }
 
     DividerThin()
 
@@ -141,13 +142,24 @@ private fun ColumnScope.TreeSortAction(
 
     // View
 
-    Text(
-        text = "View",
-        style = AppTypography.titleMedium,
+    Row(
         modifier = Modifier
             .align(alignment = Alignment.CenterHorizontally)
             .padding(AppSize.SS)
-    )
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(id = R.drawable.ic_view),
+            contentDescription = "View",
+            modifier = Modifier
+                .padding(end = AppSize.S)
+        )
+
+        Text(
+            text = "View",
+            style = AppTypography.titleMedium,
+            modifier = Modifier
+        )
+    }
 
     DividerThin()
 
