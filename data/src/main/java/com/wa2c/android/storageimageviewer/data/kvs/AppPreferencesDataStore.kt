@@ -58,9 +58,14 @@ class AppPreferencesDataStore @Inject constructor(
     val treeMixFolderFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_MIX_FOLDER] ?: false }
     suspend fun setTreeMixFolder(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_MIX_FOLDER, value)
 
-    /** Tree view overlay */
-    val showTreeViewOverlayFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_MIX_FOLDER] ?: false }
-    suspend fun setShowTreeViewOverlay(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_MIX_FOLDER, value)
+
+    /** View show page */
+    val viewShowPageFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_SHOW_PAGE] ?: true }
+    suspend fun setViewShowPageFlow(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_SHOW_PAGE, value)
+
+    /** View show overlay */
+    val viewShowOverlayFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_SHOW_OVERLAY] ?: false }
+    suspend fun setViewShowOverlayFlow(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_SHOW_OVERLAY, value)
 
     companion object {
 
@@ -70,7 +75,8 @@ class AppPreferencesDataStore @Inject constructor(
         private val PREFKEY_TREE_SORT_IGNORE_CASE = booleanPreferencesKey("prefkey_tree_sort_ignore_case")
         private val PREFKEY_TREE_SORT_NUMBER = booleanPreferencesKey("prefkey_tree_sort_number")
         private val PREFKEY_TREE_SORT_MIX_FOLDER = booleanPreferencesKey("prefkey_tree_mix_folder")
-        private val PREFKEY_TREE_VIEW_OVERLAY = booleanPreferencesKey("prefkey_tree_view_overlay")
+        private val PREFKEY_VIEW_SHOW_PAGE = booleanPreferencesKey("prefkey_view_show_page")
+        private val PREFKEY_VIEW_SHOW_OVERLAY = booleanPreferencesKey("prefkey_view_show_overlay")
 
         /**
          * Get first value.

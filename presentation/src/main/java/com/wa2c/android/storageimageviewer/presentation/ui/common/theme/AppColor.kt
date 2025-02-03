@@ -15,6 +15,8 @@ object AppColor {
     val Secondary = PurpleGrey80
     val Tertiary = Pink80
 
+    val PrimaryBackground = Primary.copy(alpha = 0.25f)
+
     /** Divider */
     val Divider = Color(0xFFBDBDBD)
 

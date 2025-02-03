@@ -48,9 +48,13 @@ class StorageRepository @Inject internal constructor(
     val treeViewTypeFlow = dataStore.treeViewTypeFlow
     suspend fun setTreeViewType(type: TreeViewType) = dataStore.setTreeViewType(type)
 
+    /** Tree view page */
+    val viewShowPageFlow: Flow<Boolean> = dataStore.viewShowPageFlow
+    suspend fun setViewShowPageFlow(value: Boolean) = dataStore.setViewShowPageFlow(value)
+
     /** Tree view overlay */
-    val showTreeViewOverlayFlow: Flow<Boolean> = dataStore.showTreeViewOverlayFlow
-    suspend fun setShowTreeViewOverlay(value: Boolean) = dataStore.setShowTreeViewOverlay(value)
+    val viewShowOverlayFlow: Flow<Boolean> = dataStore.viewShowOverlayFlow
+    suspend fun setViewShowOverlayFlow(value: Boolean) = dataStore.setViewShowOverlayFlow(value)
 
 
     val sortFlow = combine(

@@ -54,18 +54,14 @@ class TreeViewModel @Inject constructor(
 
     private val _isViewerMode = MutableStateFlow(false)
 
-    val showTreeViewOverlayFlow: Flow<Boolean> = storageRepository.showTreeViewOverlayFlow
-    fun setShowTreeViewOverlay(value: Boolean) {
-        launch { storageRepository.setShowTreeViewOverlay(value) }
-    }
-
-
     val displayData = combine(
         storageRepository.sortFlow,
         storageRepository.treeViewTypeFlow,
+        storageRepository.viewShowOverlayFlow,
+        storageRepository.viewShowPageFlow,
         _isViewerMode
-    ) { sort, type, isViewerMode ->
-        TreeScreenDisplayData(sort, type, isViewerMode)
+    ) { sort, type, overlay, page, isViewerMode ->
+        TreeScreenDisplayData(sort, type, overlay, page, isViewerMode)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
@@ -85,21 +81,20 @@ class TreeViewModel @Inject constructor(
         }
     }
 
-    fun setView(type: TreeViewType) {
+    fun setDisplay(display: TreeScreenDisplayData) {
         launch {
-            storageRepository.setTreeViewType(type)
-        }
-    }
-
-    fun sortFile(sortModel: TreeSortModel) {
-        launch {
-            _busyState.emit(true)
-            currentTree.value.let { tree ->
-                _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(sortModel))))
+            if (display.sort != displayData.value.sort) {
+                currentTree.value.let { tree ->
+                    _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(display.sort))))
+                }
             }
-            storageRepository.setSort(sortModel)
-            _busyState.emit(false)
+            storageRepository.setSort(display.sort)
+            storageRepository.setTreeViewType(display.viewType)
+            storageRepository.setViewShowPageFlow(display.showPage)
+            storageRepository.setViewShowOverlayFlow(display.showOverlay)
+            _isViewerMode.value = display.isViewerMode
         }
+
     }
 
     fun focusFile(
@@ -181,7 +176,11 @@ class TreeViewModel @Inject constructor(
 
     fun closeViewer() {
         launch {
-            _isViewerMode.emit(false)
+            val display = displayData.value.copy(
+                showOverlay = true,
+                isViewerMode = false,
+            )
+            setDisplay(display)
         }
     }
 

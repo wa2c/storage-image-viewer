@@ -11,9 +11,11 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.waterfallPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,10 +41,8 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wa2c.android.storageimageviewer.common.values.StorageType
-import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
@@ -86,8 +86,7 @@ fun TreeScreen(
             focusedFileState = focusedFileState,
             displayState = displayState,
             busyState = busyState,
-            onSetView = viewModel::setView,
-            onSetSort = viewModel::sortFile,
+            onSetDisplay = viewModel::setDisplay,
             onFocusItem = viewModel::focusFile,
             onClickItem = viewModel::openFile,
             onClickUp = viewModel::openParent,
@@ -106,9 +105,7 @@ fun TreeScreen(
                 targetOffsetY = { fullHeight -> fullHeight },
             ),
             content = {
-                TreeScreenViewer(
-                    onClose = viewModel::closeViewer,
-                )
+                TreeScreenViewer()
             },
         )
 
@@ -145,15 +142,13 @@ private fun TreeScreenContainer(
     focusedFileState: State<FileModel?>,
     displayState: State<TreeScreenDisplayData>,
     busyState: State<Boolean>,
-    onSetView: (TreeViewType) -> Unit,
-    onSetSort: (TreeSortModel) -> Unit,
+    onSetDisplay: (TreeScreenDisplayData) -> Unit,
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
     onClickUp: () -> Unit,
     onClickBack: () -> Unit,
     onStep: (step: Int) -> Unit,
 ) {
-    val viewMenuExpanded = remember { mutableStateOf(false) }
     val sortMenuExpanded = remember { mutableStateOf(false) }
 
     Scaffold(
@@ -195,23 +190,10 @@ private fun TreeScreenContainer(
                     }
                 },
                 actions = {
-                    TreeViewAction(
-                        menuExpanded = viewMenuExpanded,
-                        viewType = displayState.value.viewType,
-                        onSetView = onSetView,
-                        onKeyRight = {
-                            viewMenuExpanded.value = false
-                            sortMenuExpanded.value = true
-                        }
-                    )
-                    TreeSortAction(
+                    TreeAction(
                         menuExpanded = sortMenuExpanded,
-                        sort = displayState.value.sort,
-                        onSetSort = onSetSort,
-                        onKeyLeft = {
-                            sortMenuExpanded.value = false
-                            viewMenuExpanded.value = true
-                        }
+                        displayData = displayState.value,
+                        onSetDisplay = onSetDisplay,
                     )
                 },
             )
@@ -228,7 +210,10 @@ private fun TreeScreenContainer(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .displayCutoutPadding()
+                .waterfallPadding()
+            ,
         ) {
             Column(
                 modifier = Modifier
@@ -391,8 +376,7 @@ private fun TreeScreenContainerPreview() {
             focusedFileState = remember { mutableStateOf(null) },
             displayState = remember { mutableStateOf(TreeScreenDisplayData()) },
             busyState = remember { mutableStateOf(false) },
-            onSetView = {},
-            onSetSort = {},
+            onSetDisplay = {},
             onFocusItem = {},
             onClickItem = {},
             onClickUp = {},

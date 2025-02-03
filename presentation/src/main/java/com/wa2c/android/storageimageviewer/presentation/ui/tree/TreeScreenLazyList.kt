@@ -2,18 +2,23 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
 import android.text.format.Formatter
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.waterfallPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +34,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -45,6 +52,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
+import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
@@ -74,7 +82,7 @@ fun TreeScreenLazyList(
     LazyColumnScrollbar(
         state = lazyState,
         settings = ScrollbarSettings.Default,
-        modifier = modifier,
+        modifier = modifier
     ) {
         LazyColumn(
             state = lazyState,
@@ -86,7 +94,6 @@ fun TreeScreenLazyList(
                 },
         ) {
             val fileList = currentTreeState.value.fileList
-            val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
             itemsIndexed(
                 items = fileList,
             ) { index, file ->
@@ -95,12 +102,20 @@ fun TreeScreenLazyList(
                         .onFocusChanged {
                             if (it.isFocused) {
                                 onFocusItem(file)
+                            } else {
+                                onFocusItem(null)
                             }
                             // else { onFocusItem(null) } NOTE: keep focus
                         }
                         .let {
-                            if (index == focusIndex) it.focusRequester(childFocusRequester)
-                            else it
+                            if (file == focusedFile) {
+                                it.focusRequester(childFocusRequester)
+                                    .border(2.dp, AppColor.Primary, RoundedCornerShape(4.dp))
+                                    .background(color = AppColor.PrimaryBackground)
+                            }
+                            else {
+                                it
+                            }
                         }
                         .clickable { onClickItem(file) },
                     imageList = currentTreeState.value.imageFileList,
@@ -236,38 +251,6 @@ private fun TreeScreenItem(
         }
     }
 }
-
-///**
-// * Restore focus
-// */
-//private fun restoreFocus(
-//    isViewerModeState: State<Boolean>,
-//    currentTreeState: State<TreeDataModel>,
-//    focusedFileState: FileModel?,
-//    lazyListState: LazyListState,
-//    parentFocusRequester: FocusRequester,
-//    focusRequester: FocusRequester,
-//) {
-//    val list = currentTreeState.value.fileList
-//    if (list.isNotEmpty() && !isViewerModeState.value) {
-//        val index = list.indexOf(focusedFileState)
-//        if (index >= 0) {
-//            val listHeight = lazyListState.layoutInfo.viewportEndOffset
-//            val itemHeight = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
-//            val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
-//            lazyListState.requestScrollToItem(index, -offset.toInt())
-//        } else {
-//            lazyListState.requestScrollToItem(0, 0)
-//        }
-//
-//        try {
-//            parentFocusRequester.requestFocus()
-//            focusRequester.requestFocus()
-//        } catch (e: Exception) {
-//            Log.e(e)
-//        }
-//    }
-//}
 
 /**
  * Preview

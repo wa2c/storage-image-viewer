@@ -19,9 +19,11 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.waterfallPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -80,16 +82,10 @@ import net.engawapg.lib.zoomable.zoomable
 @Composable
 fun TreeScreenViewer(
     viewModel: TreeViewModel = hiltViewModel(),
-    onClose: () -> Unit,
 ) {
     val imageFileList = viewModel.currentTree.collectAsStateWithLifecycle().value.imageFileList
     val focusedFile = viewModel.focusedFile.collectAsStateWithLifecycle().value
     val displayData = viewModel.displayData.collectAsStateWithLifecycle().value
-    var showTreeViewOverlay = MutableStateAdapter(
-        viewModel.showTreeViewOverlayFlow.collectAsStateWithLifecycle(false),
-        viewModel::setShowTreeViewOverlay
-    )
-
     val pagerState = rememberPagerState(
         pageCount = { imageFileList.size },
         initialPage = focusedFile?.let { imageFileList.indexOf(it) } ?: 0,
@@ -99,10 +95,9 @@ fun TreeScreenViewer(
         pagerState = pagerState,
         fileList = imageFileList,
         displayData = displayData,
-        showTreeViewOverlay = showTreeViewOverlay,
         onChangeFile = viewModel::focusFile,
-        onSetSort = viewModel::sortFile,
-        onClose = onClose,
+        onSetDisplay = viewModel::setDisplay,
+        onClose = viewModel::closeViewer,
     )
 
     LaunchedEffect(imageFileList) {
@@ -119,9 +114,8 @@ fun TreeScreenViewerContainer(
     pagerState: PagerState,
     fileList: List<FileModel>,
     displayData: TreeScreenDisplayData,
-    showTreeViewOverlay: MutableState<Boolean>,
     onChangeFile: (FileModel?) -> Unit,
-    onSetSort: (TreeSortModel) -> Unit,
+    onSetDisplay: (TreeScreenDisplayData) -> Unit,
     onClose: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -132,7 +126,7 @@ fun TreeScreenViewerContainer(
     val sortMenuExpanded = remember { mutableStateOf(false) }
 
     val systemUiController = rememberSystemUiController()
-    if (showTreeViewOverlay.value) {
+    if (displayData.showOverlay) {
         systemUiController.isSystemBarsVisible = true
         systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
     } else {
@@ -162,7 +156,7 @@ fun TreeScreenViewerContainer(
                 }
             },
             onClickShowOverlay = {
-                showTreeViewOverlay.value = !showTreeViewOverlay.value
+                onSetDisplay(displayData.copy(showOverlay = !displayData.showOverlay))
             },
             modifier = Modifier
                 .keyControl(
@@ -192,38 +186,40 @@ fun TreeScreenViewerContainer(
                         }
                     },
                     onShowOverlay = {
-                        showTreeViewOverlay.value = !showTreeViewOverlay.value
+                        onSetDisplay(displayData.copy(showOverlay = !displayData.showOverlay))
                     },
                     onShowMenu = {
-                        showTreeViewOverlay.value = true
+                        onSetDisplay(displayData.copy(showOverlay = true))
                         sortMenuExpanded.value = true
                     }
                 )
         )
 
         // Page
-        Box(
-            contentAlignment = Alignment.BottomStart,
-            modifier = Modifier
-                .let {
-                    if (showTreeViewOverlay.value) it.navigationBarsPadding()
-                    else it.padding(bottom = AppSize.M)
-                }
-                .padding(start = AppSize.M)
-        ) {
-            Text(
-                text = "${(pagerState.currentPage + 1)} / ${pagerState.pageCount}",
-                style = AppTypography.labelMedium,
+        if (displayData.showPage) {
+            Box(
+                contentAlignment = Alignment.BottomStart,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(AppSize.L))
-                    .background(color = animatedColor.value)
-                    .padding(horizontal = AppSize.S, AppSize.SS)
-            )
+                    .let {
+                        if (displayData.showOverlay) it.navigationBarsPadding()
+                        else it.padding(bottom = AppSize.M)
+                    }
+                    .padding(start = AppSize.M)
+            ) {
+                Text(
+                    text = "${(pagerState.currentPage + 1)} / ${pagerState.pageCount}",
+                    style = AppTypography.labelMedium,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(AppSize.L))
+                        .background(color = animatedColor.value)
+                        .padding(horizontal = AppSize.S, AppSize.SS)
+                )
+            }
         }
 
         // Overlay
         AnimatedVisibility(
-            visible = showTreeViewOverlay.value,
+            visible = displayData.showOverlay,
             enter = fadeIn(),
             exit = fadeOut(),
             content = {
@@ -231,11 +227,8 @@ fun TreeScreenViewerContainer(
                     file = fileList[pagerState.currentPage],
                     sortMenuExpanded = sortMenuExpanded,
                     displayData = displayData,
-                    onSetSort = onSetSort,
-                    onClose = {
-                        showTreeViewOverlay.value = true
-                        onClose()
-                    },
+                    onSetDisplay = onSetDisplay,
+                    onClose = onClose,
                 )
             },
         )
@@ -249,7 +242,6 @@ fun TreeScreenViewerContainer(
         if (zoomState.scale > 1.0f) {
             scope.launch { zoomState.reset() }
         } else {
-            showTreeViewOverlay.value = true
             onClose()
         }
     }
@@ -402,7 +394,7 @@ private fun TreeScreenViewerOverlay(
     file: FileModel,
     sortMenuExpanded: MutableState<Boolean>,
     displayData: TreeScreenDisplayData,
-    onSetSort: (TreeSortModel) -> Unit,
+    onSetDisplay: (TreeScreenDisplayData) -> Unit,
     onClose: () -> Unit,
 ) {
     Column(
@@ -428,10 +420,10 @@ private fun TreeScreenViewerOverlay(
                 }
             },
             actions = {
-                TreeSortAction(
+                TreeAction(
                     menuExpanded = sortMenuExpanded,
-                    sort = displayData.sort,
-                    onSetSort = onSetSort,
+                    displayData = displayData,
+                    onSetDisplay = onSetDisplay,
                 )
             },
             colors = TopAppBarDefaults.topAppBarColors( containerColor = AppColor.ViewerOverlayBackground),
@@ -482,9 +474,8 @@ private fun TreeScreenContainerPreview() {
             pagerState = rememberPagerState(pageCount = { list.size }),
             fileList = list,
             displayData = TreeScreenDisplayData(),
-            showTreeViewOverlay = remember { mutableStateOf(false) },
             onChangeFile = {},
-            onSetSort = {},
+            onSetDisplay = {},
             onClose = {},
         )
     }
