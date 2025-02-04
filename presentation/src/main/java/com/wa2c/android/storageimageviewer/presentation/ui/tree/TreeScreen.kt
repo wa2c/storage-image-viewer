@@ -35,16 +35,19 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
@@ -59,12 +62,13 @@ fun TreeScreen(
     viewModel: TreeViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val focusManager =  LocalFocusManager.current
     val snackBarHostState = remember { SnackbarHostState() }
     val currentTreeState = viewModel.currentTree.collectAsStateWithLifecycle()
     val focusedFileState = viewModel.focusedFile.collectAsStateWithLifecycle()
     val displayState = viewModel.displayData.collectAsStateWithLifecycle()
     val busyState = viewModel.busyState.collectAsStateWithLifecycle()
-    val resultState = viewModel.resultState.collectAsStateWithLifecycle()
     val inputNumberState = remember { mutableStateOf<String?>(null) }
 
     Box(
@@ -92,7 +96,7 @@ fun TreeScreen(
             onClickUp = viewModel::openParent,
             onClickBack = onNavigateBack,
             onStep = {
-                viewModel.focusPage(it)
+                viewModel.skipPage(it)
             }
         )
 
@@ -117,9 +121,17 @@ fun TreeScreen(
         }
     }
 
-    LaunchedEffect(resultState) {
-        snackBarHostState.showMessage(resultState.value)
+    LaunchedEffect(Unit) {
+        viewModel.resultState.collectIn(lifecycleOwner) {
+            snackBarHostState.showMessage(it)
+        }
+        viewModel.focusedFile.collectIn(lifecycleOwner) {
+            if (it == null) {
+                focusManager.clearFocus(true)
+            }
+        }
     }
+
 
     // Back button
     BackHandler {
@@ -203,6 +215,12 @@ private fun TreeScreenContainer(
         modifier = Modifier
             .treeKeyControl(
                 isPreview = true,
+                onForwardSkip = {
+                    onStep(10)
+                },
+                onBackwardSkip = {
+                    onStep(-10)
+                },
                 onMenu = {
                     sortMenuExpanded.value = true
                 }

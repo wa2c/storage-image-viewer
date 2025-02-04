@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
-import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
@@ -17,7 +16,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -103,7 +101,7 @@ class TreeViewModel @Inject constructor(
         _focusedFile.value = file
     }
 
-    fun focusPage(
+    fun skipPage(
         page: Int
     ) {
         val imageFileList = currentTree.value.imageFileList
@@ -134,7 +132,7 @@ class TreeViewModel @Inject constructor(
                     val list = getChildren(file)
                     file to list
                 }.onSuccess { (file, list) ->
-                    _focusedFile.emit(list.firstOrNull())
+                    focusFile(null)
                     _currentTree.emit(TreeScreenItemData(file, list))
                     _resultState.emit(Result.success(AppResult.Success))
                 }.onFailure {
@@ -143,7 +141,7 @@ class TreeViewModel @Inject constructor(
                     _busyState.emit(false)
                 }
             } else {
-                _focusedFile.emit(file)
+                focusFile(file)
                 _isViewerMode.emit(true)
             }
         }
@@ -158,7 +156,7 @@ class TreeViewModel @Inject constructor(
                 val list = getChildren(parent)
                 parent to list
             }.onSuccess { (file, list) ->
-                _focusedFile.emit(currentTree.value.dir)
+                focusFile(currentTree.value.dir)
                 _currentTree.emit(TreeScreenItemData(file, list))
                 _resultState.emit(Result.success(AppResult.Success))
             }.onFailure {

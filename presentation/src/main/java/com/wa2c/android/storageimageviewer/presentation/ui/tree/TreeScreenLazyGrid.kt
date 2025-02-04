@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
@@ -19,8 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -28,7 +32,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +46,8 @@ import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.ifStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
@@ -49,7 +57,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 import my.nanihadesuka.compose.LazyVerticalGridScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TreeScreenLazyGrid(
     modifier: Modifier,
@@ -75,28 +82,26 @@ fun TreeScreenLazyGrid(
                 .Adaptive(minSize = if (displayState.value.viewType.isLarge) 128.dp else 96.dp),
             modifier = Modifier
                 .focusRequester(parentFocusRequester)
-                .focusProperties {
-                    exit = { FocusRequester.Default }
-                    enter = { childFocusRequester }
-                },
         ) {
             val fileList = currentTreeState.value.fileList
-            val focusIndex = fileList.indexOf(focusedFile).takeIf { it >= 0 } ?: 0
-            itemsIndexed(
+
+            items(
                 items = fileList,
-            ) { index, file ->
+            ) { file ->
+                var isFocused by remember { mutableStateOf(false) }
                 TreeScreenGridItem(
                     modifier = Modifier
-                        .onFocusChanged {
-                            if (it.isFocused) {
+                        .focusItemStyle(isFocused)
+                        .ifStyle(focusedFile == file) {
+                            focusRequester(childFocusRequester)
+                        }
+                        .onFocusEvent {
+                            isFocused = it.isFocused
+                            if (isFocused) {
                                 onFocusItem(file)
                             }
-                            // else { onFocusItem(null) } NOTE: keep focus
                         }
-                        .let {
-                            if (index == focusIndex) it.focusRequester(childFocusRequester)
-                            else it
-                        }
+                        .focusable()
                         .clickable { onClickItem(file) },
                     imageList = currentTreeState.value.imageFileList,
                     file = file,
@@ -104,7 +109,6 @@ fun TreeScreenLazyGrid(
             }
         }
     }
-
 
     val setFocus = remember {
         fun() {

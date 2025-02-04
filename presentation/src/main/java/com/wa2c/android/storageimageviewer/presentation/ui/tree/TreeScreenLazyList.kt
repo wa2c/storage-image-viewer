@@ -2,40 +2,35 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
 import android.text.format.Formatter
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.waterfallPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -48,23 +43,23 @@ import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData.Companion.dummyDigits
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.ifStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData.Companion.dummyDigits
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TreeScreenLazyList(
     modifier: Modifier,
@@ -88,41 +83,38 @@ fun TreeScreenLazyList(
             state = lazyState,
             modifier = Modifier
                 .focusRequester(parentFocusRequester)
-                .focusProperties {
-                    exit = { FocusRequester.Default }
-                    enter = { childFocusRequester }
-                },
         ) {
             val fileList = currentTreeState.value.fileList
-            itemsIndexed(
+
+            items(
                 items = fileList,
-            ) { index, file ->
+            ) { file ->
+                var isFocused by remember { mutableStateOf(false) }
                 TreeScreenItem(
                     modifier = Modifier
-                        .onFocusChanged {
-                            if (it.isFocused) {
+                        .focusItemStyle(isFocused)
+                        .ifStyle(focusedFile == file) {
+                            focusRequester(childFocusRequester)
+                        }
+                        .onFocusEvent {
+                            isFocused = it.isFocused
+                            if (isFocused) {
                                 onFocusItem(file)
-                            } else {
-                                onFocusItem(null)
-                            }
-                            // else { onFocusItem(null) } NOTE: keep focus
-                        }
-                        .let {
-                            if (file == focusedFile) {
-                                it.focusRequester(childFocusRequester)
-                                    .border(2.dp, AppColor.Primary, RoundedCornerShape(4.dp))
-                                    .background(color = AppColor.PrimaryBackground)
-                            }
-                            else {
-                                it
                             }
                         }
+                        .focusable()
                         .clickable { onClickItem(file) },
                     imageList = currentTreeState.value.imageFileList,
                     file = file,
                     viewType = displayState.value.viewType,
                 )
                 DividerThin()
+
+                if (focusedFile == file) {
+                    LaunchedEffect(Unit) {
+                        childFocusRequester.requestFocus()
+                    }
+                }
             }
         }
     }
@@ -143,6 +135,10 @@ fun TreeScreenLazyList(
             }
         }
     }
+
+//    LaunchedEffect(focusedFile) {
+//        if (focusedFile != null) childFocusRequester.restoreFocusedChild ()
+//    }
 
     LaunchedEffect(currentTreeState.value.fileList) {
         setFocus()

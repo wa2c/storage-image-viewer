@@ -8,7 +8,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -27,7 +26,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -36,12 +34,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +62,7 @@ import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
@@ -254,14 +256,16 @@ private fun HomeScreenStorageList(
                 key = { it.id },
             ) { storage ->
                 ReorderableItem(state, key = storage) { isDragging ->
-
                     val elevation = animateDpAsState(if (isDragging) AppSize.S else 0.dp, label = "")
+                    var isFocused by remember { mutableStateOf(false) }
                     HomeScreenStorageItem(
                         storage = storage,
                         modifier = Modifier
-                            .shadow(elevation.value)
-                            .background(MaterialTheme.colorScheme.surface),
-                        onClickItem = onClickItem,
+                            .focusItemStyle(isFocused)
+                            .onFocusEvent { isFocused = it.isFocused }
+                            .focusable()
+                            .clickable { onClickItem(storage) }
+                            .shadow(elevation.value),
                         onClickEdit = onClickEdit,
                     )
                 }
@@ -275,7 +279,6 @@ private fun HomeScreenStorageList(
 private fun HomeScreenStorageItem(
     storage: StorageModel,
     modifier: Modifier = Modifier,
-    onClickItem: (storage: StorageModel) -> Unit,
     onClickEdit: (storage: StorageModel) -> Unit,
 ) {
     val context = LocalContext.current
@@ -284,10 +287,6 @@ private fun HomeScreenStorageItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .clickable {
-                onClickItem(storage)
-            }
-            .focusable()
             .fillMaxWidth()
             .padding(horizontal = AppSize.M, vertical = AppSize.SS)
             .heightIn(min = AppSize.ListItem),
