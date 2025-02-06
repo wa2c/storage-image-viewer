@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import android.text.format.Formatter
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -32,6 +31,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -74,6 +74,28 @@ fun TreeScreenLazyList(
     val parentFocusRequester = remember { FocusRequester() }
     val childFocusRequester = remember { FocusRequester() }
 
+//    val setFocus = remember {
+//        fun(item: FileModel) {
+//            if (displayState.value.isViewerMode) return
+//            //childFocusRequester.freeFocus()
+//            //focusManager.clearFocus()
+//            restoreFocus(
+//                fileList = currentTreeState.value.fileList,
+//                focusedFile = item,
+//                listHeight = lazyState.layoutInfo.viewportEndOffset,
+//                itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size
+//                    ?: 0,
+//                parentFocusRequester = parentFocusRequester,
+//                childFocusRequester = childFocusRequester,
+//            ) { index, offset ->
+//                runBlocking {  lazyState.scrollToItem(index, 0) }
+//                //lazyState.requestScrollToItem(index, 0)
+//            }
+//        }
+//    }
+//
+    var targetFocusIndex by remember { mutableStateOf<Int?>(null) }
+
     LazyColumnScrollbar(
         state = lazyState,
         settings = ScrollbarSettings.Default,
@@ -83,18 +105,38 @@ fun TreeScreenLazyList(
             state = lazyState,
             modifier = Modifier
                 .focusRequester(parentFocusRequester)
+                .treeKeyControl(
+                    isPreview = true,
+                    onForwardSkip = {
+                        val list = currentTreeState.value.fileList.ifEmpty { return@treeKeyControl }
+                        val index = focusedFileState.value?.let { list.indexOf(it) } ?: -1
+                        targetFocusIndex = (index + 10)
+                    },
+                    onBackwardSkip = {
+                        val list = currentTreeState.value.fileList.ifEmpty { return@treeKeyControl }
+                        val index = focusedFileState.value?.let { list.indexOf(it) } ?: -1
+                        targetFocusIndex = (index - 10)
+                    },
+                )
         ) {
             val fileList = currentTreeState.value.fileList
 
-            items(
+            itemsIndexed(
                 items = fileList,
-            ) { file ->
+            ) { index, file ->
                 var isFocused by remember { mutableStateOf(false) }
                 TreeScreenItem(
                     modifier = Modifier
                         .focusItemStyle(isFocused)
-                        .ifStyle(focusedFile == file) {
+                        .ifStyle(targetFocusIndex == index) {
                             focusRequester(childFocusRequester)
+                        }
+                        .onPlaced {
+                            if (targetFocusIndex == index) {
+                                parentFocusRequester.requestFocus()
+                                childFocusRequester.requestFocus()
+                                targetFocusIndex = null
+                            }
                         }
                         .onFocusEvent {
                             isFocused = it.isFocused
@@ -109,43 +151,24 @@ fun TreeScreenLazyList(
                     viewType = displayState.value.viewType,
                 )
                 DividerThin()
-
-                if (focusedFile == file) {
-                    LaunchedEffect(Unit) {
-                        childFocusRequester.requestFocus()
-                    }
-                }
             }
         }
     }
 
-    val setFocus = remember {
-        fun() {
-            if (displayState.value.isViewerMode) return
-            restoreFocus(
-                fileList = currentTreeState.value.fileList,
-                focusedFile = focusedFileState.value,
-                listHeight = lazyState.layoutInfo.viewportEndOffset,
-                itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size
-                    ?: 0,
-                parentFocusRequester = parentFocusRequester,
-                childFocusRequester = childFocusRequester,
-            ) { index, offset ->
-                lazyState.requestScrollToItem(index, offset)
-            }
-        }
+    LaunchedEffect(targetFocusIndex) {
+        val index = targetFocusIndex?.coerceIn(currentTreeState.value.fileList.indices) ?: return@LaunchedEffect
+        val listHeight = lazyState.layoutInfo.viewportEndOffset
+        val itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
+        val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
+        lazyState.requestScrollToItem(index, -offset.toInt())
     }
-
-//    LaunchedEffect(focusedFile) {
-//        if (focusedFile != null) childFocusRequester.restoreFocusedChild ()
-//    }
 
     LaunchedEffect(currentTreeState.value.fileList) {
-        setFocus()
+        targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFile)
     }
 
     LaunchedEffect(displayState.value.isViewerMode) {
-        setFocus()
+        targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFile)
     }
 }
 

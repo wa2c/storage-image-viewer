@@ -217,12 +217,6 @@ private fun TreeScreenContainer(
             .treeKeyControl(
                 isPreview = true,
                 isLoading = busyState.value,
-                onForwardSkip = {
-                    onStep(10)
-                },
-                onBackwardSkip = {
-                    onStep(-10)
-                },
                 onMenu = {
                     sortMenuExpanded.value = true
                 }

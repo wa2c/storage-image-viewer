@@ -178,8 +178,8 @@ fun restoreFocus(
 
     try {
         if (focusedFile != null) {
-            parentFocusRequester.requestFocus()
-            childFocusRequester.requestFocus()
+//            parentFocusRequester.requestFocus()
+//            childFocusRequester.requestFocus()
         }
     } catch (e: Exception) {
         Log.e(e)
