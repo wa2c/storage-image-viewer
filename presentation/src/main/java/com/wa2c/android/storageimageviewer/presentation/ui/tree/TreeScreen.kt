@@ -75,6 +75,7 @@ fun TreeScreen(
         modifier = Modifier
             .treeKeyControl(
                 isPreview = true,
+                isLoading = busyState.value,
                 onNumber = { number ->
                     inputNumberState.value = (inputNumberState.value ?: "") + number.toString()
                 },
@@ -215,6 +216,7 @@ private fun TreeScreenContainer(
         modifier = Modifier
             .treeKeyControl(
                 isPreview = true,
+                isLoading = busyState.value,
                 onForwardSkip = {
                     onStep(10)
                 },

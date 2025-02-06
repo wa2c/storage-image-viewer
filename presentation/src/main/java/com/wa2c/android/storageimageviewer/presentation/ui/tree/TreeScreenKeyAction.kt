@@ -14,6 +14,7 @@ import com.wa2c.android.storageimageviewer.domain.model.FileModel
 
 fun Modifier.treeKeyControl(
     isPreview: Boolean = false,
+    isLoading: Boolean = false,
     onEnter: (() -> Unit)? = null,
     onPlay: (() -> Unit)? = null,
     onDirectionUp: ((isShift: Boolean) -> Unit)? = null,
@@ -47,65 +48,65 @@ fun Modifier.treeKeyControl(
 
         when (keyEvent.nativeKeyEvent.scanCode) {
             104 -> {  // PageUp
-                return@invoke keyAction(onBackwardSkip)
+                return@invoke isLoading || keyAction(onBackwardSkip)
             }
             109 -> { // PageDown
-                return@invoke keyAction(onForwardSkip)
+                return@invoke isLoading || keyAction(onForwardSkip)
             }
         }
 
         when (keyEvent.key) {
             Key.DirectionLeft -> {
-                onDirectionLeft?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
+                isLoading || onDirectionLeft?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
             Key.DirectionRight -> {
-                onDirectionRight?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
+                isLoading || onDirectionRight?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
             Key.DirectionUp -> {
-                onDirectionUp?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
+                isLoading || onDirectionUp?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
             Key.DirectionDown -> {
-                onDirectionDown?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
+                isLoading || onDirectionDown?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
             Key.MediaPrevious,
             Key.MediaRewind,
             Key.MediaStepBackward,
             Key.NavigatePrevious,
             Key.SystemNavigationLeft, -> {
-                keyAction(onBackward)
+                isLoading || keyAction(onBackward)
             }
             Key.MediaNext,
             Key.MediaFastForward,
             Key.MediaStepForward,
             Key.NavigateNext,
             Key.SystemNavigationRight, -> {
-                keyAction(onForward)
+                isLoading ||  keyAction(onForward)
             }
             Key.PageUp,
             Key.MediaSkipBackward, -> {
-                keyAction(onBackwardSkip)
+                isLoading || keyAction(onBackwardSkip)
             }
             Key.PageDown,
             Key.MediaSkipForward, -> {
-                keyAction(onForwardSkip)
+                isLoading || keyAction(onForwardSkip)
             }
             Key.LeftBracket,
             Key.MoveHome, -> {
-                keyAction(onBackwardFirst)
+                isLoading || keyAction(onBackwardFirst)
             }
             Key.RightBracket,
             Key.MoveEnd, -> {
-                keyAction(onForwardLast)
+                isLoading || keyAction(onForwardLast)
             }
             Key.Enter,
             Key.NumPadEnter, -> {
-                keyAction(onEnter)
+                isLoading || keyAction(onEnter)
             }
             Key.DirectionCenter,
             Key.Spacebar,
             Key.MediaPlay,
             Key.MediaPlayPause, -> {
-                keyAction(onPlay)
+                isLoading || keyAction(onPlay)
             }
             Key.Backspace,
             Key.Delete, -> {

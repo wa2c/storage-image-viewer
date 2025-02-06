@@ -35,6 +35,13 @@ object Extensions {
         return if (applied) this.modifier() else this
     }
 
+    fun <T> Modifier.ifNotNull(
+        value: T?,
+        modifier: Modifier.(T) -> Modifier,
+    ): Modifier {
+        return if (value != null) this.modifier(value) else this
+    }
+
     fun Modifier.focusItemStyle(
         focused: Boolean
     ): Modifier {
