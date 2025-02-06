@@ -24,9 +24,6 @@ object AppColor {
     val LoadingBackground = Color(0x80000000)
 
     /** Viewer overlay background */
-    val NumberInputBackground = Color(0xC0808080)
-
-    /** Viewer overlay background */
     val ViewerOverlayBackground = Color(0x80808080)
 
     /** Tree Badge background */

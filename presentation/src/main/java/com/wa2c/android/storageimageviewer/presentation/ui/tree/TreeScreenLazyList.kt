@@ -3,7 +3,6 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree
 import android.content.res.Configuration
 import android.text.format.Formatter
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,10 +24,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onPlaced
@@ -46,7 +47,7 @@ import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
-import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.ifStyle
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.applyIf
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
@@ -60,6 +61,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TreeScreenLazyList(
     modifier: Modifier,
@@ -69,31 +71,9 @@ fun TreeScreenLazyList(
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
 ) {
-    val focusedFile = focusedFileState.value
     val lazyState = rememberLazyListState()
     val parentFocusRequester = remember { FocusRequester() }
     val childFocusRequester = remember { FocusRequester() }
-
-//    val setFocus = remember {
-//        fun(item: FileModel) {
-//            if (displayState.value.isViewerMode) return
-//            //childFocusRequester.freeFocus()
-//            //focusManager.clearFocus()
-//            restoreFocus(
-//                fileList = currentTreeState.value.fileList,
-//                focusedFile = item,
-//                listHeight = lazyState.layoutInfo.viewportEndOffset,
-//                itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size
-//                    ?: 0,
-//                parentFocusRequester = parentFocusRequester,
-//                childFocusRequester = childFocusRequester,
-//            ) { index, offset ->
-//                runBlocking {  lazyState.scrollToItem(index, 0) }
-//                //lazyState.requestScrollToItem(index, 0)
-//            }
-//        }
-//    }
-//
     var targetFocusIndex by remember { mutableStateOf<Int?>(null) }
 
     LazyColumnScrollbar(
@@ -108,14 +88,22 @@ fun TreeScreenLazyList(
                 .treeKeyControl(
                     isPreview = true,
                     onForwardSkip = {
-                        val list = currentTreeState.value.fileList.ifEmpty { return@treeKeyControl }
-                        val index = focusedFileState.value?.let { list.indexOf(it) } ?: -1
-                        targetFocusIndex = (index + 10)
+                        if (!displayState.value.isViewerMode) {
+                            val list =
+                                currentTreeState.value.fileList.ifEmpty { return@treeKeyControl }
+                            val index = focusedFileState.value?.let { list.indexOf(it) } ?: -1
+                            targetFocusIndex = (if (index < 0) 0 else (index + 10))
+                                .coerceIn(currentTreeState.value.fileList.indices)
+                        }
                     },
                     onBackwardSkip = {
-                        val list = currentTreeState.value.fileList.ifEmpty { return@treeKeyControl }
-                        val index = focusedFileState.value?.let { list.indexOf(it) } ?: -1
-                        targetFocusIndex = (index - 10)
+                        if (!displayState.value.isViewerMode) {
+                            val list =
+                                currentTreeState.value.fileList.ifEmpty { return@treeKeyControl }
+                            val index = focusedFileState.value?.let { list.indexOf(it) } ?: -1
+                            targetFocusIndex = (if (index < 0) list.size - 1 else (index - 10))
+                                .coerceIn(currentTreeState.value.fileList.indices)
+                        }
                     },
                 )
         ) {
@@ -127,24 +115,23 @@ fun TreeScreenLazyList(
                 var isFocused by remember { mutableStateOf(false) }
                 TreeScreenItem(
                     modifier = Modifier
-                        .focusItemStyle(isFocused)
-                        .ifStyle(targetFocusIndex == index) {
+                        .applyIf(targetFocusIndex == index) {
                             focusRequester(childFocusRequester)
                         }
                         .onPlaced {
                             if (targetFocusIndex == index) {
                                 parentFocusRequester.requestFocus()
                                 childFocusRequester.requestFocus()
-                                targetFocusIndex = null
                             }
                         }
-                        .onFocusEvent {
+                        .onFocusChanged {
                             isFocused = it.isFocused
                             if (isFocused) {
                                 onFocusItem(file)
+                                targetFocusIndex = null
                             }
                         }
-                        .focusable()
+                        .focusItemStyle(isFocused)
                         .clickable { onClickItem(file) },
                     imageList = currentTreeState.value.imageFileList,
                     file = file,
@@ -164,11 +151,15 @@ fun TreeScreenLazyList(
     }
 
     LaunchedEffect(currentTreeState.value.fileList) {
-        targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFile)
+        if (!displayState.value.isViewerMode) {
+            targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFileState.value)
+        }
     }
 
     LaunchedEffect(displayState.value.isViewerMode) {
-        targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFile)
+        if (!displayState.value.isViewerMode) {
+            targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFileState.value)
+        }
     }
 }
 

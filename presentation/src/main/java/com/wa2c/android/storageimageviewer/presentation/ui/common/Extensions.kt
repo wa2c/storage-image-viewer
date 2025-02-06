@@ -25,17 +25,17 @@ object Extensions {
 
 
     fun Modifier.enabledStyle(enabled: Boolean): Modifier {
-        return this.ifStyle(true) { alpha(0.5f) }
+        return this.applyIf(true) { alpha(0.5f) }
     }
 
-    fun Modifier.ifStyle(
+    fun Modifier.applyIf(
         applied: Boolean,
         modifier: Modifier.() -> Modifier,
     ): Modifier {
         return if (applied) this.modifier() else this
     }
 
-    fun <T> Modifier.ifNotNull(
+    fun <T> Modifier.applyNotNull(
         value: T?,
         modifier: Modifier.(T) -> Modifier,
     ): Modifier {
@@ -45,7 +45,7 @@ object Extensions {
     fun Modifier.focusItemStyle(
         focused: Boolean
     ): Modifier {
-        return this.ifStyle(focused) {
+        return this.applyIf(focused) {
             this
                 .background(color = AppColor.PrimaryBackground)
                 .border(width = 2.dp, color = AppColor.Primary, shape = RoundedCornerShape(8.dp))

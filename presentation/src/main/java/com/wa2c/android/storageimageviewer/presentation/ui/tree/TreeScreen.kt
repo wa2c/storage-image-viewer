@@ -96,9 +96,6 @@ fun TreeScreen(
             onClickItem = viewModel::openFile,
             onClickUp = viewModel::openParent,
             onClickBack = onNavigateBack,
-            onStep = {
-                viewModel.skipPage(it)
-            }
         )
 
         AnimatedVisibility(
@@ -160,7 +157,6 @@ private fun TreeScreenContainer(
     onClickItem: (FileModel) -> Unit,
     onClickUp: () -> Unit,
     onClickBack: () -> Unit,
-    onStep: (step: Int) -> Unit,
 ) {
     val sortMenuExpanded = remember { mutableStateOf(false) }
 
@@ -396,7 +392,6 @@ private fun TreeScreenContainerPreview() {
             onClickItem = {},
             onClickUp = {},
             onClickBack = {},
-            onStep = {},
         )
     }
 }

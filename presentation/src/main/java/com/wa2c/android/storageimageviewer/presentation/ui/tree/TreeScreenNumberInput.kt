@@ -2,11 +2,13 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -104,7 +106,8 @@ private fun TreeScreenInputNumberDialogContent(
             contentAlignment = Alignment.CenterEnd,
             modifier = Modifier
                 .clip(RoundedCornerShape(AppSize.S))
-                .background(AppColor.NumberInputBackground)
+                .border(1.dp, MaterialTheme.colorScheme.background, RoundedCornerShape(AppSize.S))
+                .background(MaterialTheme.colorScheme.onBackground)
                 .padding(AppSize.S)
                 .widthIn(min = 100.dp)
                 .focusable()
@@ -129,6 +132,7 @@ private fun TreeScreenInputNumberDialogContent(
             Text(
                 text = inputNumber,
                 style = AppTypography.titleLarge,
+                color = MaterialTheme.colorScheme.background,
                 modifier = Modifier
             )
         }
