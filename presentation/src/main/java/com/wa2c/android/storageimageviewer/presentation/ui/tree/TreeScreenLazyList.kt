@@ -274,8 +274,9 @@ private fun TreeScreenLazyListPreview() {
     AppTheme {
         val storage = StorageModel(
             id = "1",
-            uri = UriModel(uri = "content://test1/"),
             name = "Test Storage 1",
+            uri = UriModel(uri = "content://test1/"),
+            rootUri = UriModel(uri = "content://test1/"),
             type = StorageType.SAF,
             sortOrder = 1,
         )

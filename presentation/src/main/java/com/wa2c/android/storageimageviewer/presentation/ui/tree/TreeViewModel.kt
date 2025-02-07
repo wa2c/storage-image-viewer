@@ -101,16 +101,6 @@ class TreeViewModel @Inject constructor(
         _focusedFile.value = file
     }
 
-    fun skipPage(
-        page: Int
-    ) {
-        val imageFileList = currentTree.value.imageFileList
-        val currentPage = imageFileList.indexOf(focusedFile.value).takeIf { it >= 0 } ?: return
-        val setPage = (currentPage + page).coerceIn(imageFileList.indices)
-        val file = imageFileList.getOrNull(setPage) ?: return
-        focusFile(file)
-    }
-
     fun openPage(
         inputNumber: String
     ) {
@@ -148,6 +138,7 @@ class TreeViewModel @Inject constructor(
     }
 
     fun openParent() {
+        if (currentTree.value.isRoot) return
         launch {
             _busyState.emit(true)
             runCatching {

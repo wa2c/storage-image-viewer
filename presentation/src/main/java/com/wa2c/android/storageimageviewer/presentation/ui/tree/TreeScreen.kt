@@ -34,11 +34,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +45,7 @@ import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
@@ -287,27 +286,28 @@ private fun TreeScreenControlBar(
         val pathScroll = rememberScrollState()
         IconButton(
             onClick = onClickUp,
-            modifier = Modifier
-                .size(AppSize.IconMiddle),
+            enabled = dir?.isRoot != true,
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_folder_up),
                 contentDescription = "Up",
+                modifier = Modifier
+                    .size(AppSize.IconMiddle)
             )
         }
 
-        val context = LocalContext.current
-        val resolver = LocalContext.current.contentResolver
-        val path = dir?.uri?.uri?.toUri()?.let {
-            if (DocumentsContract.isDocumentUri(context, it)) DocumentsContract.findDocumentPath(resolver, it)?.path?.lastOrNull()
-            else ""
-        }
+
+        val path = dir?.let {
+            val root = DocumentsContract.getDocumentId(it.storage.rootUri.toUri())
+            val path = DocumentsContract.getDocumentId(it.uri.toUri())
+            path.substringAfter(root)
+        } ?: ""
 
         Text(
-            text = path ?: "",
+            text = path,
             maxLines = 1,
             modifier = Modifier
-                .padding(start = AppSize.SS)
+                .padding(start = AppSize.S)
                 .weight(1f)
                 .horizontalScroll(pathScroll),
         )
@@ -345,8 +345,9 @@ private fun TreeScreenContainerPreview() {
     AppTheme {
         val storage = StorageModel(
             id = "1",
-            uri = UriModel(uri = "content://test1/"),
             name = "Test Storage 1",
+            uri = UriModel(uri = "content://test1/"),
+            rootUri = UriModel(uri = "content://test1/"),
             type = StorageType.SAF,
             sortOrder = 1,
         )

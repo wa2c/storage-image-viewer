@@ -32,11 +32,13 @@ class StorageRepository @Inject internal constructor(
     /** Storage list */
     val storageListFlow = storageDao.getList().map {
         withContext(dispatcher) {
-            it.map { entity ->
+            it.mapNotNull { entity ->
+                val treeUri = fileHelper.getStorageTreeUri(entity.uri)  ?: return@mapNotNull null
                 StorageModel(
                     id = entity.id,
                     name = entity.name,
                     uri = UriModel(entity.uri),
+                    rootUri = UriModel(treeUri),
                     type = StorageType.fromValue(entity.type),
                     sortOrder = entity.sortOrder,
                 )
@@ -88,7 +90,7 @@ class StorageRepository @Inject internal constructor(
             storageListFlow.firstOrNull()?.firstOrNull { it.id == id }?.let { storage ->
                 FileModel(
                     storage = storage,
-                    uri = storage.uri.uri.let { UriModel(it) },
+                    uri = storage.rootUri,
                     isDirectory = true,
                     name = storage.name,
                     mimeType = "",

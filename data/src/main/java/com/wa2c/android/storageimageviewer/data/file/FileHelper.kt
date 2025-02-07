@@ -3,6 +3,7 @@ package com.wa2c.android.storageimageviewer.data.file
 import android.annotation.SuppressLint
 import android.content.Context
 import android.database.Cursor
+import android.net.Uri
 import android.os.Build
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
@@ -79,6 +80,14 @@ class FileHelper @Inject internal constructor(
         )
     }
 
+    private fun getTreeUri(storageUri: Uri): Uri? {
+        return DocumentFile.fromTreeUri(context, storageUri)?.uri
+    }
+
+    fun getStorageTreeUri(uriText: String): String? {
+        return getTreeUri(uriText.toUri())?.toString()
+    }
+
     suspend fun getStorageType(uriText: String): StorageType {
         return withContext(Dispatchers.IO) {
             val uri = uriText.toUri()
@@ -115,8 +124,7 @@ class FileHelper @Inject internal constructor(
      */
     suspend fun getChildList(uriText: String): List<FileEntity> {
         return withContext(Dispatchers.IO) {
-            val uri = uriText.toUri()
-            val treeUri = DocumentFile.fromTreeUri(context, uri)?.uri ?: return@withContext emptyList()
+            val treeUri = getTreeUri(uriText.toUri()) ?: return@withContext emptyList()
             val childUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, DocumentsContract.getDocumentId(treeUri))
             context.contentResolver.query(childUri, null, null, null, null)?.use { cursor ->
                 generateSequence { if (cursor.moveToNext()) cursor else null }.mapNotNull {
@@ -141,18 +149,13 @@ class FileHelper @Inject internal constructor(
      * NOTE: DocumentFile.parentFile is not working.
      */
     fun getParent(uriText: String): FileEntity? {
-        val normalizedUri = uriText.removeSuffix(SEPARATOR)
-        val lastSeparatorIndex = normalizedUri.lastIndexOf(SEPARATOR) + SEPARATOR.length
-        val lastDelimiterIndex = normalizedUri.lastIndexOf('/')
-
-        val uri = normalizedUri.substring(0, max(lastSeparatorIndex, lastDelimiterIndex + 1)).toUri()
-        val directory = DocumentFile.fromTreeUri(context, uri) ?: return null
-        return directory.toEntity()
+        val uri = uriText.toUri()
+        val parentUriText = DocumentsContract.findDocumentPath(context.contentResolver, uri)?.path?.dropLast(1)?.lastOrNull() ?: return null
+        val parentUri = DocumentsContract.buildDocumentUriUsingTree(uri, parentUriText)
+        return DocumentFile.fromTreeUri(context, parentUri)?.toEntity()
     }
 
     companion object {
-        private const val SEPARATOR = "%2F"
-
         private const val ANDROID_STORAGE_PRIMARY = "primary"
         private const val ANDROID_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
         private const val DOWNLOAD_STORAGE_AUTHORITY = "com.android.providers.downloads.documents"

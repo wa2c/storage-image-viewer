@@ -9,6 +9,7 @@ data class StorageModel(
     val id: String,
     val name: String,
     val uri: UriModel,
+    val rootUri: UriModel,
     val type: StorageType,
     val sortOrder: Int,
 ): Parcelable {
@@ -21,6 +22,7 @@ data class StorageModel(
             id = "",
             name = "",
             uri = UriModel(""),
+            rootUri = UriModel(""),
             type = StorageType.SAF,
             sortOrder = 0,
         )

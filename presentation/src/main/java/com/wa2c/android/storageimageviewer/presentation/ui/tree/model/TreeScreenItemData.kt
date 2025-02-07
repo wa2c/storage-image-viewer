@@ -8,6 +8,9 @@ data class TreeScreenItemData(
 ) {
     val imageFileList: List<FileModel> = fileList.filter { !it.isDirectory }
 
+    val isRoot: Boolean
+        get() = dir?.isRoot ?: true
+
     companion object {
         val List<FileModel>.dummyDigits: String
             get() = "0".repeat(this.size.toString().length)
