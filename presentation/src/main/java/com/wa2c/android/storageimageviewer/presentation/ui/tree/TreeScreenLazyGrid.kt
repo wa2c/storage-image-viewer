@@ -135,7 +135,6 @@ fun TreeScreenLazyGrid(
 
 }
 
-
 @Composable
 private fun TreeScreenGridItem(
     modifier: Modifier,
@@ -224,8 +223,6 @@ private fun TreeScreenLazyGridPreview() {
             size = 0,
             dateModified = 0,
         )
-
-        Uri.parse("android.resource://com.wa2c.android.storageimageviewer/" + R.drawable.ic_launcher_foreground)
 
         val list = listOf(
             FileModel(

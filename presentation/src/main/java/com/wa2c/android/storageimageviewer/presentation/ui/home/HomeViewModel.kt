@@ -72,6 +72,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Delete storage
+     */
     fun deleteStorage(storage: StorageModel) {
         launch {
             storageRepository.deleteStorage(storage)

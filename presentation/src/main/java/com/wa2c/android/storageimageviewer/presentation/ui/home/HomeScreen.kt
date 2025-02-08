@@ -38,10 +38,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,9 +64,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
+import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.applyIf
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
@@ -101,13 +108,8 @@ fun HomeScreen(
     HomeScreenContainer(
         snackBarHostState = snackBarHostState,
         storageListState = storageListState,
-        onClickAdd = {
-            viewModel.newStorage()
-
-        },
-        onClickEdit = { storage ->
-            viewModel.updateEditStorage(storage)
-        },
+        onClickAdd = viewModel::newStorage,
+        onClickEdit = viewModel::updateEditStorage,
         onClickItem = onSelectStorage,
         onDragAndDrop = viewModel::onItemMove,
     )
@@ -241,6 +243,10 @@ private fun HomeScreenStorageList(
             onDragAndDrop(from.index, to.index)
         },
     )
+
+    val savedFocus = rememberSaveable { mutableStateOf<StorageModel?>(null) }
+    var focusRequester by remember { mutableStateOf<FocusRequester?>(null) }
+
     LazyColumnScrollbar(
         state = state.listState,
         settings = ScrollbarSettings.Default,
@@ -255,16 +261,25 @@ private fun HomeScreenStorageList(
                 items = storageListState.value,
                 key = { it.id },
             ) { storage ->
+                var isFocused by remember { mutableStateOf(false) }
                 ReorderableItem(state, key = storage) { isDragging ->
                     val elevation = animateDpAsState(if (isDragging) AppSize.S else 0.dp, label = "")
-                    var isFocused by remember { mutableStateOf(false) }
                     HomeScreenStorageItem(
                         storage = storage,
                         modifier = Modifier
-                            .focusItemStyle(isFocused)
-                            .onFocusEvent { isFocused = it.isFocused }
+                            .focusItemStyle(isFocused && savedFocus.value == null)
+                            .applyIf(storage == savedFocus.value) {
+                                val requester = FocusRequester()
+                                focusRequester(requester).also { focusRequester = requester }
+                            }
+                            .onFocusChanged {
+                                isFocused = it.isFocused
+                            }
                             .focusable()
-                            .clickable { onClickItem(storage) }
+                            .clickable {
+                                onClickItem(storage)
+                                savedFocus.value = storage
+                            }
                             .shadow(elevation.value),
                         onClickEdit = onClickEdit,
                     )
@@ -273,6 +288,23 @@ private fun HomeScreenStorageList(
             }
         }
     }
+
+    LaunchedEffect(Unit) {
+        savedFocus.value?.let { focusedFile ->
+            val index = storageListState.value.indexOf(focusedFile)
+            val listHeight = state.listState.layoutInfo.viewportEndOffset
+            val itemHeight = state.listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
+            val offset = (listHeight.toFloat() / 2) - (itemHeight.toFloat() / 2)
+            state.listState.requestScrollToItem(index, -offset.toInt())
+        }
+
+        focusRequester?.let { requester ->
+            requester.requestFocus()
+            focusRequester = null
+            savedFocus.value = null
+        }
+    }
+
 }
 
 @Composable
