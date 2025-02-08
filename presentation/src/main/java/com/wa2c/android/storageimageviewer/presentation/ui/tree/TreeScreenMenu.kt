@@ -34,7 +34,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypog
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 
 @Composable
-fun TreeActionMenu(
+fun TreeScreenMenu(
     menuExpanded: MutableState<Boolean>,
     displayDataState: State<TreeScreenDisplayData>,
     onSetDisplay: (TreeScreenDisplayData) -> Unit,

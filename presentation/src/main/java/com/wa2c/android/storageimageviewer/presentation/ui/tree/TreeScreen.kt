@@ -10,7 +10,6 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -82,7 +81,7 @@ fun TreeScreen(
                     inputNumberState.value = (inputNumberState.value ?: "") + number.toString()
                 },
                 onSearch = {
-                    inputNumberState.value = (currentTreeState.value.imageFileList.indexOf(focusedFileState.value) + 1).toString()
+                    inputNumberState.value = (currentTreeState.value.getImageIndex(focusedFileState.value) + 1).toString()
                 }
             ),
     ) {
@@ -202,7 +201,7 @@ private fun TreeScreenContainer(
                     }
                 },
                 actions = {
-                    TreeActionMenu(
+                    TreeScreenMenu(
                         menuExpanded = sortMenuExpanded,
                         displayDataState = displayState,
                         onSetDisplay = onSetDisplay,

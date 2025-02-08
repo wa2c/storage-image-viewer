@@ -41,6 +41,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,6 +72,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import kotlinx.coroutines.launch
 import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.rememberZoomState
@@ -80,37 +82,41 @@ import net.engawapg.lib.zoomable.zoomable
 fun TreeScreenViewer(
     viewModel: TreeViewModel = hiltViewModel(),
 ) {
-    val imageFileList = viewModel.currentTree.collectAsStateWithLifecycle().value.imageFileList
+    val treeState = viewModel.currentTree.collectAsStateWithLifecycle()
     val focusedFile = viewModel.focusedFile.collectAsStateWithLifecycle()
     val displayDataSate = viewModel.displayData.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(
-        pageCount = { imageFileList.size },
-        initialPage = focusedFile.value?.let { imageFileList.indexOf(it) } ?: 0,
+        pageCount = { treeState.value.imageFileList.size },
+        initialPage = treeState.value.getImageIndex(focusedFile.value),
     )
 
     TreeScreenViewerContainer(
         pagerState = pagerState,
-        fileList = imageFileList,
+        treeState = treeState,
         displayDataState = displayDataSate,
-        onChangeFile = viewModel::focusFile,
         onSetDisplay = viewModel::setDisplay,
         onClose = viewModel::closeViewer,
     )
 
-    LaunchedEffect(imageFileList) {
-        pagerState.requestScrollToPage(imageFileList.indexOf(viewModel.focusedFile.value))
-    }
-    LaunchedEffect(pagerState.currentPage) {
-        viewModel.focusFile(imageFileList.getOrNull(pagerState.currentPage))
+    LaunchedEffect(Unit) {
+        launch {
+            snapshotFlow { treeState.value }.collect { tree ->
+                pagerState.requestScrollToPage(tree.getImageIndex(viewModel.focusedFile.value))
+            }
+        }
+        launch {
+            snapshotFlow { pagerState.currentPage }.collect { page ->
+                viewModel.focusFile(treeState.value.getImageFile(page))
+            }
+        }
     }
 }
 
 @Composable
 fun TreeScreenViewerContainer(
     pagerState: PagerState,
-    fileList: List<FileModel>,
+    treeState:  State<TreeScreenItemData>,
     displayDataState: State<TreeScreenDisplayData>,
-    onChangeFile: (FileModel?) -> Unit,
     onSetDisplay: (TreeScreenDisplayData) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -140,7 +146,7 @@ fun TreeScreenViewerContainer(
             focusRequester = focusRequester,
             pagerState = pagerState,
             zoomState = zoomState,
-            fileList = fileList,
+            treeState = treeState,
             onStepPage = { step ->
                 scope.launch {
                     // Change page
@@ -221,7 +227,7 @@ fun TreeScreenViewerContainer(
             exit = fadeOut(),
             content = {
                 TreeScreenViewerOverlay(
-                    file = fileList[pagerState.currentPage],
+                    file = treeState.value.imageFileList[pagerState.currentPage],
                     sortMenuExpanded = sortMenuExpanded,
                     displayDataState = displayDataState,
                     onSetDisplay = onSetDisplay,
@@ -229,10 +235,6 @@ fun TreeScreenViewerContainer(
                 )
             },
         )
-    }
-
-    LaunchedEffect(pagerState.currentPage) {
-        onChangeFile(fileList.getOrNull(pagerState.currentPage))
     }
 
     BackHandler {
@@ -321,11 +323,12 @@ private fun TreeScreenViewerContent(
     focusRequester: FocusRequester,
     pagerState: PagerState,
     zoomState: ZoomState,
-    fileList: List<FileModel>,
+    treeState: State<TreeScreenItemData>,
     onStepPage: (step: Int) -> Unit,
     onClickShowOverlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val imageFileList = treeState.value.imageFileList
     HorizontalPager(
         state = pagerState,
         modifier = modifier
@@ -334,7 +337,7 @@ private fun TreeScreenViewerContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) { page ->
-        val file = fileList.getOrNull(page)
+        val file = imageFileList.getOrNull(page)
         SubcomposeAsyncImage(
             model = file?.uri?.toUri(),
             contentDescription = file?.name,
@@ -417,7 +420,7 @@ private fun TreeScreenViewerOverlay(
                 }
             },
             actions = {
-                TreeActionMenu(
+                TreeScreenMenu(
                     menuExpanded = sortMenuExpanded,
                     displayDataState = displayDataState,
                     onSetDisplay = onSetDisplay,
@@ -470,9 +473,8 @@ private fun TreeScreenContainerPreview() {
 
         TreeScreenViewerContainer(
             pagerState = rememberPagerState(pageCount = { list.size }),
-            fileList = list,
+            treeState = remember { mutableStateOf(TreeScreenItemData(fileList = list)) },
             displayDataState = remember { mutableStateOf(TreeScreenDisplayData()) },
-            onChangeFile = {},
             onSetDisplay = {},
             onClose = {},
         )

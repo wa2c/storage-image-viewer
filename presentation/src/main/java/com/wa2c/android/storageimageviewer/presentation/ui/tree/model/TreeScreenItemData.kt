@@ -11,6 +11,14 @@ data class TreeScreenItemData(
     val isRoot: Boolean
         get() = dir?.isRoot ?: true
 
+    fun getImageIndex(imageFile: FileModel?): Int {
+        return imageFile?.let { imageFileList.indexOf(it) } ?: -1
+    }
+
+    fun getImageFile(index: Int): FileModel? {
+        return imageFileList.getOrNull(index)
+    }
+
     companion object {
         val List<FileModel>.dummyDigits: String
             get() = "0".repeat(this.size.toString().length)
