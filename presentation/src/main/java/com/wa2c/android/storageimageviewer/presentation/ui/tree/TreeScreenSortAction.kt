@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,9 +34,9 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypog
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 
 @Composable
-fun TreeAction(
+fun TreeActionMenu(
     menuExpanded: MutableState<Boolean>,
-    displayData: TreeScreenDisplayData,
+    displayDataState: State<TreeScreenDisplayData>,
     onSetDisplay: (TreeScreenDisplayData) -> Unit,
 ) {
     Box {
@@ -51,6 +52,7 @@ fun TreeAction(
             expanded = menuExpanded.value,
             onDismissRequest = { menuExpanded.value = false },
         ) {
+            val displayData = displayDataState.value
             TreeSortAction(
                 displayData = displayData,
                 onSetSort = { onSetDisplay(displayData.copy(sort = it)) },
@@ -71,6 +73,7 @@ private fun ColumnScope.TreeSortAction(
     // Sort
 
     Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .align(alignment = Alignment.CenterHorizontally)
             .padding(AppSize.SS)
@@ -143,6 +146,7 @@ private fun ColumnScope.TreeSortAction(
     // View
 
     Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .align(alignment = Alignment.CenterHorizontally)
             .padding(AppSize.SS)

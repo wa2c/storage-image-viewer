@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -55,6 +56,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypog
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData.Companion.dummyDigits
+import kotlinx.coroutines.launch
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import java.text.SimpleDateFormat
@@ -150,15 +152,20 @@ fun TreeScreenLazyList(
         lazyState.requestScrollToItem(index, -offset.toInt())
     }
 
-    LaunchedEffect(currentTreeState.value.fileList) {
-        if (!displayState.value.isViewerMode) {
-            targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFileState.value)
+    LaunchedEffect(Unit) {
+        launch {
+            snapshotFlow { currentTreeState.value.fileList }.collect { value ->
+                if (!displayState.value.isViewerMode) {
+                    targetFocusIndex = value.indexOf(focusedFileState.value)
+                }
+            }
         }
-    }
-
-    LaunchedEffect(displayState.value.isViewerMode) {
-        if (!displayState.value.isViewerMode) {
-            targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFileState.value)
+        launch {
+            snapshotFlow { displayState.value.isViewerMode }.collect { value ->
+                if (!displayState.value.isViewerMode) {
+                    targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFileState.value)
+                }
+            }
         }
     }
 }

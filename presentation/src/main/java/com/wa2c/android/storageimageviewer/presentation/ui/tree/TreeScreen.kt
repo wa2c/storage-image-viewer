@@ -164,7 +164,7 @@ private fun TreeScreenContainer(
             TopAppBar(
                 title = {
                     Text(
-                        text= currentTreeState.value.dir?.name ?: "",
+                        text= currentTreeState.value.dir?.storage?.name ?: "",
                         maxLines = 1,
                         modifier = Modifier
                             .padding(start = AppSize.S)
@@ -199,9 +199,9 @@ private fun TreeScreenContainer(
                     }
                 },
                 actions = {
-                    TreeAction(
+                    TreeActionMenu(
                         menuExpanded = sortMenuExpanded,
-                        displayData = displayState.value,
+                        displayDataState = displayState,
                         onSetDisplay = onSetDisplay,
                     )
                 },
