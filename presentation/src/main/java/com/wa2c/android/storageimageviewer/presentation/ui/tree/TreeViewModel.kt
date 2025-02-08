@@ -37,7 +37,6 @@ class TreeViewModel @Inject constructor(
     private val _currentTree = MutableStateFlow(TreeScreenItemData())
     val currentTree = _currentTree.asStateFlow()
 
-
     private val _focusedFile = MutableStateFlow<FileModel?>(null)
     val focusedFile = _focusedFile.asStateFlow()
 
@@ -48,7 +47,7 @@ class TreeViewModel @Inject constructor(
     val resultState = _resultState.asStateFlow()
 
     val isRoot: Boolean
-        get() = currentTree.value.dir?.isRoot ?: true
+        get() = currentTree.value.isRoot
 
     private val _isViewerMode = MutableStateFlow(false)
 
@@ -123,7 +122,8 @@ class TreeViewModel @Inject constructor(
                     file to list
                 }.onSuccess { (file, list) ->
                     focusFile(null)
-                    _currentTree.emit(TreeScreenItemData(file, list))
+                    val route = currentTree.value.routeList + file
+                    _currentTree.emit(TreeScreenItemData(route, list))
                     _resultState.emit(Result.success(AppResult.Success))
                 }.onFailure {
                     _resultState.emit(Result.failure(it))
@@ -142,13 +142,12 @@ class TreeViewModel @Inject constructor(
         launch {
             _busyState.emit(true)
             runCatching {
-                val file = currentTree.value.dir ?: return@launch
-                val parent = storageRepository.getParent(file) ?: return@launch
-                val list = getChildren(parent)
-                parent to list
-            }.onSuccess { (file, list) ->
-                focusFile(currentTree.value.dir)
-                _currentTree.emit(TreeScreenItemData(file, list))
+                val route = currentTree.value.routeList.dropLast(1)
+                val list = getChildren(route.last())
+                route to list
+            }.onSuccess { (route, list) ->
+                focusFile(currentTree.value.currentFolder)
+                _currentTree.emit(TreeScreenItemData(route, list))
                 _resultState.emit(Result.success(AppResult.Success))
             }.onFailure {
                 _resultState.emit(Result.failure(it))

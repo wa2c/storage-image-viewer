@@ -14,9 +14,6 @@ data class FileModel(
     val size: Long,
     val dateModified: Long,
 ): Parcelable {
-    val isRoot: Boolean
-        get() = (uri.uri == storage.rootUri.uri) || !uri.uri.contains(storage.rootUri.uri)
-
     val path: String
         get() = uri.uri.substringAfter(storage.rootUri.uri)
 }

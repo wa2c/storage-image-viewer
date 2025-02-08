@@ -144,22 +144,6 @@ class StorageRepository @Inject internal constructor(
         }
     }
 
-    suspend fun getParent(file: FileModel): FileModel? {
-        return withContext(dispatcher) {
-            fileHelper.getParent(file.uri.uri)?.let { parent ->
-                FileModel(
-                    storage = file.storage,
-                    uri = UriModel(parent.uri) ,
-                    isDirectory = parent.isDirectory,
-                    name = parent.name,
-                    mimeType = parent.mimeType,
-                    size = parent.size,
-                    dateModified = parent.dateModified,
-                )
-            }
-        }
-    }
-
     suspend fun getStorageType(uri: String): StorageType {
         return withContext(dispatcher) {
             fileHelper.getStorageType(uri)

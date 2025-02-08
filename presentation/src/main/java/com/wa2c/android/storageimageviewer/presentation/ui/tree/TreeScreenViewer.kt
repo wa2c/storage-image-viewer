@@ -454,8 +454,8 @@ private fun TreeScreenContainerPreview() {
             FileModel(
                 storage = storage,
                 uri = UriModel( "content://test1/"),
-                name = "Test directory",
                 isDirectory = true,
+                name = "Test directory",
                 mimeType = "",
                 size = 0,
                 dateModified = 0,
@@ -463,8 +463,8 @@ private fun TreeScreenContainerPreview() {
             FileModel(
                 storage = storage,
                 uri = UriModel( "content://test2/"),
-                name = "Test file.jpg",
                 isDirectory = true,
+                name = "Test file.jpg",
                 mimeType = "image/jpeg",
                 size = 10000,
                 dateModified = 0,

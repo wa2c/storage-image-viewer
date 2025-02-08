@@ -3,13 +3,16 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree.model
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 
 data class TreeScreenItemData(
-    val dir: FileModel? = null,
+    val routeList: List<FileModel> = emptyList(),
     val fileList: List<FileModel> = emptyList(),
 ) {
     val imageFileList: List<FileModel> = fileList.filter { !it.isDirectory }
 
+    val currentFolder: FileModel?
+       get() = routeList.lastOrNull()
+
     val isRoot: Boolean
-        get() = dir?.isRoot ?: true
+        get() = routeList.size < 2
 
     fun getImageIndex(imageFile: FileModel?): Int {
         return imageFile?.let { imageFileList.indexOf(it) } ?: -1

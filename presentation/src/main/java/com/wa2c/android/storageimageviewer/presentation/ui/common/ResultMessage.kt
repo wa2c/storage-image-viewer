@@ -22,6 +22,9 @@ suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
                     is AppException.StorageEditException -> {
                         "Storage access error: ${it.message}"
                     }
+                    is AppException.StorageFileNotFoundException -> {
+                        "File not found: ${it.uri}"
+                    }
                 }
             }
             is CancellationException -> {

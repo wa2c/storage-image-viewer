@@ -32,9 +32,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -131,7 +131,6 @@ fun TreeScreen(
         }
     }
 
-
     // Back button
     BackHandler {
         if (busyState.value) {
@@ -144,7 +143,7 @@ fun TreeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TreeScreenContainer(
     modifier: Modifier = Modifier,
@@ -166,7 +165,7 @@ private fun TreeScreenContainer(
             TopAppBar(
                 title = {
                     Text(
-                        text= currentTreeState.value.dir?.storage?.name ?: "",
+                        text= currentTreeState.value.currentFolder?.storage?.name ?: "",
                         maxLines = 1,
                         modifier = Modifier
                             .padding(start = AppSize.S)
@@ -174,7 +173,7 @@ private fun TreeScreenContainer(
                     )
                 },
                 navigationIcon = {
-                    currentTreeState.value.dir?.let { dir ->
+                    currentTreeState.value.currentFolder?.let { dir ->
                         Box(
                             contentAlignment = Alignment.Center,
                         ) {
@@ -251,7 +250,7 @@ private fun TreeScreenContainer(
                 DividerNormal()
 
                 TreeScreenControlBar(
-                    dir = currentTreeState.value.dir,
+                    tree = currentTreeState,
                     onClickUp = onClickUp,
                 )
             }
@@ -345,7 +344,7 @@ private fun TreeScreenItems(
 
 @Composable
 private fun TreeScreenControlBar(
-    dir: FileModel?,
+    tree: State<TreeScreenItemData>,
     onClickUp: () -> Unit,
 ) {
     Row(
@@ -356,7 +355,7 @@ private fun TreeScreenControlBar(
         val pathScroll = rememberScrollState()
         IconButton(
             onClick = onClickUp,
-            enabled = dir?.isRoot != true,
+            enabled = !tree.value.isRoot,
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_folder_up),
@@ -367,10 +366,11 @@ private fun TreeScreenControlBar(
         }
 
 
-        val path = dir?.let {
-            val root = DocumentsContract.getDocumentId(it.storage.rootUri.toUri())
-            val path = DocumentsContract.getDocumentId(it.uri.toUri())
-            path.substringAfter(root)
+        val resolver = LocalContext.current.contentResolver
+        val path = tree.value.currentFolder?.let {
+            val storagePath = DocumentsContract.findDocumentPath(resolver, it.storage.rootUri.toUri())?.path?.lastOrNull()
+            val currentPath = DocumentsContract.findDocumentPath(resolver, it.uri.toUri())?.path?.lastOrNull()
+            currentPath?.substringAfter(storagePath ?: "") ?: ""
         } ?: ""
 
         Text(
@@ -382,7 +382,7 @@ private fun TreeScreenControlBar(
                 .horizontalScroll(pathScroll),
         )
 
-        LaunchedEffect(dir?.uri) {
+        LaunchedEffect(tree.value.currentFolder) {
             pathScroll.scrollTo(pathScroll.maxValue)
         }
     }
@@ -424,8 +424,8 @@ private fun TreeScreenContainerPreview() {
         val dir = FileModel(
             storage = storage,
             uri = UriModel( "content://dir1/"),
-            name = "Test directory ",
             isDirectory = true,
+            name = "Test directory ",
             mimeType = "",
             size = 0,
             dateModified = 0,
@@ -435,8 +435,8 @@ private fun TreeScreenContainerPreview() {
             FileModel(
                 storage = storage,
                 uri = UriModel( "content://test1/"),
-                name = "Test directory",
                 isDirectory = true,
+                name = "Test directory",
                 mimeType = "",
                 size = 0,
                 dateModified = 1000000000000,
@@ -444,8 +444,8 @@ private fun TreeScreenContainerPreview() {
             FileModel(
                 storage = storage,
                 uri = UriModel( "content://test2/image1.jpg"),
-                name = "image1.jpg",
                 isDirectory = false,
+                name = "image1.jpg",
                 mimeType = "image/jpeg",
                 size = 10000,
                 dateModified = 1500000000000,
@@ -454,7 +454,7 @@ private fun TreeScreenContainerPreview() {
 
         TreeScreenContainer(
             snackBarHostState = SnackbarHostState(),
-            currentTreeState = remember { mutableStateOf(TreeScreenItemData(dir, list)) },
+            currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             focusedFileState = remember { mutableStateOf(null) },
             displayState = remember { mutableStateOf(TreeScreenDisplayData()) },
             busyState = remember { mutableStateOf(false) },

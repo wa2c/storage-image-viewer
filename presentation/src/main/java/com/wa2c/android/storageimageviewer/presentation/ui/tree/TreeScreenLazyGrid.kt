@@ -113,6 +113,7 @@ fun TreeScreenLazyGrid(
     LaunchedEffect(Unit) {
         launch {
             snapshotFlow { targetIndexState.value }.collect { targetIndex ->
+                currentTreeState.value.fileList.ifEmpty { return@collect }
                 val index = targetIndex?.coerceIn(currentTreeState.value.fileList.indices) ?: return@collect
                 val listHeight = lazyState.layoutInfo.viewportEndOffset
                 val itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?.height ?: 0
@@ -217,8 +218,8 @@ private fun TreeScreenLazyGridPreview() {
         val dir = FileModel(
             storage = storage,
             uri = UriModel( "content://dir1/"),
-            name = "Test directory ",
             isDirectory = true,
+            name = "Test directory ",
             mimeType = "",
             size = 0,
             dateModified = 0,
@@ -230,8 +231,8 @@ private fun TreeScreenLazyGridPreview() {
             FileModel(
                 storage = storage,
                 uri = UriModel( "content://test1/"),
-                name = "Test directory",
                 isDirectory = true,
+                name = "Test directory",
                 mimeType = "",
                 size = 0,
                 dateModified = 1000000000000,
@@ -239,8 +240,8 @@ private fun TreeScreenLazyGridPreview() {
             FileModel(
                 storage = storage,
                 uri = UriModel( "content://test2/image1.jpg"),
-                name = "image1.jpg",
                 isDirectory = false,
+                name = "image1.jpg",
                 mimeType = "image/jpeg",
                 size = 10000,
                 dateModified = 1500000000000,
@@ -249,7 +250,7 @@ private fun TreeScreenLazyGridPreview() {
 
         TreeScreenLazyGrid(
             modifier = Modifier,
-            currentTreeState = remember { mutableStateOf(TreeScreenItemData(dir, list)) },
+            currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             targetIndexState = remember { mutableStateOf<Int?>(null) },
             displayState = remember { mutableStateOf(TreeScreenDisplayData()) },
             onForwardSkip = {},

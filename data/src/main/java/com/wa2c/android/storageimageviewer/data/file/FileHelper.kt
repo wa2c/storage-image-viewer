@@ -16,15 +16,14 @@ import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.StorageType.Device
 import com.wa2c.android.storageimageviewer.common.values.StorageType.Download
-import com.wa2c.android.storageimageviewer.common.values.StorageType.USB
 import com.wa2c.android.storageimageviewer.common.values.StorageType.SAF
 import com.wa2c.android.storageimageviewer.common.values.StorageType.SD
+import com.wa2c.android.storageimageviewer.common.values.StorageType.USB
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.max
 
 @Singleton
 class FileHelper @Inject internal constructor(
@@ -142,17 +141,6 @@ class FileHelper @Inject internal constructor(
                 }.toList()
             } ?: emptyList()
         }
-    }
-
-    /**
-     * Get parent file
-     * NOTE: DocumentFile.parentFile is not working.
-     */
-    fun getParent(uriText: String): FileEntity? {
-        val uri = uriText.toUri()
-        val parentUriText = DocumentsContract.findDocumentPath(context.contentResolver, uri)?.path?.dropLast(1)?.lastOrNull() ?: return null
-        val parentUri = DocumentsContract.buildDocumentUriUsingTree(uri, parentUriText)
-        return DocumentFile.fromTreeUri(context, parentUri)?.toEntity()
     }
 
     companion object {
