@@ -26,9 +26,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.res.vectorResource
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
@@ -58,15 +61,16 @@ import my.nanihadesuka.compose.ScrollbarSettings
 fun TreeScreenLazyGrid(
     modifier: Modifier,
     currentTreeState: State<TreeScreenItemData>,
-    focusedFileState: State<FileModel?>,
+    targetIndexState: State<Int?>,
     displayState: State<TreeScreenDisplayData>,
+    onForwardSkip: () -> Unit,
+    onBackwardSkip: () -> Unit,
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
 ) {
     val lazyState = rememberLazyGridState()
     val parentFocusRequester = remember { FocusRequester() }
-    val childFocusRequester = remember { FocusRequester() }
-    var targetFocusIndex by remember { mutableStateOf<Int?>(null) }
+    var childFocusRequester by remember { mutableStateOf<FocusRequester?>(null) }
 
     LazyVerticalGridScrollbar(
         state = lazyState,
@@ -81,24 +85,8 @@ fun TreeScreenLazyGrid(
                 .focusRequester(parentFocusRequester)
                 .treeKeyControl(
                     isPreview = true,
-                    onForwardSkip = {
-                        if (!displayState.value.isViewerMode) {
-                            val list =
-                                currentTreeState.value.fileList.ifEmpty { return@treeKeyControl }
-                            val index = focusedFileState.value?.let { list.indexOf(it) } ?: -1
-                            targetFocusIndex = (if (index < 0) 0 else (index + 10))
-                                .coerceIn(currentTreeState.value.fileList.indices)
-                        }
-                    },
-                    onBackwardSkip = {
-                        if (!displayState.value.isViewerMode) {
-                            val list =
-                                currentTreeState.value.fileList.ifEmpty { return@treeKeyControl }
-                            val index = focusedFileState.value?.let { list.indexOf(it) } ?: -1
-                            targetFocusIndex = (if (index < 0) list.size - 1 else (index - 10))
-                                .coerceIn(currentTreeState.value.fileList.indices)
-                        }
-                    },
+                    onForwardSkip = onForwardSkip,
+                    onBackwardSkip = onBackwardSkip,
                 )
         ) {
             itemsIndexed(
@@ -107,23 +95,17 @@ fun TreeScreenLazyGrid(
                 var isFocused by remember { mutableStateOf(false) }
                 TreeScreenGridItem(
                     modifier = Modifier
-                        .applyIf(targetFocusIndex == index) {
-                            focusRequester(childFocusRequester)
-                        }
-                        .onPlaced {
-                            if (targetFocusIndex == index) {
-                                parentFocusRequester.requestFocus()
-                                childFocusRequester.requestFocus()
-                            }
+                        .focusItemStyle(isFocused)
+                        .applyIf(targetIndexState.value == index) {
+                            val requester = FocusRequester()
+                            focusRequester(requester).also { childFocusRequester = requester }
                         }
                         .onFocusChanged {
                             isFocused = it.isFocused
-                            if (isFocused) {
+                            if (it.isFocused) {
                                 onFocusItem(file)
-                                targetFocusIndex = null
                             }
                         }
-                        .focusItemStyle(isFocused)
                         .clickable { onClickItem(file) },
                     imageList = currentTreeState.value.imageFileList,
                     file = file,
@@ -132,30 +114,28 @@ fun TreeScreenLazyGrid(
         }
     }
 
-    LaunchedEffect(targetFocusIndex) {
-        val index = targetFocusIndex?.coerceIn(currentTreeState.value.fileList.indices) ?: return@LaunchedEffect
-        val listHeight = lazyState.layoutInfo.viewportEndOffset
-        val itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?.height ?: 0
-        val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
-        lazyState.requestScrollToItem(index, -offset.toInt())
-    }
-
     LaunchedEffect(Unit) {
         launch {
-            snapshotFlow { currentTreeState.value.fileList }.collect { value ->
-                if (!displayState.value.isViewerMode) {
-                    targetFocusIndex = value.indexOf(focusedFileState.value)
-                }
+            snapshotFlow { targetIndexState.value }.collect { targetIndex ->
+                val index = targetIndex?.coerceIn(currentTreeState.value.fileList.indices) ?: return@collect
+                val listHeight = lazyState.layoutInfo.viewportEndOffset
+                val itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size?.height ?: 0
+                val offset = (listHeight.toFloat() / 2) - (itemHeight.toFloat() / 2)
+                lazyState.requestScrollToItem(index, -offset.toInt())
             }
         }
         launch {
-            snapshotFlow { displayState.value.isViewerMode }.collect { value ->
-                if (!displayState.value.isViewerMode) {
-                    targetFocusIndex = currentTreeState.value.fileList.indexOf(focusedFileState.value)
+            snapshotFlow { childFocusRequester }.collect {
+                if (it != null) {
+                    parentFocusRequester.requestFocus()
+                    it.requestFocus()
+                    childFocusRequester = null
                 }
             }
         }
     }
+
+
 }
 
 
@@ -274,8 +254,10 @@ private fun TreeScreenLazyGridPreview() {
         TreeScreenLazyGrid(
             modifier = Modifier,
             currentTreeState = remember { mutableStateOf(TreeScreenItemData(dir, list)) },
-            focusedFileState = remember { mutableStateOf(null) },
+            targetIndexState = remember { mutableStateOf<Int?>(null) },
             displayState = remember { mutableStateOf(TreeScreenDisplayData()) },
+            onForwardSkip = {},
+            onBackwardSkip = {},
             onFocusItem = {},
             onClickItem = {},
         )

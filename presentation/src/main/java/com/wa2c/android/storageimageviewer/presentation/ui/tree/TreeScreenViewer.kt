@@ -100,9 +100,8 @@ fun TreeScreenViewer(
     LaunchedEffect(imageFileList) {
         pagerState.requestScrollToPage(imageFileList.indexOf(viewModel.focusedFile.value))
     }
-    LaunchedEffect(focusedFile.value) {
-        val focusedPage = imageFileList.indexOf(focusedFile.value).takeIf { it >= 0 } ?: 0
-        if (pagerState.currentPage != focusedPage) pagerState.requestScrollToPage(focusedPage)
+    LaunchedEffect(pagerState.currentPage) {
+        viewModel.focusFile(imageFileList.getOrNull(pagerState.currentPage))
     }
 }
 

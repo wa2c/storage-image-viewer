@@ -10,6 +10,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -55,6 +57,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
+import kotlinx.coroutines.launch
 
 @Composable
 fun TreeScreen(
@@ -235,27 +238,15 @@ private fun TreeScreenContainer(
                             .weight(1f),
                     )
                 } else {
-                    if (displayState.value.viewType.isList) {
-                        TreeScreenLazyList(
-                            modifier = Modifier
-                                .weight(1f),
-                            currentTreeState = currentTreeState,
-                            focusedFileState = focusedFileState,
-                            displayState = displayState,
-                            onFocusItem = onFocusItem,
-                            onClickItem = onClickItem,
-                        )
-                    } else {
-                        TreeScreenLazyGrid(
-                            modifier = Modifier
-                                .weight(1f),
-                            currentTreeState = currentTreeState,
-                            focusedFileState = focusedFileState,
-                            displayState = displayState,
-                            onFocusItem = onFocusItem,
-                            onClickItem = onClickItem,
-                        )
-                    }
+                    TreeScreenItems(
+                        modifier = Modifier
+                            .weight(1f),
+                        currentTreeState = currentTreeState,
+                        focusedFileState = focusedFileState,
+                        displayState = displayState,
+                        onFocusItem = onFocusItem,
+                        onClickItem = onClickItem,
+                    )
                 }
 
                 DividerNormal()
@@ -268,6 +259,86 @@ private fun TreeScreenContainer(
             LoadingBox(
                 isLoading = busyState.value,
             )
+        }
+    }
+}
+
+@Composable
+private fun TreeScreenItems(
+    modifier: Modifier,
+    currentTreeState: State<TreeScreenItemData>,
+    focusedFileState: State<FileModel?>,
+    displayState: State<TreeScreenDisplayData>,
+    onFocusItem: (FileModel?) -> Unit,
+    onClickItem: (FileModel) -> Unit,
+) {
+    val focusedIndex = remember { fun(): Int? {
+        val list = currentTreeState.value.fileList.ifEmpty { return null }
+        return list.indexOf(focusedFileState.value)
+    } }
+
+    val targetIndexState = remember { mutableStateOf<Int?>(focusedIndex()) }
+
+    // Page skip forward
+    val forwardSkip = remember { fun() {
+        if (displayState.value.isViewerMode) return
+        val index = focusedIndex() ?: -1
+        targetIndexState.value = (if (index < 0) 0 else (index + 10))
+            .coerceIn(currentTreeState.value.fileList.indices)
+    } }
+    // Page skip back
+    val backwardSkip = remember { fun() {
+        if (displayState.value.isViewerMode) return
+        val list = currentTreeState.value.fileList.ifEmpty { return }
+        val index = focusedIndex() ?: -1
+        targetIndexState.value = (if (index < 0) list.size - 1 else (index - 10))
+            .coerceIn(currentTreeState.value.fileList.indices)
+    } }
+
+    if (displayState.value.viewType.isList) {
+        TreeScreenLazyList(
+            modifier = modifier,
+            currentTreeState = currentTreeState,
+            targetIndexState = targetIndexState,
+            displayState = displayState,
+            onForwardSkip = forwardSkip,
+            onBackwardSkip = backwardSkip,
+            onFocusItem = {
+                targetIndexState.value = null
+                onFocusItem(it)
+            },
+            onClickItem = onClickItem,
+        )
+    } else {
+        TreeScreenLazyGrid(
+            modifier = modifier,
+            currentTreeState = currentTreeState,
+            targetIndexState = targetIndexState,
+            displayState = displayState,
+            onForwardSkip = forwardSkip,
+            onBackwardSkip = backwardSkip,
+            onFocusItem = {
+                targetIndexState.value = null
+                onFocusItem(it)
+            },
+            onClickItem = onClickItem,
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        launch {
+            snapshotFlow { currentTreeState.value.fileList }.collect { value ->
+                if (!displayState.value.isViewerMode) {
+                    targetIndexState.value = value.indexOf(focusedFileState.value)
+                }
+            }
+        }
+        launch {
+            snapshotFlow { displayState.value.isViewerMode }.collect { value ->
+                if (!displayState.value.isViewerMode) {
+                    targetIndexState.value = currentTreeState.value.fileList.indexOf(focusedFileState.value)
+                }
+            }
         }
     }
 }
