@@ -38,6 +38,13 @@ android {
             )
         }
     }
+
+    signingConfigs  {
+        getByName("debug") {
+            storeFile = file("$rootDir/debug.keystore")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = appJavaVersion
         targetCompatibility = appJavaVersion
