@@ -40,14 +40,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -58,18 +56,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
-import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.applyIf
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toDisplayTreePath
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
@@ -101,8 +100,7 @@ fun HomeScreen(
 
     val treeOpenLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
-        val initialName = DocumentsContract.getTreeDocumentId(uri).split(":").getOrElse(1) { "" }
-        viewModel.setUri(uri.toString(), initialName)
+        viewModel.setUri(uri.toString(), uri.toDisplayTreePath(context))
     }
 
     HomeScreenContainer(
@@ -352,14 +350,9 @@ private fun HomeScreenStorageItem(
                 overflow = TextOverflow.Ellipsis,
             )
             val subText = if (granted) {
-                try {
-                    DocumentsContract.getTreeDocumentId(storage.uri.toUri())
-                } catch (e: Exception) {
-                    Log.w(e)
-                    "Not granted" // FIXME
-                }
+                storage.rootUri.toUri().toDisplayTreePath(context) ?: ""
             } else {
-                "Not granted" // FIXME
+                stringResource(R.string.home_storage_no_granted)
             }
 
             Text(

@@ -23,11 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
+import com.wa2c.android.storageimageviewer.presentation.ui.common.components.getStorageAppName
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.CommonDialog
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.DialogButton
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
@@ -44,6 +46,7 @@ fun HomeScreenStorageEditDialog(
     onClickDelete: (storage: StorageModel) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     val storage = editStorage.value ?: return
     var visibleDeleteConfirm by remember { mutableStateOf(false) }
@@ -92,6 +95,11 @@ fun HomeScreenStorageEditDialog(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
+            // App
+            Text(
+                text = getStorageAppName(context = context, storage = storage)
+            )
+
             // URI
             Box {
                 OutlinedTextField(

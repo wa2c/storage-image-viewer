@@ -1,5 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.common.components
 
+import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -70,4 +70,24 @@ fun StorageIcon(
             )
         }
     }
+}
+
+fun getStorageAppName(
+    context: Context,
+    storage: StorageModel,
+): String {
+    return try {
+        storage.uri.toUri().authority?.let { authority ->
+            val packages: List<PackageInfo> = context.packageManager.getInstalledPackages(
+                PackageManager.GET_PROVIDERS)
+            packages.firstOrNull { pack ->
+                pack.providers?.firstOrNull { provider ->
+                    provider.authority?.let { authority == it } ?: false
+                } != null
+            }?.applicationInfo?.loadLabel(context.packageManager)?.toString()
+        }
+    } catch (e: Exception) {
+        Log.w(e)
+        null
+    } ?: ""
 }

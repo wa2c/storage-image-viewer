@@ -1,7 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
-import android.provider.DocumentsContract
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -46,6 +45,7 @@ import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toDisplayTreePath
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
@@ -365,11 +365,10 @@ private fun TreeScreenControlBar(
             )
         }
 
-
-        val resolver = LocalContext.current.contentResolver
+        val context = LocalContext.current
         val path = tree.value.currentFolder?.let {
-            val storagePath = DocumentsContract.findDocumentPath(resolver, it.storage.rootUri.toUri())?.path?.lastOrNull()
-            val currentPath = DocumentsContract.findDocumentPath(resolver, it.uri.toUri())?.path?.lastOrNull()
+            val storagePath = it.storage.rootUri.toUri().toDisplayTreePath(context)
+            val currentPath = it.uri.toUri().toDisplayTreePath(context)
             currentPath?.substringAfter(storagePath ?: "") ?: ""
         } ?: ""
 

@@ -1,3 +1,8 @@
-<resources>
-    <string name="app_name">Storage Image Viewer</string>
+<?xml version="1.0" encoding="utf-8"?>
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
+
+    <string name="home_storage_no_granted">No access granted</string>
+
 </resources>
