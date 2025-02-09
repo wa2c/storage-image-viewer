@@ -1,7 +1,5 @@
 package com.wa2c.android.storageimageviewer.common.values
 
-import com.wa2c.android.storageimageviewer.common.values.TreeViewType.ListLarge
-
 /**
  * Sort type
  */

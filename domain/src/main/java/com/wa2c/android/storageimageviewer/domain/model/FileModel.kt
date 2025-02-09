@@ -1,7 +1,6 @@
 package com.wa2c.android.storageimageviewer.domain.model
 
 import android.os.Parcelable
-import com.wa2c.android.storageimageviewer.common.values.StorageType
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

@@ -1,7 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

@@ -1,7 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.common
 
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
 import kotlinx.coroutines.CancellationException

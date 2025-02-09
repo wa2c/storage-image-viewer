@@ -1,7 +1,6 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isShiftPressed
@@ -9,8 +8,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import com.wa2c.android.storageimageviewer.common.utils.Log
-import com.wa2c.android.storageimageviewer.domain.model.FileModel
 
 fun Modifier.treeKeyControl(
     isPreview: Boolean = false,
