@@ -33,7 +33,7 @@ class StorageRepository @Inject internal constructor(
     val storageListFlow = storageDao.getList().map {
         withContext(dispatcher) {
             it.mapNotNull { entity ->
-                val treeUri = fileHelper.getStorageTreeUri(entity.uri)  ?: return@mapNotNull null
+                val treeUri = fileHelper.getTreeUri(entity.uri)  ?: return@mapNotNull null
                 StorageModel(
                     id = entity.id,
                     name = entity.name,

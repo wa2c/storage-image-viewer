@@ -121,6 +121,7 @@ fun HomeScreen(
         },
         onClickSave = { storage ->
             try {
+                // Grant URI permission
                 resolver.takePersistableUriPermission(
                     storage.uri.toUri(),
                     Intent.FLAG_GRANT_READ_URI_PERMISSION,
@@ -134,10 +135,14 @@ fun HomeScreen(
         },
         onClickDelete = { storage ->
             try {
-                resolver.releasePersistableUriPermission(
-                    storage.uri.toUri(),
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
-                )
+                val existsUri = storageListState.value.filter { it.id != storage.id }.any { it.uri == storage.uri }
+                if (!existsUri) {
+                    // Release URI permission (if other storage is not using)
+                    resolver.releasePersistableUriPermission(
+                        storage.uri.toUri(),
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    )
+                }
                 viewModel.deleteStorage(storage)
             } catch (e: Exception) {
                 scope.launch {
@@ -253,10 +258,7 @@ private fun HomeScreenStorageList(
                 .reorderable(state)
                 .detectReorderAfterLongPress(state),
         ) {
-            items(
-                items = storageListState.value,
-                key = { it.id },
-            ) { storage ->
+            items(items = storageListState.value) { storage ->
                 var isFocused by remember { mutableStateOf(false) }
                 ReorderableItem(state, key = storage) { isDragging ->
                     val elevation = animateDpAsState(if (isDragging) AppSize.S else 0.dp, label = "")

@@ -4,6 +4,7 @@ import androidx.compose.material3.SnackbarHostState
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
 import kotlinx.coroutines.CancellationException
+import java.io.IOException
 
 suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
     result.onSuccess {
@@ -26,6 +27,12 @@ suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
                         "File not found: ${it.uri}"
                     }
                 }
+            }
+            is SecurityException -> {
+                "Access Denied"
+            }
+            is IOException -> {
+                "Access Filed"
             }
             is CancellationException -> {
                 "Loading cancelled"

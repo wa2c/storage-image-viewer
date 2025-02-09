@@ -16,19 +16,13 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
 
 object Extensions {
 
-    fun Uri.toUriModel(): UriModel {
-        return UriModel(
-            uri = toString(),
-        )
-    }
-
     fun UriModel.toUri(): Uri {
         return  uri.toUri()
     }
 
 
     fun Modifier.enabledStyle(enabled: Boolean): Modifier {
-        return this.applyIf(true) { alpha(0.5f) }
+        return this.applyIf(enabled) { alpha(0.5f) }
     }
 
     fun Modifier.applyIf(

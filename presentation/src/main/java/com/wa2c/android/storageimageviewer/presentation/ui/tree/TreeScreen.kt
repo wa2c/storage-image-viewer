@@ -231,10 +231,9 @@ private fun TreeScreenContainer(
                 modifier = Modifier
                     .fillMaxSize(),
             ) {
-                if (currentTreeState.value.routeList.isEmpty()) {
-                    // Do nothing
-                } else if (currentTreeState.value.fileList.isEmpty()) {
+                if (currentTreeState.value.fileList.isEmpty()) {
                     TreeScreenEmpty(
+                        showText = currentTreeState.value.routeList.isNotEmpty(),
                         modifier = Modifier
                             .weight(1f),
                     )
@@ -392,6 +391,7 @@ private fun TreeScreenControlBar(
 
 @Composable
 private fun TreeScreenEmpty(
+    showText: Boolean,
     modifier: Modifier,
 ) {
     Box(
@@ -399,9 +399,11 @@ private fun TreeScreenEmpty(
         modifier = modifier
             .fillMaxSize(),
     ) {
-        Text(
-            text = stringResource(R.string.tree_empty_label),
-        )
+        if (showText) {
+            Text(
+                text = stringResource(R.string.tree_empty_label),
+            )
+        }
     }
 }
 

@@ -349,6 +349,7 @@ private fun TreeScreenViewerContent(
                 .zoomable(
                     zoomState = zoomState,
                     onTap = { offset ->
+                        if (pagerState.isScrollInProgress) return@zoomable
                         val width = Resources.getSystem().displayMetrics.widthPixels
                         if (offset.x <= width * 0.2f) {
                             onStepPage(-1)

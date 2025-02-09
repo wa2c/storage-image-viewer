@@ -68,23 +68,10 @@ class FileHelper @Inject internal constructor(
         }
     }
 
-    private fun DocumentFile.toEntity(): FileEntity? {
-        return FileEntity(
-            uri = uri.toString(),
-            name = name ?: return null,
-            isDirectory = isDirectory,
-            mimeType = type ?: "",
-            size = length(),
-            dateModified = lastModified(),
-        )
-    }
-
-    private fun getTreeUri(storageUri: Uri): Uri? {
-        return DocumentFile.fromTreeUri(context, storageUri)?.uri
-    }
-
-    fun getStorageTreeUri(uriText: String): String? {
-        return getTreeUri(uriText.toUri())?.toString()
+    fun getTreeUri(uriText: String): String? {
+        val uri = uriText.toUri()
+        val documentId = DocumentsContract.getTreeDocumentId(uri)
+        return DocumentsContract.buildDocumentUriUsingTree(uri, documentId)?.toString()
     }
 
     suspend fun getStorageType(uriText: String): StorageType {
@@ -123,7 +110,7 @@ class FileHelper @Inject internal constructor(
      */
     suspend fun getChildList(uriText: String): List<FileEntity> {
         return withContext(Dispatchers.IO) {
-            val treeUri = getTreeUri(uriText.toUri()) ?: return@withContext emptyList()
+            val treeUri = uriText.toUri() ?: return@withContext emptyList()
             val childUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, DocumentsContract.getDocumentId(treeUri))
             context.contentResolver.query(childUri, null, null, null, null)?.use { cursor ->
                 generateSequence { if (cursor.moveToNext()) cursor else null }.mapNotNull {
