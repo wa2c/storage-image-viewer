@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -230,7 +231,9 @@ private fun TreeScreenContainer(
                 modifier = Modifier
                     .fillMaxSize(),
             ) {
-                if (currentTreeState.value.fileList.isEmpty()) {
+                if (currentTreeState.value.routeList.isEmpty()) {
+                    // Do nothing
+                } else if (currentTreeState.value.fileList.isEmpty()) {
                     TreeScreenEmpty(
                         modifier = Modifier
                             .weight(1f),
@@ -397,7 +400,7 @@ private fun TreeScreenEmpty(
             .fillMaxSize(),
     ) {
         Text(
-            text = "Empty", // FIXME
+            text = stringResource(R.string.tree_empty_label),
         )
     }
 }

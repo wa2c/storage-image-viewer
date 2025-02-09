@@ -20,6 +20,7 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
@@ -45,7 +46,7 @@ fun TreeScreenMenu(
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_menu),
-                contentDescription = "Search",
+                contentDescription = "Menu",
             )
         }
         DropdownMenu(
@@ -80,13 +81,13 @@ private fun ColumnScope.TreeSortAction(
     ) {
         Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_sort),
-            contentDescription = "Sort",
+            contentDescription = stringResource(R.string.tree_menu_sort_section),
             modifier = Modifier
                 .padding(end = AppSize.S)
         )
 
         Text(
-            text = "Sort",
+            text = stringResource(R.string.tree_menu_sort_section),
             style = AppTypography.titleMedium,
             modifier = Modifier
         )
@@ -95,19 +96,19 @@ private fun ColumnScope.TreeSortAction(
     DividerThin()
 
     TreeScreenActionMenuRadio(
-        text = "Name",
+        text = stringResource(R.string.tree_menu_sort_by_name),
         selected = displayData.sort.type == TreeSortType.Name,
     ) {
         onSetSort(displayData.sort.copy(type = TreeSortType.Name))
     }
     TreeScreenActionMenuRadio(
-        text = "Size",
+        text = stringResource(R.string.tree_menu_sort_by_size_check),
         selected = displayData.sort.type == TreeSortType.Size,
     ) {
         onSetSort(displayData.sort.copy(type = TreeSortType.Size))
     }
     TreeScreenActionMenuRadio(
-        text = "Date",
+        text = stringResource(R.string.tree_menu_sort_by_date_check),
         selected = displayData.sort.type == TreeSortType.Date,
     ) {
         onSetSort(displayData.sort.copy(type = TreeSortType.Date))
@@ -117,25 +118,25 @@ private fun ColumnScope.TreeSortAction(
 
     // Option
     TreeScreenActionMenuCheck(
-        text = "Descending",
+        text = stringResource(R.string.tree_menu_sort_option_descending_check),
         checked = displayData.sort.isDescending
     ) {
         onSetSort(displayData.sort.copy(isDescending = !displayData.sort.isDescending))
     }
     TreeScreenActionMenuCheck(
-        text = "Ignore case",
+        text = stringResource(R.string.tree_menu_sort_option_ignore_case_check),
         checked = displayData.sort.isIgnoreCase
     ) {
         onSetSort(displayData.sort.copy(isIgnoreCase = !displayData.sort.isIgnoreCase))
     }
     TreeScreenActionMenuCheck(
-        text = "Number",
+        text = stringResource(R.string.tree_menu_sort_option_numerically_check),
         checked = displayData.sort.isNumberSort
     ) {
         onSetSort(displayData.sort.copy(isNumberSort = !displayData.sort.isNumberSort))
     }
     TreeScreenActionMenuCheck(
-        text = "Folder mix",
+        text = stringResource(R.string.tree_menu_sort_option_mix_folder_check),
         checked = displayData.sort.isFolderMixed
     ) {
         onSetSort(displayData.sort.copy(isFolderMixed = !displayData.sort.isFolderMixed))
@@ -153,13 +154,13 @@ private fun ColumnScope.TreeSortAction(
     ) {
         Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_view),
-            contentDescription = "View",
+            contentDescription = stringResource(R.string.tree_menu_view_section),
             modifier = Modifier
                 .padding(end = AppSize.S)
         )
 
         Text(
-            text = "View",
+            text = stringResource(R.string.tree_menu_view_section),
             style = AppTypography.titleMedium,
             modifier = Modifier
         )
@@ -169,20 +170,20 @@ private fun ColumnScope.TreeSortAction(
 
     if (displayData.isViewerMode) {
         TreeScreenActionMenuCheck(
-            text = "Page",
+            text = stringResource(R.string.tree_menu_view_show_page_check),
             checked = displayData.showPage,
         ) {
             onSetShowPage(!displayData.showPage)
         }
     } else {
         TreeScreenActionMenuRadio(
-            text = "List",
+            text = stringResource(R.string.tree_menu_view_by_list_check),
             selected = displayData.viewType.isList,
         ) {
             onSetView(if (displayData.viewType.isLarge) TreeViewType.ListLarge else TreeViewType.ListSmall)
         }
         TreeScreenActionMenuRadio(
-            text = "Grid",
+            text = stringResource(R.string.tree_menu_view_by_grid_check),
             selected = !displayData.viewType.isList,
         ) {
             onSetView(if (displayData.viewType.isLarge) TreeViewType.GridLarge else TreeViewType.GridSmall)
@@ -191,13 +192,13 @@ private fun ColumnScope.TreeSortAction(
         DividerThin()
 
         TreeScreenActionMenuRadio(
-            text = "Large",
+            text = stringResource(R.string.tree_menu_view_size_large_check),
             selected = displayData.viewType.isLarge,
         ) {
             onSetView(if (displayData.viewType.isList) TreeViewType.ListLarge else TreeViewType.GridLarge)
         }
         TreeScreenActionMenuRadio(
-            text = "Small",
+            text = stringResource(R.string.tree_menu_view_size_small_check),
             selected = !displayData.viewType.isLarge,
         ) {
             onSetView(if (displayData.viewType.isList) TreeViewType.ListSmall else TreeViewType.GridSmall)

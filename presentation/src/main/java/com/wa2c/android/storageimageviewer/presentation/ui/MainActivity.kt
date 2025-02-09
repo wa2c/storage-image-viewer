@@ -37,6 +37,15 @@ class MainActivity : ComponentActivity() {
                 return dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_BACK))
             }
         }
+//        when (event.scanCode) {
+//            104 -> {  // PageUp
+//                return dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_PAGE_UP))
+//            }
+//            109 -> { // PageDown
+//                return dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_PAGE_DOWN))
+//            }
+//        }
+
         return super.dispatchKeyEvent(event)
     }
 

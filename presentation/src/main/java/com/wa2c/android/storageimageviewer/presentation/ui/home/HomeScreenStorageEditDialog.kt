@@ -24,10 +24,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
+import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.getStorageAppName
 import com.wa2c.android.storageimageviewer.presentation.ui.common.dialog.CommonDialog
@@ -62,22 +64,23 @@ fun HomeScreenStorageEditDialog(
                         .padding(end = AppSize.S)
                         .size(AppSize.IconMiddle)
                 )
-                val text = if (storage.isNew) "Add" else "Edit"
-                Text(text)
+                val text = if (storage.isNew) R.string.home_storage_dialog_title_add
+                else R.string.home_storage_dialog_title_edit
+                Text(stringResource(text))
             }
         },
         confirmButtons = buildList {
             if (!storage.isNew) {
                 add(
                     DialogButton(
-                        label = "Delete", // FIXME
+                        label = stringResource(R.string.home_storage_dialog_remove_button),
                         onClick = { visibleDeleteConfirm = true }
                     ),
                 )
             }
             add(
                 DialogButton(
-                    label = "Save", // FIXME
+                    label = stringResource(R.string.home_storage_dialog_save_button),
                     enabled = storage.name.isNotEmpty() && !storage.uri.isInvalidUri,
                     onClick = { onClickSave(storage) },
                 ),
@@ -86,7 +89,7 @@ fun HomeScreenStorageEditDialog(
 
         ,
         dismissButton = DialogButton(
-            label = "Cancel", // FIXME
+            label = stringResource(R.string.common_cancel_label),
             onClick = onDismiss,
         ),
         onDismiss = onDismiss,
@@ -104,8 +107,8 @@ fun HomeScreenStorageEditDialog(
             Box {
                 OutlinedTextField(
                     value = storage.uri.uri,
-                    label = { Text("URI") }, // fixme
-                    placeholder = { Text("Select URI") }, // fixme
+                    label = { Text(stringResource(R.string.home_storage_dialog_uri_label)) },
+                    placeholder = { Text(stringResource(R.string.home_storage_dialog_uri_placeholder)) },
                     readOnly = true,
                     onValueChange = { },
                     maxLines = 1,
@@ -132,8 +135,8 @@ fun HomeScreenStorageEditDialog(
             // Name
             OutlinedTextField(
                 value = storage.name,
-                label = { Text("Name") }, // fixme
-                placeholder = { Text("Input name") }, // fixme
+                label = { Text(stringResource(R.string.home_storage_dialog_name_label)) },
+                placeholder = { Text(stringResource(R.string.home_storage_dialog_name_placeholder)) },
                 onValueChange = { value ->
                     onEditName(value)
                 },
@@ -150,10 +153,10 @@ fun HomeScreenStorageEditDialog(
 
     if (visibleDeleteConfirm) {
         CommonDialog(
-            title = { Text("Delete") },
+            title = { Text(stringResource(R.string.home_storage_dialog_confirm_title)) },
             confirmButtons = listOf(
                 DialogButton(
-                    label = "Delete", // FIXME
+                    label = stringResource(R.string.home_storage_dialog_remove_button),
                     onClick = {
                         visibleDeleteConfirm = false
                         onClickDelete(storage)
@@ -162,13 +165,13 @@ fun HomeScreenStorageEditDialog(
             ),
             dismissButton =
             DialogButton(
-                label = "Cancel", // FIXME
+                label = stringResource(R.string.common_cancel_label),
                 onClick = {
                     visibleDeleteConfirm = false
                 }
             ),
         ) {
-            Text("Are you sure to delete?")
+            Text(stringResource(R.string.home_storage_dialog_confirm_description))
         }
     }
 

@@ -17,9 +17,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 
-
-
-
 /**
  * Common dialog
  */

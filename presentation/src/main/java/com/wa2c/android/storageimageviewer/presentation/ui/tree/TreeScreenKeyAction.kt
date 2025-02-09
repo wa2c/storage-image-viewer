@@ -151,37 +151,3 @@ fun Key.toNumber(): Int? {
         else -> null
     }
 }
-
-
-
-/**
- * Restore focus
- */
-fun restoreFocus(
-    fileList: List<FileModel>,
-    focusedFile: FileModel?,
-    listHeight: Int,
-    itemHeight: Int,
-    parentFocusRequester: FocusRequester,
-    childFocusRequester: FocusRequester,
-    onScroll: (index: Int, offset: Int) -> Unit,
-) {
-    if (fileList.isEmpty()) return
-
-    val index = fileList.indexOf(focusedFile)
-    if (index >= 0) {
-        val offset = (listHeight.toFloat() / 2)  - (itemHeight.toFloat() / 2)
-        onScroll(index, -offset.toInt())
-    } else {
-        onScroll(0, 0)
-    }
-
-    try {
-        if (focusedFile != null) {
-//            parentFocusRequester.requestFocus()
-//            childFocusRequester.requestFocus()
-        }
-    } catch (e: Exception) {
-        Log.e(e)
-    }
-}
