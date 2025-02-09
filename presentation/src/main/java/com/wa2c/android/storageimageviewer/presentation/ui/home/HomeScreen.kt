@@ -129,7 +129,7 @@ fun HomeScreen(
                 viewModel.saveStorage(storage)
             } catch (e: Exception) {
                 scope.launch {
-                    snackBarHostState.showMessage(Result.failure(AppException.StorageEditException(e)))
+                    snackBarHostState.showMessage(context, Result.failure(AppException.StorageEditException(e)))
                 }
             }
         },
@@ -146,7 +146,7 @@ fun HomeScreen(
                 viewModel.deleteStorage(storage)
             } catch (e: Exception) {
                 scope.launch {
-                    snackBarHostState.showMessage(Result.failure(AppException.StorageEditException(e)))
+                    snackBarHostState.showMessage(context, Result.failure(AppException.StorageEditException(e)))
                 }
             }
         },
@@ -157,7 +157,7 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         viewModel.resultState.collectIn(lifecycleOwner = lifecycleOwner) {
-            snackBarHostState.showMessage(it)
+            snackBarHostState.showMessage(context, it)
         }
     }
 

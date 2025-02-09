@@ -1,12 +1,14 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.common
 
+import android.content.Context
 import androidx.compose.material3.SnackbarHostState
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
+import com.wa2c.android.storageimageviewer.presentation.R
 import kotlinx.coroutines.CancellationException
 import java.io.IOException
 
-suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
+suspend fun SnackbarHostState.showMessage(context: Context, result: Result<AppResult>) {
     result.onSuccess {
         // Do Nothing
     }.onFailure {
@@ -14,33 +16,32 @@ suspend fun SnackbarHostState.showMessage(result: Result<AppResult>) {
             is AppException -> {
                 when (it) {
                     is AppException.StorageNotFoundException -> {
-                        "Storage not found: ${it.id}"
+                        context.getString(R.string.error_storage_not_found)
                     }
-
                     is AppException.StorageSelectCancelledException -> {
-                        "Storage select cancelled"
+                        context.getString(R.string.error_storage_select_canceled)
                     }
                     is AppException.StorageEditException -> {
-                        "Storage access error: ${it.message}"
+                        context.getString(R.string.error_storage_edit_failed)
                     }
                     is AppException.StorageFileNotFoundException -> {
-                        "File not found: ${it.uri}"
+                        context.getString(R.string.error_storage_file_not_found)
                     }
                 }
             }
             is SecurityException -> {
-                "Access Denied"
+                context.getString(R.string.error_storage_access_denied)
             }
             is IOException -> {
-                "Access Filed"
+                context.getString(R.string.error_storage_io_error)
             }
             is CancellationException -> {
-                "Loading cancelled"
+                context.getString(R.string.error_storage_loading_canceled)
             }
             else -> {
-                it.message
+                context.getString(R.string.error_generic)
             }
-        } ?: "Error"
+        }
         showSnackbar(message)
     }
 }

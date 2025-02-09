@@ -64,6 +64,7 @@ fun TreeScreen(
     viewModel: TreeViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
 ) {
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val focusManager =  LocalFocusManager.current
     val snackBarHostState = remember { SnackbarHostState() }
@@ -123,7 +124,7 @@ fun TreeScreen(
 
     LaunchedEffect(Unit) {
         viewModel.resultState.collectIn(lifecycleOwner) {
-            snackBarHostState.showMessage(it)
+            snackBarHostState.showMessage(context, it)
         }
         viewModel.focusedFile.collectIn(lifecycleOwner) {
             if (it == null) {

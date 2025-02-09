@@ -38,4 +38,14 @@
     <string name="tree_menu_view_size_small_check">Small</string>
     <string name="tree_menu_view_show_page_check">Page</string>
 
+    <!-- Error -->
+    <string name="error_generic">An error has occurred.</string>
+    <string name="error_storage_select_canceled">Selection canceled.</string>
+    <string name="error_storage_edit_failed">Storage save failed.</string>
+    <string name="error_storage_not_found">Storage not found.</string>
+    <string name="error_storage_file_not_found">File not found.</string>
+    <string name="error_storage_access_denied">Storage access not allowed.</string>
+    <string name="error_storage_io_error">Storage access failed.</string>
+    <string name="error_storage_loading_canceled">Loading canceled.</string>
+
 </resources>
