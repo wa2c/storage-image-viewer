@@ -22,7 +22,7 @@ suspend fun SnackbarHostState.showMessage(context: Context, result: Result<AppRe
                         context.getString(R.string.error_storage_select_canceled)
                     }
                     is AppException.StorageEditException -> {
-                        context.getString(R.string.error_storage_edit_failed)
+                        context.getString(R.string.error_storage_edit_failed) + "\n" + it.message
                     }
                     is AppException.StorageFileNotFoundException -> {
                         context.getString(R.string.error_storage_file_not_found)
@@ -30,16 +30,16 @@ suspend fun SnackbarHostState.showMessage(context: Context, result: Result<AppRe
                 }
             }
             is SecurityException -> {
-                context.getString(R.string.error_storage_access_denied)
+                context.getString(R.string.error_storage_access_denied) + "\n" + it.message
             }
             is IOException -> {
-                context.getString(R.string.error_storage_io_error)
+                context.getString(R.string.error_storage_io_error) + "\n" + it.message
             }
             is CancellationException -> {
                 context.getString(R.string.error_storage_loading_canceled)
             }
             else -> {
-                context.getString(R.string.error_generic)
+                context.getString(R.string.error_generic) + "\n" + it.message
             }
         }
         showSnackbar(message)
