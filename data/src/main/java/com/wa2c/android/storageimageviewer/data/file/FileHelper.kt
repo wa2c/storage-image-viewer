@@ -3,7 +3,6 @@ package com.wa2c.android.storageimageviewer.data.file
 import android.annotation.SuppressLint
 import android.content.Context
 import android.database.Cursor
-import android.net.Uri
 import android.os.Build
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
@@ -11,7 +10,6 @@ import android.provider.DocumentsContract
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
-import androidx.documentfile.provider.DocumentFile
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.common.values.StorageType.Device
@@ -79,23 +77,23 @@ class FileHelper @Inject internal constructor(
             val uri = uriText.toUri()
             if (uri.authority == ANDROID_STORAGE_AUTHORITY) {
                 val volumeName = DocumentsContract.getTreeDocumentId(uri)
-                    .split(':').firstOrNull() ?: return@withContext SAF
-                if (volumeName == ANDROID_STORAGE_PRIMARY) {
+                    .split(':').firstOrNull()
+                if (volumeName == ANDROID_STORAGE_PRIMARY || volumeName.isNullOrEmpty()) {
                     Device
                 } else {
                     val storageVolume = getStorageList()
-                        .firstOrNull { it.uuid == volumeName } ?: return@withContext SAF
+                        .firstOrNull { it.uuid == volumeName } ?: return@withContext Device
                     if (storageVolume.isPrimary) return@withContext Device
 
                     // by description
-                    val description = storageVolume.getDescription(context)
-                    if (description.contains("usb",true)) USB
-                    else if (description.contains("sd", true)) SD
+                    val description = storageVolume.getDescription(context) ?: return@withContext Device
+                    if (description.contains("usb",true)) return@withContext USB
+                    else if (description.contains("sd", true)) return@withContext SD
                     // by path
-                    val path = storageVolume.mountedPath() ?: return@withContext SAF
+                    val path = storageVolume.mountedPath() ?: return@withContext Device
                     if (path.startsWith("/storage")) SD
                     else if (path.startsWith("/mnt")) USB
-                    else SAF
+                    else Device
                 }
             } else if (uri.authority == DOWNLOAD_STORAGE_AUTHORITY) {
                 Download
