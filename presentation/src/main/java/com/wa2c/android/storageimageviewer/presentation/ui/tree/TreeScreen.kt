@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -166,39 +167,64 @@ private fun TreeScreenContainer(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text= currentTreeState.value.currentFolder?.storage?.name ?: "",
-                        maxLines = 1,
-                        modifier = Modifier
-                            .padding(start = AppSize.S)
-                            .basicMarquee(),
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        currentTreeState.value.currentFolder?.let { dir ->
+                            StorageIcon(
+                                storage = dir.storage,
+                                modifier = Modifier
+                                    .size(AppSize.IconSmall)
+                            )
+                        }
+                        Text(
+                            text = currentTreeState.value.currentFolder?.storage?.name ?: "",
+                            maxLines = 1,
+                            modifier = Modifier
+                                .padding(start = AppSize.S)
+                                .basicMarquee(),
+                        )
+                    }
+//                    Text(
+//                        text= currentTreeState.value.currentFolder?.storage?.name ?: "",
+//                        maxLines = 1,
+//                        modifier = Modifier
+//                            .padding(start = AppSize.S)
+//                            .basicMarquee(),
+//                    )
                 },
                 navigationIcon = {
+                    IconButton(onClick = onClickBack) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_back),
+                            contentDescription = "back",
+                        )
+                    }
+
                     currentTreeState.value.currentFolder?.let { dir ->
-                        Box(
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_back_arrow),
-                                contentDescription = "Back",
-                                modifier = Modifier
-                                    .padding(start = AppSize.SS)
-                                    .size(AppSize.IconSmall)
-                                    .align(Alignment.CenterStart)
-                            )
-                            IconButton(
-                                onClick = onClickBack,
-                                modifier = Modifier
-                                    .padding(start = AppSize.M)
-                            ) {
-                                StorageIcon(
-                                    storage = dir.storage,
-                                    modifier = Modifier
-                                        .size(AppSize.IconMiddle)
-                                )
-                            }
-                        }
+//                        Box(
+//                            contentAlignment = Alignment.Center,
+//                        ) {
+//                            Icon(
+//                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_back_arrow),
+//                                contentDescription = "Back",
+//                                modifier = Modifier
+//                                    .padding(start = AppSize.SS)
+//                                    .size(AppSize.IconSmall)
+//                                    .align(Alignment.CenterStart)
+//                            )
+//                            IconButton(
+//                                onClick = onClickBack,
+//                                modifier = Modifier
+//                                    .padding(start = AppSize.M)
+//                            ) {
+//                                StorageIcon(
+//                                    storage = dir.storage,
+//                                    modifier = Modifier
+//                                        .size(AppSize.IconMiddle)
+//                                )
+//                            }
+//                        }
                     }
                 },
                 actions = {

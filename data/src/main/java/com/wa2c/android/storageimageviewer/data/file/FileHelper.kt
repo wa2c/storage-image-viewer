@@ -108,7 +108,7 @@ class FileHelper @Inject internal constructor(
      */
     suspend fun getChildList(uriText: String): List<FileEntity> {
         return withContext(Dispatchers.IO) {
-            val treeUri = uriText.toUri() ?: return@withContext emptyList()
+            val treeUri = uriText.toUri()
             val childUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, DocumentsContract.getDocumentId(treeUri))
             context.contentResolver.query(childUri, null, null, null, null)?.use { cursor ->
                 generateSequence { if (cursor.moveToNext()) cursor else null }.mapNotNull {

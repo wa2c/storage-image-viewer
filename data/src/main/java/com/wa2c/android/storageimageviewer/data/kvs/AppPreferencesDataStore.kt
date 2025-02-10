@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
+import com.wa2c.android.storageimageviewer.common.values.UiTheme
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -33,6 +34,12 @@ class AppPreferencesDataStore @Inject constructor(
         produceFile = { context.preferencesDataStoreFile("App") },
         migrations = listOf(SharedPreferencesMigration(context, "App"))
     )
+
+    /** UI Theme */
+    val uiThemeFlow: Flow<UiTheme> =  dataStore.data.map { UiTheme.findByKeyOrDefault(it[PREFKEY_UI_THEME]) }
+
+    /** UI Theme */
+    suspend fun setUiTheme(value: UiTheme) = dataStore.setValue(PREFKEY_UI_THEME, value.key)
 
     /** Tree view type */
     val treeViewTypeFlow: Flow<TreeViewType> = dataStore.data.map { TreeViewType.findByValueOrDefault(it[PREFKEY_TREE_VIEW_TYPE]) }
@@ -68,6 +75,8 @@ class AppPreferencesDataStore @Inject constructor(
     suspend fun setViewShowOverlayFlow(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_SHOW_OVERLAY, value)
 
     companion object {
+
+        private val PREFKEY_UI_THEME = stringPreferencesKey("prefkey_ui_theme")
 
         private val PREFKEY_TREE_VIEW_TYPE = stringPreferencesKey("prefkey_tree_view_type")
         private val PREFKEY_TREE_SORT_TYPE = stringPreferencesKey("prefkey_tree_sort_type")

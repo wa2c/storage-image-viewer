@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -87,6 +88,7 @@ import org.burnoutcrew.reorderable.reorderable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onSelectStorage: (storage: StorageModel) -> Unit,
+    onNavigateSettings: () -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
@@ -107,6 +109,7 @@ fun HomeScreen(
         onClickAdd = viewModel::newStorage,
         onClickEdit = viewModel::updateEditStorage,
         onClickItem = onSelectStorage,
+        onClickSettings = onNavigateSettings,
         onDragAndDrop = viewModel::onItemMove,
     )
 
@@ -171,6 +174,7 @@ private fun HomeScreenContainer(
     onClickAdd: () -> Unit,
     onClickEdit: (storage: StorageModel) -> Unit,
     onClickItem: (storage: StorageModel) -> Unit,
+    onClickSettings: () -> Unit,
     onDragAndDrop: (from: Int, to: Int) -> Unit,
 ) {
     val context = LocalContext.current
@@ -200,6 +204,16 @@ private fun HomeScreenContainer(
                         )
                     }
                 },
+                actions = {
+                    IconButton(
+                        onClick = onClickSettings,
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_settings),
+                            contentDescription = null,
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -208,7 +222,7 @@ private fun HomeScreenContainer(
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.ic_folder_add),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.home_storage_dialog_title_add),
                 )
             }
         },
@@ -333,7 +347,7 @@ private fun HomeScreenStorageItem(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_arrow_drop_down),
                 contentDescription = "",
                 modifier = Modifier
-                    .size(AppSize.IconSmall)
+                    .size(AppSize.IconAddition)
                     .align(Alignment.BottomCenter)
                     .offset(y = AppSize.M)
             )
@@ -400,6 +414,7 @@ private fun HomeScreenContainerPreview() {
             onClickAdd = {},
             onClickEdit = {},
             onClickItem = {},
+            onClickSettings = {},
             onDragAndDrop = { _, _ -> },
         )
     }

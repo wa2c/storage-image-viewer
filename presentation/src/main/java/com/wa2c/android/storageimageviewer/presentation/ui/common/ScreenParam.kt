@@ -6,6 +6,8 @@ object ScreenParam {
 
     const val TreeScreenRouteName = "list"
 
+    const val SettingsScreenRouteName = "settings"
+
     const val ScreenParamId = "id"
 
 }

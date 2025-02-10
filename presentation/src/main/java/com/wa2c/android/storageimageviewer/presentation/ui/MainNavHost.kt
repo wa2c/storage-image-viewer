@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ScreenParam
 import com.wa2c.android.storageimageviewer.presentation.ui.home.HomeScreen
+import com.wa2c.android.storageimageviewer.presentation.ui.settings.SettingsScreen
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.TreeScreen
 
 @Composable
@@ -25,7 +26,10 @@ internal fun MainNavHost(
             HomeScreen(
                 onSelectStorage = {
                     navController.navigate(route = "${ScreenParam.TreeScreenRouteName}?${ScreenParam.ScreenParamId}=${it.id}")
-                }
+                },
+                onNavigateSettings = {
+                    navController.navigate(ScreenParam.SettingsScreenRouteName)
+                },
             )
         }
 
@@ -46,5 +50,18 @@ internal fun MainNavHost(
                 }
             )
         }
+
+        // Settings Screen
+        composable(
+            route = ScreenParam.SettingsScreenRouteName,
+        ) {
+            SettingsScreen(
+                onNavigateBack = {
+                    navController.popBackStack(ScreenParam.SettingsScreenRouteName, true)
+                }
+            )
+        }
     }
+
+
 }
