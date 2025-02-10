@@ -185,13 +185,6 @@ private fun TreeScreenContainer(
                                 .basicMarquee(),
                         )
                     }
-//                    Text(
-//                        text= currentTreeState.value.currentFolder?.storage?.name ?: "",
-//                        maxLines = 1,
-//                        modifier = Modifier
-//                            .padding(start = AppSize.S)
-//                            .basicMarquee(),
-//                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onClickBack) {
@@ -199,32 +192,6 @@ private fun TreeScreenContainer(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_back),
                             contentDescription = "back",
                         )
-                    }
-
-                    currentTreeState.value.currentFolder?.let { dir ->
-//                        Box(
-//                            contentAlignment = Alignment.Center,
-//                        ) {
-//                            Icon(
-//                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_back_arrow),
-//                                contentDescription = "Back",
-//                                modifier = Modifier
-//                                    .padding(start = AppSize.SS)
-//                                    .size(AppSize.IconSmall)
-//                                    .align(Alignment.CenterStart)
-//                            )
-//                            IconButton(
-//                                onClick = onClickBack,
-//                                modifier = Modifier
-//                                    .padding(start = AppSize.M)
-//                            ) {
-//                                StorageIcon(
-//                                    storage = dir.storage,
-//                                    modifier = Modifier
-//                                        .size(AppSize.IconMiddle)
-//                                )
-//                            }
-//                        }
                     }
                 },
                 actions = {

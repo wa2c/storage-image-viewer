@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -184,9 +185,11 @@ private fun HomeScreenContainer(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(id = R.string.app_name),
+                        text = stringResource(id = R.string.app_name),
+                        maxLines = 1,
                         modifier = Modifier
                             .padding(start = AppSize.S)
+                            .basicMarquee(),
                     )
                 },
                 navigationIcon = {
@@ -200,7 +203,7 @@ private fun HomeScreenContainer(
                             bitmap = icon.toBitmap().asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier
-                                .size(AppSize.IconMiddle)
+                                .size(AppSize.IconSmall)
                         )
                     }
                 },

@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -121,7 +122,10 @@ private fun SettingsScreenContainer(
                         )
                         Text(
                             text = stringResource(id = R.string.settings_title),
-                            modifier = Modifier.padding(start = AppSize.S),
+                            maxLines = 1,
+                            modifier = Modifier
+                                .padding(start = AppSize.S)
+                                .basicMarquee(),
                         )
                     }
                 },
