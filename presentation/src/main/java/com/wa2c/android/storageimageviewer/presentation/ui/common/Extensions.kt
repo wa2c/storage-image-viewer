@@ -6,8 +6,16 @@ import android.provider.DocumentsContract
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.wa2c.android.storageimageviewer.common.utils.Log
@@ -39,15 +47,21 @@ object Extensions {
         return if (value != null) this.modifier(value) else this
     }
 
+    @Composable
     fun Modifier.focusItemStyle(
-        focused: Boolean
+        shape: Shape = RoundedCornerShape(8.dp)
     ): Modifier {
-        return this.applyIf(focused) {
-            this
-                .background(color = AppColor.PrimaryBackground)
-                .border(width = 2.dp, color = AppColor.Primary, shape = RoundedCornerShape(8.dp))
-        }
+        var isFocused by remember { mutableStateOf(true) }
+        return this
+            .onFocusChanged { isFocused = it.isFocused }
+            .applyIf(isFocused) {
+                this
+                    .clip(shape)
+                    .background(color = AppColor.PrimaryBackground)
+                    .border(width = 2.dp, color = AppColor.Primary, shape = shape)
+            }
     }
+
 
     fun Uri.toDisplayTreePath(context: Context): String? {
         return try {

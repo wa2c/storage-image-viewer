@@ -46,7 +46,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -276,19 +275,15 @@ private fun HomeScreenStorageList(
                 .detectReorderAfterLongPress(state),
         ) {
             items(items = storageListState.value) { storage ->
-                var isFocused by remember { mutableStateOf(false) }
                 ReorderableItem(state, key = storage) { isDragging ->
                     val elevation = animateDpAsState(if (isDragging) AppSize.S else 0.dp, label = "")
                     HomeScreenStorageItem(
                         storage = storage,
                         modifier = Modifier
-                            .focusItemStyle(isFocused && savedFocus.value == null)
+                            .focusItemStyle()
                             .applyIf(storage == savedFocus.value) {
                                 val requester = FocusRequester()
                                 focusRequester(requester).also { focusRequester = requester }
-                            }
-                            .onFocusChanged {
-                                isFocused = it.isFocused
                             }
                             .focusable()
                             .clickable {

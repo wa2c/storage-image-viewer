@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.waterfallPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +39,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +47,7 @@ import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toDisplayTreePath
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
@@ -187,7 +188,12 @@ private fun TreeScreenContainer(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onClickBack) {
+                    IconButton(
+                        onClick = onClickBack,
+                        modifier = Modifier
+                            .focusItemStyle(shape = CircleShape)
+                        ,
+                    ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_back),
                             contentDescription = "back",
@@ -352,6 +358,8 @@ private fun TreeScreenControlBar(
         IconButton(
             onClick = onClickUp,
             enabled = !tree.value.isRoot,
+            modifier = Modifier
+                .focusItemStyle()
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_folder_up),

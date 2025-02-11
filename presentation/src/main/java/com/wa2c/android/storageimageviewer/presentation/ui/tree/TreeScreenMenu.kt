@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -27,6 +28,7 @@ import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
@@ -40,9 +42,12 @@ fun TreeScreenMenu(
     displayDataState: State<TreeScreenDisplayData>,
     onSetDisplay: (TreeScreenDisplayData) -> Unit,
 ) {
+
     Box {
         IconButton(
-            onClick = { menuExpanded.value = true }
+            onClick = { menuExpanded.value = true },
+            modifier = Modifier
+                .focusItemStyle(shape = CircleShape)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_menu),

@@ -95,17 +95,15 @@ fun TreeScreenLazyList(
             itemsIndexed(
                 items = fileList,
             ) { index, file ->
-                var isFocused by remember { mutableStateOf(false) }
                 TreeScreenItem(
                     modifier = Modifier
-                        .focusItemStyle(isFocused)
                         .applyIf(targetIndexState.value == index) {
                             val requester = FocusRequester()
                             focusRequester(requester).also { childFocusRequester = requester }
                         }
+                        .focusItemStyle()
                         .onFocusChanged {
-                            isFocused = it.isFocused
-                            if (isFocused) {
+                            if (it.isFocused) {
                                 onFocusItem(file)
                             }
                         }
@@ -122,6 +120,7 @@ fun TreeScreenLazyList(
     LaunchedEffect(Unit) {
         launch {
             snapshotFlow { targetIndexState.value }.collect { targetIndex ->
+                currentTreeState.value.fileList.ifEmpty { return@collect }
                 val index = targetIndex?.coerceIn(currentTreeState.value.fileList.indices) ?: return@collect
                 val listHeight = lazyState.layoutInfo.viewportEndOffset
                 val itemHeight = lazyState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0

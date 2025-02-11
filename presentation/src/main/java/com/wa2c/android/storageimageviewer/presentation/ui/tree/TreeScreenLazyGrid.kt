@@ -87,16 +87,14 @@ fun TreeScreenLazyGrid(
             itemsIndexed(
                 items = currentTreeState.value.fileList,
             ) { index, file ->
-                var isFocused by remember { mutableStateOf(false) }
                 TreeScreenGridItem(
                     modifier = Modifier
-                        .focusItemStyle(isFocused)
                         .applyIf(targetIndexState.value == index) {
                             val requester = FocusRequester()
                             focusRequester(requester).also { childFocusRequester = requester }
                         }
+                        .focusItemStyle()
                         .onFocusChanged {
-                            isFocused = it.isFocused
                             if (it.isFocused) {
                                 onFocusItem(file)
                             }
