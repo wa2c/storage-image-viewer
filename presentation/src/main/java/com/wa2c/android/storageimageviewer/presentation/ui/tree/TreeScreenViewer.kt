@@ -163,6 +163,7 @@ fun TreeScreenViewerContainer(
             modifier = Modifier
                 .keyControl(
                     zoomState = zoomState,
+                    useVolume = optionState.value.viewerOption.volumeScroll,
                     onStepPage = { step ->
                         scope.launch {
                             val page = (pagerState.currentPage + step).coerceIn(pageRange)
@@ -272,6 +273,7 @@ private suspend fun Animatable<Color, AnimationVector4D>.flashPage() {
 
 private fun Modifier.keyControl(
     zoomState: ZoomState,
+    useVolume: Boolean,
     onStepPage: (step: Int) -> Unit,
     onZoom: () -> Unit,
     onZoomScroll: (isXPositive: Boolean?, isYPositive: Boolean?, isSkip: Boolean?) -> Unit,
@@ -279,6 +281,7 @@ private fun Modifier.keyControl(
     onShowMenu: () -> Unit,
 ): Modifier {
     return this.treeKeyControl(
+        useVolume = useVolume,
         onEnter = onShowOverlay,
         onPlay = onZoom,
         onDirectionUp = { isShift ->
@@ -315,10 +318,7 @@ private fun Modifier.keyControl(
         onBackwardSkip = { onStepPage(-10) },
         onForwardLast = { onStepPage(Int.MAX_VALUE) },
         onBackwardFirst = { onStepPage(-Int.MAX_VALUE) },
-        //onNumber = {},
-        //onDelete = {},
         onMenu = onShowMenu,
-        //onSearch = {},
     )
 }
 

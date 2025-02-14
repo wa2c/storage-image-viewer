@@ -12,6 +12,7 @@ import androidx.compose.ui.input.key.type
 fun Modifier.treeKeyControl(
     isPreview: Boolean = false,
     isLoading: Boolean = false,
+    useVolume: Boolean = false,
     onEnter: (() -> Unit)? = null,
     onPlay: (() -> Unit)? = null,
     onDirectionUp: ((isShift: Boolean) -> Unit)? = null,
@@ -94,6 +95,20 @@ fun Modifier.treeKeyControl(
             Key.RightBracket,
             Key.MoveEnd, -> {
                 isLoading || keyAction(onForwardLast)
+            }
+            Key.VolumeUp -> {
+                if (useVolume) {
+                    isLoading || keyAction(onBackward)
+                } else {
+                    false
+                }
+            }
+            Key.VolumeDown -> {
+                if (useVolume) {
+                    isLoading || keyAction(onForward)
+                } else {
+                    false
+                }
             }
             Key.Enter,
             Key.NumPadEnter, -> {

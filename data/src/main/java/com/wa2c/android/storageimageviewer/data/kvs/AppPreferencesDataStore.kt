@@ -70,10 +70,9 @@ class AppPreferencesDataStore @Inject constructor(
     suspend fun setViewShowPageFlow(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_SHOW_PAGE, value)
 
     /** View volume scroll */
-    val viewVolumeScrollFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_VOLUME_SCROLL] ?: true }
+    val viewVolumeScrollFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_VOLUME_SCROLL] ?: false }
     suspend fun setViewVolumeScrollFlow(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_VOLUME_SCROLL, value)
-
-
+    
     /** View show overlay */
     val viewShowOverlayFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_SHOW_OVERLAY] ?: false }
     suspend fun setViewShowOverlayFlow(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_SHOW_OVERLAY, value)
