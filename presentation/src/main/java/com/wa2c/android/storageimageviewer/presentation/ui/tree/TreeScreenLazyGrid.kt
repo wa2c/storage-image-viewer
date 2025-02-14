@@ -46,8 +46,8 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenOption
 import kotlinx.coroutines.launch
 import my.nanihadesuka.compose.LazyVerticalGridScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -57,7 +57,7 @@ fun TreeScreenLazyGrid(
     modifier: Modifier,
     currentTreeState: State<TreeScreenItemData>,
     targetIndexState: State<Int?>,
-    displayState: State<TreeScreenDisplayData>,
+    optionState: State<TreeScreenOption>,
     onForwardSkip: () -> Unit,
     onBackwardSkip: () -> Unit,
     onFocusItem: (FileModel?) -> Unit,
@@ -75,7 +75,7 @@ fun TreeScreenLazyGrid(
         LazyVerticalGrid(
             state = lazyState,
             columns = GridCells
-                .Adaptive(minSize = if (displayState.value.viewType.isLarge) 128.dp else 96.dp),
+                .Adaptive(minSize = if (optionState.value.treeOption.viewType.isLarge) 128.dp else 96.dp),
             modifier = Modifier
                 .focusRequester(parentFocusRequester)
                 .treeKeyControl(
@@ -246,7 +246,7 @@ private fun TreeScreenLazyGridPreview() {
             modifier = Modifier,
             currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             targetIndexState = remember { mutableStateOf<Int?>(null) },
-            displayState = remember { mutableStateOf(TreeScreenDisplayData()) },
+            optionState = remember { mutableStateOf(TreeScreenOption()) },
             onForwardSkip = {},
             onBackwardSkip = {},
             onFocusItem = {},

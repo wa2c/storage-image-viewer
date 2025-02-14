@@ -50,9 +50,9 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.components.Div
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData.Companion.dummyDigits
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenOption
 import kotlinx.coroutines.launch
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
@@ -65,7 +65,7 @@ fun TreeScreenLazyList(
     modifier: Modifier,
     currentTreeState: State<TreeScreenItemData>,
     targetIndexState: State<Int?>,
-    displayState: State<TreeScreenDisplayData>,
+    optionState: State<TreeScreenOption>,
     onForwardSkip: () -> Unit,
     onBackwardSkip: () -> Unit,
     onFocusItem: (FileModel?) -> Unit,
@@ -110,7 +110,7 @@ fun TreeScreenLazyList(
                         .clickable { onClickItem(file) },
                     imageList = currentTreeState.value.imageFileList,
                     file = file,
-                    viewType = displayState.value.viewType,
+                    viewType = optionState.value.treeOption.viewType,
                 )
                 DividerThin()
             }
@@ -292,7 +292,7 @@ private fun TreeScreenLazyListPreview() {
             modifier = Modifier,
             currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             targetIndexState = remember { mutableStateOf<Int?>(null) },
-            displayState = remember { mutableStateOf(TreeScreenDisplayData()) },
+            optionState = remember { mutableStateOf(TreeScreenOption()) },
             onForwardSkip = {},
             onBackwardSkip = {},
             onFocusItem = {},

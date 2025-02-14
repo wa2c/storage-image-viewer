@@ -7,12 +7,15 @@ import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeSortModel
+import com.wa2c.android.storageimageviewer.domain.repository.SettingsRepository
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ScreenParam
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenDisplayData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenOption
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenTreeOption
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenViewerOption
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.Normalizer
@@ -30,6 +34,7 @@ import javax.inject.Inject
 class TreeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val storageRepository: StorageRepository,
+    private val settingsRepository: SettingsRepository,
 ): ViewModel(), CoroutineScope by MainCoroutineScope() {
     private val paramId: String? = savedStateHandle[ScreenParam.ScreenParamId]
 
@@ -51,18 +56,56 @@ class TreeViewModel @Inject constructor(
 
     private val _isViewerMode = MutableStateFlow(false)
 
-    val displayData = combine(
-        storageRepository.sortFlow,
-        storageRepository.treeViewTypeFlow,
-        storageRepository.viewShowOverlayFlow,
-        storageRepository.viewShowPageFlow,
-        _isViewerMode
-    ) { sort, type, overlay, page, isViewerMode ->
-        TreeScreenDisplayData(sort, type, overlay, page, isViewerMode)
+    private val sortFlow = combine(
+        settingsRepository.treeSortTypeFlow,
+        settingsRepository.treeSortDescendingFlow,
+        settingsRepository.treeSortIgnoreCaseFlow,
+        settingsRepository.treeSortNumberFlow,
+        settingsRepository.treeMixFolderFlow,
+    ) { type, descending, ignoreCase, number, mixFolder ->
+        TreeSortModel(
+            type = type,
+            isDescending = descending,
+            isIgnoreCase = ignoreCase,
+            isNumberSort = number,
+            isFolderMixed = mixFolder,
+        )
+    }
+
+    private val treeOptionFlow = settingsRepository.treeViewTypeFlow.map {
+        TreeScreenTreeOption(
+            viewType = it,
+        )
+    }
+
+    private val viewerOptionFlow = combine(
+        settingsRepository.viewShowPageFlow,
+        settingsRepository.viewVolumeScrollFlow,
+        settingsRepository.viewShowOverlayFlow,
+    ) { page, volumeScroll, overlay ->
+        TreeScreenViewerOption(
+            showPage = page,
+            showOverlay = overlay,
+            volumeScroll = volumeScroll,
+        )
+    }
+
+    val screenOption = combine(
+        sortFlow,
+        treeOptionFlow,
+        viewerOptionFlow,
+        _isViewerMode,
+    ) { sort, treeOption, viewerOption, isViewerMode ->
+        TreeScreenOption(
+            sort = sort,
+            treeOption = treeOption,
+            viewerOption = viewerOption,
+            isViewerMode = isViewerMode,
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = TreeScreenDisplayData()
+        initialValue = TreeScreenOption()
     )
 
     init {
@@ -78,20 +121,29 @@ class TreeViewModel @Inject constructor(
         }
     }
 
-    fun setDisplay(display: TreeScreenDisplayData) {
+    fun setOption(option: TreeScreenOption) {
         launch {
-            if (display.sort != displayData.value.sort) {
+            if (option.sort != screenOption.value.sort) {
                 currentTree.value.let { tree ->
-                    _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(display.sort))))
+                    _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(option.sort))))
                 }
             }
-            storageRepository.setSort(display.sort)
-            storageRepository.setTreeViewType(display.viewType)
-            storageRepository.setViewShowPageFlow(display.showPage)
-            storageRepository.setViewShowOverlayFlow(display.showOverlay)
-            _isViewerMode.value = display.isViewerMode
-        }
 
+            // Sort
+            settingsRepository.setTreeSortType(option.sort.type)
+            settingsRepository.setTreeSortDescending(option.sort.isDescending)
+            settingsRepository.setTreeSortIgnoreCase(option.sort.isIgnoreCase)
+            settingsRepository.setTreeSortNumber(option.sort.isNumberSort)
+            settingsRepository.setTreeMixFolder(option.sort.isFolderMixed)
+            // Tree
+            settingsRepository.setTreeViewType(option.treeOption.viewType)
+            // Viewer
+            settingsRepository.setViewShowPageFlow(option.viewerOption.showPage)
+            settingsRepository.setViewShowOverlayFlow(option.viewerOption.showOverlay)
+            settingsRepository.setViewVolumeScrollFlow(option.viewerOption.volumeScroll)
+
+            _isViewerMode.value = option.isViewerMode
+        }
     }
 
     fun focusFile(
@@ -158,17 +210,17 @@ class TreeViewModel @Inject constructor(
     }
 
     private suspend fun getChildren(file: FileModel): List<FileModel> {
-        val sort = displayData.first().sort
+        val sort = screenOption.first().sort
         return storageRepository.getChildren(file).sortedWith(FileComparator(sort))
     }
 
     fun closeViewer() {
         launch {
-            val display = displayData.value.copy(
-                showOverlay = true,
+            val option = screenOption.value.copy(
+                viewerOption = screenOption.value.viewerOption.copy(showOverlay = true),
                 isViewerMode = false,
             )
-            setDisplay(display)
+            setOption(option)
         }
     }
 

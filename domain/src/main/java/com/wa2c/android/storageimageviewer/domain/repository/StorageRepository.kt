@@ -3,19 +3,14 @@ package com.wa2c.android.storageimageviewer.domain.repository
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.utils.Utils
 import com.wa2c.android.storageimageviewer.common.values.StorageType
-import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.data.db.SafStorageEntity
 import com.wa2c.android.storageimageviewer.data.db.StorageDao
 import com.wa2c.android.storageimageviewer.data.file.FileHelper
-import com.wa2c.android.storageimageviewer.data.kvs.AppPreferencesDataStore
 import com.wa2c.android.storageimageviewer.domain.DefaultDispatcher
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
-import com.wa2c.android.storageimageviewer.domain.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -25,7 +20,6 @@ import javax.inject.Singleton
 @Singleton
 class StorageRepository @Inject internal constructor(
     private val storageDao: StorageDao,
-    private val dataStore: AppPreferencesDataStore,
     private val fileHelper: FileHelper,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
@@ -44,43 +38,6 @@ class StorageRepository @Inject internal constructor(
                 )
             }
         }
-    }
-
-    /** Tree view type */
-    val treeViewTypeFlow = dataStore.treeViewTypeFlow
-    suspend fun setTreeViewType(type: TreeViewType) = dataStore.setTreeViewType(type)
-
-    /** Tree view page */
-    val viewShowPageFlow: Flow<Boolean> = dataStore.viewShowPageFlow
-    suspend fun setViewShowPageFlow(value: Boolean) = dataStore.setViewShowPageFlow(value)
-
-    /** Tree view overlay */
-    val viewShowOverlayFlow: Flow<Boolean> = dataStore.viewShowOverlayFlow
-    suspend fun setViewShowOverlayFlow(value: Boolean) = dataStore.setViewShowOverlayFlow(value)
-
-
-    val sortFlow = combine(
-        dataStore.treeSortTypeFlow,
-        dataStore.treeSortDescendingFlow,
-        dataStore.treeSortIgnoreCaseFlow,
-        dataStore.treeSortNumberFlow,
-        dataStore.treeMixFolderFlow,
-    ) { type, descending, ignoreCase, number, mixFolder ->
-        TreeSortModel(
-            type = type,
-            isDescending = descending,
-            isIgnoreCase = ignoreCase,
-            isNumberSort = number,
-            isFolderMixed = mixFolder,
-        )
-    }
-
-    suspend fun setSort(sort: TreeSortModel) {
-        dataStore.setTreeSortType(sort.type)
-        dataStore.setTreeSortDescending(sort.isDescending)
-        dataStore.setTreeSortIgnoreCase(sort.isIgnoreCase)
-        dataStore.setTreeSortNumber(sort.isNumberSort)
-        dataStore.setTreeMixFolder(sort.isFolderMixed)
     }
 
     suspend fun getStorageFile(
