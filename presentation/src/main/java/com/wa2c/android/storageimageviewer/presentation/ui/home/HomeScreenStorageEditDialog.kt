@@ -118,7 +118,8 @@ fun HomeScreenStorageEditDialog(
                         .treeKeyControl(
                             isPreview = true,
                             onEnter = { onClickUri(storage.uri) },
-                            onPlay = { onClickUri(storage.uri) }
+                            onPlay = { onClickUri(storage.uri) },
+                            onDirectionCenter = { onClickUri(storage.uri) },
 
                         )
                         .padding(top = AppSize.M),

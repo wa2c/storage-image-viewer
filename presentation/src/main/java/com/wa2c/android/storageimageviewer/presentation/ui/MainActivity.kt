@@ -48,24 +48,28 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Convert keys
         when (event.keyCode) {
             KeyEvent.KEYCODE_DEL -> {
-                return dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_BACK))
+                return super.dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_BACK))
             }
         }
-//        when (event.scanCode) {
-//            104 -> {  // PageUp
-//                return dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_PAGE_UP))
-//            }
-//            109 -> { // PageDown
-//                return dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_PAGE_DOWN))
-//            }
-//        }
+        when (event.scanCode) {
+            104 -> {  // PageUp
+                return super.dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_PAGE_UP))
+            }
+            109 -> { // PageDown
+                return super.dispatchKeyEvent(event.replaceKeyCode(KeyEvent.KEYCODE_PAGE_DOWN))
+            }
+        }
 
         return super.dispatchKeyEvent(event)
     }
 
-    private fun KeyEvent.replaceKeyCode(keyCode: Int): KeyEvent {
+    private fun KeyEvent.replaceKeyCode(
+        keyCode: Int = this.keyCode,
+        scanCode: Int = this.scanCode,
+    ): KeyEvent {
         return KeyEvent(
             downTime,
             eventTime,
@@ -74,7 +78,7 @@ class MainActivity : ComponentActivity() {
             repeatCount,
             metaState,
             deviceId,
-            metaState,
+            scanCode,
             flags,
             source,
         )

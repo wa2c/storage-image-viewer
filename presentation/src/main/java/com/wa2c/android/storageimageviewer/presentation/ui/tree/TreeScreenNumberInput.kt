@@ -112,21 +112,22 @@ private fun TreeScreenInputNumberDialogContent(
                 .widthIn(min = 100.dp)
                 .focusable()
                 .treeKeyControl(
-                    onNumber = onInputNumber,
-                    onDirectionRight = { onUpNumber(1) },
+                    onEnter = onSet,
+                    onPlay = onSet,
+                    onDirectionCenter = onSet,
                     onDirectionUp = { onFirst() },
-                    onDirectionLeft = { onDownNumber(1) },
                     onDirectionDown = { onLast() },
+                    onDirectionLeft = { onDownNumber(1) },
+                    onDirectionRight = { onUpNumber(1) },
                     onForward = { onDownNumber(1) },
                     onBackward = { onDownNumber(1) },
                     onForwardSkip = { onDownNumber(10) },
                     onBackwardSkip = { onDownNumber(10) },
                     onForwardLast = { onDownNumber(Int.MAX_VALUE) },
                     onBackwardFirst = { onDownNumber(Int.MIN_VALUE) },
-                    onSearch = onDismiss,
+                    onNumber = onInputNumber,
                     onDelete = onDelete,
-                    onEnter = onSet,
-                    onPlay = onSet,
+                    onSearch = onDismiss,
                 ),
         ) {
             Text(

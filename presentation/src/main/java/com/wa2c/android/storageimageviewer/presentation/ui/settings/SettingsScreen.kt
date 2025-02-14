@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +45,7 @@ import com.mikepenz.aboutlibraries.ui.compose.m3.LibraryDefaults
 import com.wa2c.android.storageimageviewer.common.values.Language
 import com.wa2c.android.storageimageviewer.common.values.UiTheme
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MutableStateAdapter
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.labelRes
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.mode
@@ -131,19 +133,23 @@ private fun SettingsScreenContainer(
                 },
                 //colors = getAppTopAppBarColors(),
                 navigationIcon = {
-                    IconButton(onClick = {
-                        if (showLibraries) {
-                            showLibraries = false
-                        } else {
-                            onClickBack()
-                        }
-                    }) {
+                    IconButton(
+                        onClick = {
+                            if (showLibraries) {
+                                showLibraries = false
+                            } else {
+                                onClickBack()
+                            }
+                        },
+                        modifier = Modifier
+                            .focusItemStyle(shape = CircleShape),
+                    ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_back),
                             contentDescription = "back",
                         )
                     }
-                }
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
@@ -195,34 +201,39 @@ private fun SettingsList(
     val context = LocalContext.current
 
     LazyColumn {
-        // Screen
+        // Settings Title
         item {
-            // Settings Title
             TitleItem(text = stringResource(id = R.string.settings_section_set))
-
-            // UI Theme
+        }
+        // UI Theme
+        item {
             SettingsSingleChoiceItem(
                 title = stringResource(id = R.string.settings_set_theme),
                 items = UiTheme.entries.map { OptionItem(it, stringResource(it.labelRes)) },
                 selectedItem = theme,
             )
-
-            // Language
+        }
+        // Language
+        item {
             SettingsSingleChoiceItem(
                 title = stringResource(id = R.string.settings_set_language),
                 items = Language.entries.map { OptionItem(it, stringResource(it.labelRes)) },
                 selectedItem = language,
             )
+        }
 
-            // Information Title
+        // Information Title
+        item {
             TitleItem(text = stringResource(id = R.string.settings_section_info))
-
-            // Libraries
+        }
+        // Libraries
+        item {
             SettingsItem(text = stringResource(id = R.string.settings_info_libraries)) {
                 onShowLibraries()
             }
-
-            // Source Code
+        }
+        // Source Code
+        item {
             SettingsItem(text = stringResource(id = R.string.settings_info_source)) {
                 onStartIntent(
                     Intent(
@@ -231,8 +242,9 @@ private fun SettingsList(
                     )
                 )
             }
-
-            // App
+        }
+        // App
+        item {
             SettingsItem(text = stringResource(id = R.string.settings_info_app)) {
                 onStartIntent(
                     Intent(
@@ -241,7 +253,6 @@ private fun SettingsList(
                     )
                 )
             }
-
         }
     }
 }

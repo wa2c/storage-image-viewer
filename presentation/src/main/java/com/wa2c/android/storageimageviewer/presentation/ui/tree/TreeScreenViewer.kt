@@ -99,11 +99,21 @@ fun TreeScreenViewer(
     LaunchedEffect(Unit) {
         launch {
             snapshotFlow { treeState.value }.collect { tree ->
-                pagerState.requestScrollToPage(tree.getImageIndex(viewModel.focusedFile.value))
+                // Scroll
+                val page = tree.getImageIndex(viewModel.focusedFile.value)
+                if (page != pagerState.currentPage) pagerState.requestScrollToPage(page)
+            }
+        }
+        launch {
+            snapshotFlow { focusedFile.value }.collect {
+                // Scroll
+                val page = treeState.value.getImageIndex(it)
+                if (page != pagerState.currentPage) pagerState.requestScrollToPage(page)
             }
         }
         launch {
             snapshotFlow { pagerState.currentPage }.collect { page ->
+                // Focus
                 viewModel.focusFile(treeState.value.getImageFile(page))
             }
         }
@@ -283,7 +293,8 @@ private fun Modifier.keyControl(
     return this.treeKeyControl(
         useVolume = useVolume,
         onEnter = onShowOverlay,
-        onPlay = onZoom,
+        onPlay = onShowOverlay,
+        onDirectionCenter = onZoom,
         onDirectionUp = { isShift ->
             if (zoomState.scale > 1.0f) {
                 onZoomScroll(null, false, isShift)

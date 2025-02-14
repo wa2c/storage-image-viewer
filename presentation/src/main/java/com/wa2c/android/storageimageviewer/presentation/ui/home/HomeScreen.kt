@@ -49,6 +49,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -158,7 +159,10 @@ fun HomeScreen(
         },
     )
 
+    val focusManager = LocalFocusManager.current
+
     LaunchedEffect(Unit) {
+        focusManager.clearFocus()
         viewModel.resultState.collectIn(lifecycleOwner = lifecycleOwner) {
             snackBarHostState.showMessage(context, it)
         }
@@ -209,6 +213,8 @@ private fun HomeScreenContainer(
                 actions = {
                     IconButton(
                         onClick = onClickSettings,
+                        modifier = Modifier
+                            .focusItemStyle()
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.ic_settings),
@@ -221,6 +227,8 @@ private fun HomeScreenContainer(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onClickAdd,
+                modifier = Modifier
+                    .focusItemStyle()
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.ic_folder_add),

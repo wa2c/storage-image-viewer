@@ -15,6 +15,7 @@ fun Modifier.treeKeyControl(
     useVolume: Boolean = false,
     onEnter: (() -> Unit)? = null,
     onPlay: (() -> Unit)? = null,
+    onDirectionCenter: (() -> Unit)? = null,
     onDirectionUp: ((isShift: Boolean) -> Unit)? = null,
     onDirectionDown: ((isShift: Boolean) -> Unit)? = null,
     onDirectionLeft:((isShift: Boolean) -> Unit)? = null,
@@ -44,16 +45,10 @@ fun Modifier.treeKeyControl(
             return@invoke true
         }
 
-        when (keyEvent.nativeKeyEvent.scanCode) {
-            104 -> {  // PageUp
-                return@invoke isLoading || keyAction(onBackwardSkip)
-            }
-            109 -> { // PageDown
-                return@invoke isLoading || keyAction(onForwardSkip)
-            }
-        }
-
         when (keyEvent.key) {
+            Key.DirectionCenter -> {
+                isLoading || keyAction(onDirectionCenter)
+            }
             Key.DirectionLeft -> {
                 isLoading || onDirectionLeft?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
@@ -114,7 +109,6 @@ fun Modifier.treeKeyControl(
             Key.NumPadEnter, -> {
                 isLoading || keyAction(onEnter)
             }
-            Key.DirectionCenter,
             Key.Spacebar,
             Key.MediaPlay,
             Key.MediaPlayPause, -> {
