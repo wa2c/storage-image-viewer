@@ -6,6 +6,8 @@ import android.provider.DocumentsContract
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,17 +31,20 @@ object Extensions {
     }
 
 
+    @Composable
     fun Modifier.enabledStyle(enabled: Boolean): Modifier {
         return this.applyIf(enabled) { alpha(0.5f) }
     }
 
+    @Composable
     fun Modifier.applyIf(
         applied: Boolean,
-        modifier: Modifier.() -> Modifier,
+        modifier: @Composable Modifier.() -> Modifier,
     ): Modifier {
         return if (applied) this.modifier() else this
     }
 
+    @Composable
     fun <T> Modifier.applyNotNull(
         value: T?,
         modifier: Modifier.(T) -> Modifier,
@@ -51,14 +56,14 @@ object Extensions {
     fun Modifier.focusItemStyle(
         shape: Shape = RoundedCornerShape(8.dp)
     ): Modifier {
-        var isFocused by remember { mutableStateOf(true) }
+        var isFocused by remember { mutableStateOf(false) }
         return this
             .onFocusChanged { isFocused = it.isFocused }
             .applyIf(isFocused) {
                 this
                     .clip(shape)
-                    .background(color = AppColor.PrimaryBackground)
-                    .border(width = 2.dp, color = AppColor.Primary, shape = shape)
+                    .background(color = MaterialTheme.colorScheme.primaryContainer.copy(0.25f))
+                    .border(width = 2.dp, color = MaterialTheme.colorScheme.primary, shape = shape)
             }
     }
 
