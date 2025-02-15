@@ -4,23 +4,21 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
-import com.wa2c.android.storageimageviewer.common.values.UiTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.isDark
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.mode
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     /** Main View Model */
     private val mainViewModel: MainViewModel by viewModels()

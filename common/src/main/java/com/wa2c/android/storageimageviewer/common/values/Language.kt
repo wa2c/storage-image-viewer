@@ -20,16 +20,15 @@ enum class Language(
 
     companion object {
         val default: Language
-            get() =  findByCodeOrDefault(Locale.getDefault().language)
+            get() = findByCodeOrDefault(Locale.getDefault().language)
 
         /** Find value or default by code */
         fun findByCodeOrDefault(code: String?): Language {
-            return entries.firstOrNull { it.code == code } ?: ENGLISH
-        }
-
-        /** Find value or default by index. */
-        fun findByIndexOrDefault(index: Int?): Language {
-            return entries.firstOrNull { it.index == index } ?: ENGLISH
+            val locale = Locale.getDefault()
+            return entries.firstOrNull { it.code == code }
+                ?: entries.firstOrNull { it.code == locale.toLanguageTag() }
+                ?: entries.firstOrNull { it.code == locale.language }
+                ?: ENGLISH
         }
     }
 }

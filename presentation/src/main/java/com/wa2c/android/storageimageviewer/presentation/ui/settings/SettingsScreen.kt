@@ -131,7 +131,6 @@ private fun SettingsScreenContainer(
                         )
                     }
                 },
-                //colors = getAppTopAppBarColors(),
                 navigationIcon = {
                     IconButton(
                         onClick = {
