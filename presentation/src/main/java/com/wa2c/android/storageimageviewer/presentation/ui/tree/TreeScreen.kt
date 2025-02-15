@@ -39,9 +39,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
@@ -89,6 +91,10 @@ fun TreeScreen(
                 }
             ),
     ) {
+        // System UI
+        SystemUI(optionState, inputNumberState)
+
+        // List
         TreeScreenContainer(
             modifier = Modifier.fillMaxSize(),
             snackBarHostState = snackBarHostState,
@@ -103,6 +109,7 @@ fun TreeScreen(
             onClickBack = onNavigateBack,
         )
 
+        // Viewer
         AnimatedVisibility(
             visible = optionState.value.isViewerMode,
             enter = slideInVertically(
@@ -116,6 +123,7 @@ fun TreeScreen(
             },
         )
 
+        // Page Input
         TreeScreenInputNumberDialog(
             inputNumberState = inputNumberState,
             maxPageNumber = currentTreeState.value.imageFileList.size,
@@ -144,6 +152,25 @@ fun TreeScreen(
         } else {
             onNavigateBack()
         }
+    }
+}
+
+@Composable
+@Suppress("DEPRECATION")
+private fun SystemUI(
+    optionState: State<TreeScreenOption>,
+    inputNumberState: State<String?>,
+) {
+    inputNumberState.value // Force recompose on show number input dialog
+    // note: Some Android appear system ui forcibly on show dialog.
+
+    val systemUiController = rememberSystemUiController()
+    if (optionState.value.viewerOption.showOverlay) {
+        systemUiController.isSystemBarsVisible = true
+        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+    } else {
+        systemUiController.isSystemBarsVisible = false
+        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 }
 

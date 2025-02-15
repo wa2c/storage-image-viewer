@@ -53,11 +53,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.toSize
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
@@ -120,7 +118,6 @@ fun TreeScreenViewer(
     }
 }
 
-@Suppress("DEPRECATION")
 @Composable
 fun TreeScreenViewerContainer(
     pagerState: PagerState,
@@ -134,14 +131,6 @@ fun TreeScreenViewerContainer(
     val zoomState = rememberZoomState()
     var size = remember { androidx.compose.ui.geometry.Size.Unspecified }
     val sortMenuExpanded = remember { mutableStateOf(false) }
-    val systemUiController = rememberSystemUiController()
-    if (optionState.value.viewerOption.showOverlay) {
-        systemUiController.isSystemBarsVisible = true
-        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-    } else {
-        systemUiController.isSystemBarsVisible = false
-        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-    }
     val pageRange = 0..<pagerState.pageCount
     val animatedColor = remember { Animatable(AppColor.ViewerOverlayBackground) }
 
