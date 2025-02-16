@@ -1,5 +1,7 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.tree
 
+import android.view.MotionEvent
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -8,7 +10,11 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.motionEventSpy
+import com.wa2c.android.storageimageviewer.common.utils.Log
 
+
+@OptIn(ExperimentalComposeUiApi::class)
 fun Modifier.treeKeyControl(
     isPreview: Boolean = false,
     isLoading: Boolean = false,
@@ -30,13 +36,17 @@ fun Modifier.treeKeyControl(
     onDelete: (() -> Unit)? = null,
     onMenu: (() -> Unit)? = null,
     onSearch: (() -> Unit)? = null,
+    onWheelUp: (() -> Unit)? = null,
+    onWheelDown: (() -> Unit)? = null,
 ): Modifier {
+
     return if (isPreview) {
         this::onPreviewKeyEvent
     } else {
         this::onKeyEvent
     }.invoke { keyEvent ->
         if (keyEvent.type != KeyEventType.KeyDown) return@invoke false
+        Log.d(keyEvent)
 
         keyEvent.key.toNumber()?.let { number ->
             onNumber?.let {
@@ -49,48 +59,65 @@ fun Modifier.treeKeyControl(
             Key.DirectionCenter -> {
                 isLoading || keyAction(onDirectionCenter)
             }
+
             Key.DirectionLeft -> {
                 isLoading || onDirectionLeft?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
+
             Key.DirectionRight -> {
                 isLoading || onDirectionRight?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
+
             Key.DirectionUp -> {
                 isLoading || onDirectionUp?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
+
             Key.DirectionDown -> {
                 isLoading || onDirectionDown?.invoke(keyEvent.isShiftPressed)?.let { true } ?: false
             }
+
             Key.MediaPrevious,
             Key.MediaRewind,
             Key.MediaStepBackward,
             Key.NavigatePrevious,
-            Key.SystemNavigationLeft, -> {
+            Key.SystemNavigationLeft,
+                -> {
                 isLoading || keyAction(onBackward)
             }
+
             Key.MediaNext,
             Key.MediaFastForward,
             Key.MediaStepForward,
             Key.NavigateNext,
-            Key.SystemNavigationRight, -> {
-                isLoading ||  keyAction(onForward)
+            Key.SystemNavigationRight,
+                -> {
+                isLoading || keyAction(onForward)
             }
+
             Key.PageUp,
-            Key.MediaSkipBackward, -> {
+            Key.MediaSkipBackward,
+                -> {
                 isLoading || keyAction(onBackwardSkip)
             }
+
             Key.PageDown,
-            Key.MediaSkipForward, -> {
+            Key.MediaSkipForward,
+                -> {
                 isLoading || keyAction(onForwardSkip)
             }
+
             Key.LeftBracket,
-            Key.MoveHome, -> {
+            Key.MoveHome,
+                -> {
                 isLoading || keyAction(onBackwardFirst)
             }
+
             Key.RightBracket,
-            Key.MoveEnd, -> {
+            Key.MoveEnd,
+                -> {
                 isLoading || keyAction(onForwardLast)
             }
+
             Key.VolumeUp -> {
                 if (useVolume) {
                     isLoading || keyAction(onBackward)
@@ -98,6 +125,7 @@ fun Modifier.treeKeyControl(
                     false
                 }
             }
+
             Key.VolumeDown -> {
                 if (useVolume) {
                     isLoading || keyAction(onForward)
@@ -105,32 +133,52 @@ fun Modifier.treeKeyControl(
                     false
                 }
             }
+
             Key.Enter,
-            Key.NumPadEnter, -> {
+            Key.NumPadEnter,
+                -> {
                 isLoading || keyAction(onEnter)
             }
+
             Key.Spacebar,
             Key.MediaPlay,
-            Key.MediaPlayPause, -> {
+            Key.MediaPlayPause,
+                -> {
                 isLoading || keyAction(onPlay)
             }
+
             Key.Backspace,
-            Key.Delete, -> {
+            Key.Delete,
+                -> {
                 keyAction(onDelete)
             }
+
             Key.M,
-            Key.Menu -> {
+            Key.Menu,
+                -> {
                 keyAction(onMenu)
             }
+
             Key.S,
-            Key.Search -> {
+            Key.Search,
+                -> {
                 keyAction(onSearch)
             }
+
             else -> {
                 false
             }
         }
     }
+    .motionEventSpy { motion ->
+            when (motion.action) {
+                MotionEvent.ACTION_SCROLL -> {
+                    Log.d(motion)
+                    if (motion.getAxisValue(MotionEvent.AXIS_VSCROLL) < 0.0f) keyAction(onWheelDown)
+                    else keyAction(onWheelUp)
+                }
+            }
+        }
 }
 
 private fun keyAction(action: (() -> Unit)?): Boolean {

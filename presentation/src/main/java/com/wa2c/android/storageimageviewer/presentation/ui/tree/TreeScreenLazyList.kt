@@ -66,8 +66,6 @@ fun TreeScreenLazyList(
     currentTreeState: State<TreeScreenItemData>,
     targetIndexState: State<Int?>,
     optionState: State<TreeScreenOption>,
-    onForwardSkip: () -> Unit,
-    onBackwardSkip: () -> Unit,
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
 ) {
@@ -84,11 +82,6 @@ fun TreeScreenLazyList(
             state = lazyState,
             modifier = Modifier
                 .focusRequester(parentFocusRequester)
-                .treeKeyControl(
-                    isPreview = true,
-                    onForwardSkip = onForwardSkip,
-                    onBackwardSkip = onBackwardSkip,
-                )
         ) {
             val fileList = currentTreeState.value.fileList
 
@@ -293,8 +286,6 @@ private fun TreeScreenLazyListPreview() {
             currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             targetIndexState = remember { mutableStateOf<Int?>(null) },
             optionState = remember { mutableStateOf(TreeScreenOption()) },
-            onForwardSkip = {},
-            onBackwardSkip = {},
             onFocusItem = {},
             onClickItem = {},
         )

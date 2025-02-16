@@ -306,30 +306,12 @@ private fun TreeScreenItems(
 
     val targetIndexState = remember { mutableStateOf<Int?>(focusedIndex()) }
 
-    // Page skip forward
-    val forwardSkip = remember { fun() {
-        if (optionState.value.isViewerMode) return
-        val index = focusedIndex() ?: -1
-        targetIndexState.value = (if (index < 0) 0 else (index + 10))
-            .coerceIn(currentTreeState.value.fileList.indices)
-    } }
-    // Page skip back
-    val backwardSkip = remember { fun() {
-        if (optionState.value.isViewerMode) return
-        val list = currentTreeState.value.fileList.ifEmpty { return }
-        val index = focusedIndex() ?: -1
-        targetIndexState.value = (if (index < 0) list.size - 1 else (index - 10))
-            .coerceIn(currentTreeState.value.fileList.indices)
-    } }
-
     if (optionState.value.treeOption.viewType.isList) {
         TreeScreenLazyList(
             modifier = modifier,
             currentTreeState = currentTreeState,
             targetIndexState = targetIndexState,
             optionState = optionState,
-            onForwardSkip = forwardSkip,
-            onBackwardSkip = backwardSkip,
             onFocusItem = {
                 targetIndexState.value = null
                 onFocusItem(it)
@@ -342,8 +324,6 @@ private fun TreeScreenItems(
             currentTreeState = currentTreeState,
             targetIndexState = targetIndexState,
             optionState = optionState,
-            onForwardSkip = forwardSkip,
-            onBackwardSkip = backwardSkip,
             onFocusItem = {
                 targetIndexState.value = null
                 onFocusItem(it)

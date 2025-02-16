@@ -58,8 +58,6 @@ fun TreeScreenLazyGrid(
     currentTreeState: State<TreeScreenItemData>,
     targetIndexState: State<Int?>,
     optionState: State<TreeScreenOption>,
-    onForwardSkip: () -> Unit,
-    onBackwardSkip: () -> Unit,
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
 ) {
@@ -78,11 +76,6 @@ fun TreeScreenLazyGrid(
                 .Adaptive(minSize = if (optionState.value.treeOption.viewType.isLarge) 128.dp else 96.dp),
             modifier = Modifier
                 .focusRequester(parentFocusRequester)
-                .treeKeyControl(
-                    isPreview = true,
-                    onForwardSkip = onForwardSkip,
-                    onBackwardSkip = onBackwardSkip,
-                )
         ) {
             itemsIndexed(
                 items = currentTreeState.value.fileList,
@@ -247,8 +240,6 @@ private fun TreeScreenLazyGridPreview() {
             currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             targetIndexState = remember { mutableStateOf<Int?>(null) },
             optionState = remember { mutableStateOf(TreeScreenOption()) },
-            onForwardSkip = {},
-            onBackwardSkip = {},
             onFocusItem = {},
             onClickItem = {},
         )

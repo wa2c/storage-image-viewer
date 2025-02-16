@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -118,6 +119,7 @@ fun TreeScreenViewer(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TreeScreenViewerContainer(
     pagerState: PagerState,
@@ -163,11 +165,22 @@ fun TreeScreenViewerContainer(
                 .keyControl(
                     zoomState = zoomState,
                     useVolume = optionState.value.viewerOption.volumeScroll,
-                    onStepPage = { step ->
+                    onScrollPage = { step ->
+                        val page = (pagerState.currentPage + step).coerceIn(pageRange)
                         scope.launch {
-                            val page = (pagerState.currentPage + step).coerceIn(pageRange)
-                            if (page != pagerState.currentPage) pagerState.animateScrollToPage(page = page)
-                            else animatedColor.flashPage()
+                            if (page != pagerState.currentPage) {
+                                pagerState.animateScrollToPage(page = page)
+                            } else {
+                                animatedColor.flashPage()
+                            }
+                        }
+                    },
+                    onChangePage = { step ->
+                        val page = (pagerState.currentPage + step).coerceIn(pageRange)
+                        if (page != pagerState.currentPage) {
+                            pagerState.requestScrollToPage(page = page)
+                        } else {
+                            scope.launch { animatedColor.flashPage() }
                         }
                     },
                     onZoom = {
@@ -273,7 +286,8 @@ private suspend fun Animatable<Color, AnimationVector4D>.flashPage() {
 private fun Modifier.keyControl(
     zoomState: ZoomState,
     useVolume: Boolean,
-    onStepPage: (step: Int) -> Unit,
+    onScrollPage: (step: Int) -> Unit,
+    onChangePage: (step: Int) -> Unit,
     onZoom: () -> Unit,
     onZoomScroll: (isXPositive: Boolean?, isYPositive: Boolean?, isSkip: Boolean?) -> Unit,
     onShowOverlay: () -> Unit,
@@ -288,37 +302,39 @@ private fun Modifier.keyControl(
             if (zoomState.scale > 1.0f) {
                 onZoomScroll(null, false, isShift)
             } else {
-                onStepPage(-10)
+                onScrollPage(-10)
             }
         },
         onDirectionDown = { isShift ->
             if (zoomState.scale > 1.0f) {
                 onZoomScroll(null, true, isShift)
             } else {
-                onStepPage(+10)
+                onScrollPage(+10)
             }
         },
         onDirectionLeft = { isShift ->
             if (zoomState.scale > 1.0f) {
                 onZoomScroll(false, null, isShift)
             } else {
-                if (isShift) onStepPage(-10) else onStepPage(-1)
+                if (isShift) onScrollPage(-10) else onScrollPage(-1)
             }
         },
         onDirectionRight = { isShift ->
             if (zoomState.scale > 1.0f) {
                 onZoomScroll(true, null, isShift)
             } else {
-                if (isShift) onStepPage(10) else onStepPage(1)
+                if (isShift) onScrollPage(10) else onScrollPage(1)
             }
         },
-        onForward = { onStepPage(+1) },
-        onBackward = { onStepPage(-1) },
-        onForwardSkip = { onStepPage(+10) },
-        onBackwardSkip = { onStepPage(-10) },
-        onForwardLast = { onStepPage(Int.MAX_VALUE) },
-        onBackwardFirst = { onStepPage(-Int.MAX_VALUE) },
+        onForward = { onScrollPage(+1) },
+        onBackward = { onScrollPage(-1) },
+        onForwardSkip = { onScrollPage(+10) },
+        onBackwardSkip = { onScrollPage(-10) },
+        onForwardLast = { onScrollPage(Int.MAX_VALUE) },
+        onBackwardFirst = { onScrollPage(-Int.MAX_VALUE) },
         onMenu = onShowMenu,
+        onWheelUp = { onChangePage(-1) },
+        onWheelDown = { onChangePage(+1) },
     )
 }
 
