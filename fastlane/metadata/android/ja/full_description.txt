@@ -1,0 +1,32 @@
+<strong>Storage Image Viewer</strong> は、ストレージ上の画像ファイルを表示するAndroidアプリです。
+
+<strong><font color="#339933">[機能・仕様]</font></strong>
+
+* Storage Access Framework (SAF) を使って、ストレージ上の画像ファイルを表示します。
+* Android が標準でサポートしている画像ファイルに対応します。
+* 主な操作は、キーボードやリモコンに対応しています。
+* 複数の言語に対応しています。
+* ダークモードに対応しています。
+
+<strong><font color="#339933">[主な用途]</font></strong>
+
+* ストレージに保存した画像の閲覧。
+* キーボードやリモコンを使った画像表示操作。
+
+<strong><font color="#339933">[注意]</font></strong>
+
+* 本アプリはストレージへのアクセス機能を持ちません。ファイルアクセス用の DocumentsProvider を持つアプリが別途必要です。
+* Androidは標準でローカルストレージにアクセスする DocumentsProvider を備えています。
+* オンライン共有ストレージのアクセスには、CIFS Documents Provider 等をご利用ください。
+
+<strong><font color="#339933">[ソースコード]</font></strong>
+
+GitHub
+https://github.com/wa2c/storage-image-viewer
+
+<strong><font color="#339933">[課題管理]</font></strong>
+
+GitHub Issue
+https://github.com/wa2c/storage-image-viewer/issues
+
+バグ報告、機能要望、その他情報等があればこちらに書き込んでください。 (日本語または英語)

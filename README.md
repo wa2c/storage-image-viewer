@@ -8,7 +8,7 @@ Storage Image Viewer
 <div style="display: flex">
 <img width="240" alt="Home Screen" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" />
 <img width="240" alt="Home Screen" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" /> 
-<img width="240" alt="Home Screen" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" />
+<img width="240" alt="Home Screen" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" />
 </div>
 
 ## Release History (APK Download)
