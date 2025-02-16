@@ -193,35 +193,34 @@ private fun ColumnScope.TreeSortAction(
     } else {
         val treeOption = option.treeOption
         TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_by_list_check),
-            selected = treeOption.viewType.isList,
+            text = stringResource(R.string.tree_menu_view_list_none_check),
+            selected = treeOption.viewType == TreeViewType.ListNone,
         ) {
-            val viewType = if (treeOption.viewType.isLarge) TreeViewType.ListLarge else TreeViewType.ListSmall
-            onSetTreeOption(treeOption.copy(viewType = viewType))
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListNone))
         }
         TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_by_grid_check),
-            selected = !treeOption.viewType.isList,
+            text = stringResource(R.string.tree_menu_view_list_small_check),
+            selected = treeOption.viewType == TreeViewType.ListSmall,
         ) {
-            val viewType = if (treeOption.viewType.isLarge) TreeViewType.GridLarge else TreeViewType.GridSmall
-            onSetTreeOption(treeOption.copy(viewType = viewType))
-        }
-
-        DividerThin()
-
-        TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_size_large_check),
-            selected = treeOption.viewType.isLarge,
-        ) {
-            val viewType = if (treeOption.viewType.isList) TreeViewType.ListLarge else TreeViewType.GridLarge
-            onSetTreeOption(treeOption.copy(viewType = viewType))
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListSmall))
         }
         TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_size_small_check),
-            selected = !treeOption.viewType.isLarge,
+            text = stringResource(R.string.tree_menu_view_list_large_check),
+            selected = treeOption.viewType == TreeViewType.ListLarge,
         ) {
-            val viewType = if (treeOption.viewType.isList) TreeViewType.ListSmall else TreeViewType.GridSmall
-            onSetTreeOption(treeOption.copy(viewType = viewType))
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListLarge))
+        }
+        TreeScreenActionMenuRadio(
+            text = stringResource(R.string.tree_menu_view_grid_small_check),
+            selected = treeOption.viewType == TreeViewType.GridSmall,
+        ) {
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.GridSmall))
+        }
+        TreeScreenActionMenuRadio(
+            text = stringResource(R.string.tree_menu_view_grid_large_check),
+            selected = treeOption.viewType == TreeViewType.GridLarge,
+        ) {
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.GridLarge))
         }
     }
 

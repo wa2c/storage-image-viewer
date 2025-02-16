@@ -6,16 +6,18 @@ package com.wa2c.android.storageimageviewer.common.values
 enum class TreeViewType(
     val value: String,
     val isList: Boolean,
-    val isLarge: Boolean,
+    val isLarge: Boolean?,
 ) {
-    /** List Large */
-    ListLarge("LIST_LARGE", true, true),
+    /** List None */
+    ListNone("LIST_NONE", true, null),
     /** List Small */
     ListSmall("LIST_SMALL", true, false),
-    /** Grid Large */
-    GridLarge("GRID_LARGE", false, true),
+    /** List Large */
+    ListLarge("LIST_LARGE", true, true),
     /** Grid Small */
     GridSmall("GRID_SMALL", false, false),
+    /** Grid Large */
+    GridLarge("GRID_LARGE", false, true),
     ;
 
     companion object {

@@ -70,10 +70,11 @@ fun TreeScreenLazyGrid(
         settings = ScrollbarSettings.Default,
         modifier = modifier,
     ) {
+        val size = if (optionState.value.treeOption.viewType.isLarge == true) AppSize.GridLarge else AppSize.GridSmall
         LazyVerticalGrid(
             state = lazyState,
             columns = GridCells
-                .Adaptive(minSize = if (optionState.value.treeOption.viewType.isLarge) 128.dp else 96.dp),
+                .Adaptive(minSize = size),
             modifier = Modifier
                 .focusRequester(parentFocusRequester)
         ) {

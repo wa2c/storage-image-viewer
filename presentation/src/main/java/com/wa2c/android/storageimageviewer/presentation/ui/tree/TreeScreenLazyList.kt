@@ -172,23 +172,25 @@ private fun TreeScreenItem(
             }
         }
 
-        val iconSize = if (viewType.isLarge) AppSize.IconLarge else AppSize.IconMiddle
-        if (file.isDirectory) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_folder),
-                contentDescription = file.name,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .size(iconSize),
-            )
-        } else {
-            AsyncImage(
-                model = file.uri.uri,
-                contentDescription = file.name,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .size(iconSize),
-            )
+        viewType.isLarge?.let { isLarge ->
+            val iconSize = if (isLarge) AppSize.IconLarge else AppSize.IconMiddle
+            if (file.isDirectory) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_folder),
+                    contentDescription = file.name,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .size(iconSize),
+                )
+            } else {
+                AsyncImage(
+                    model = file.uri.uri,
+                    contentDescription = file.name,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .size(iconSize),
+                )
+            }
         }
         Column(
             modifier = Modifier

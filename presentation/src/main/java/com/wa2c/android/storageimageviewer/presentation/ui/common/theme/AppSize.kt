@@ -14,7 +14,9 @@ object AppSize {
     val IconSmall = 32.dp
     val IconMiddle = 48.dp
     val IconLarge = 80.dp
-    val ListItem = 68.dp
+    val GridSmall = 96.dp
+    val GridLarge = 128.dp
+    val ListItem = 64.dp
 
     val ScreenMargin = 16.dp
 
