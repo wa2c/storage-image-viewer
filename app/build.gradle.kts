@@ -24,14 +24,17 @@ android {
         versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        base.archivesName.set("StorageImageViewer-${versionName}")
     }
 
     buildTypes {
         debug {
             versionNameSuffix = "D"
+            applicationIdSuffix = ".dev"
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -51,6 +54,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = appJavaVersion.majorVersion
+        freeCompilerArgs = listOf(
+            "-Xstring-concat=inline",
+        )
     }
     buildFeatures {
         buildConfig = true
