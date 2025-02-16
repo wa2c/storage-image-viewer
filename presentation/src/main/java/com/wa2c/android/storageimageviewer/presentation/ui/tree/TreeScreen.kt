@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -33,7 +34,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -56,6 +59,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerNormal
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
+import com.wa2c.android.storageimageviewer.presentation.ui.common.forwardingPainter
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
@@ -297,6 +301,16 @@ private fun TreeScreenItems(
     onFocusItem: (FileModel?) -> Unit,
     onClickItem: (FileModel) -> Unit,
 ) {
+    val contentColor = LocalContentColor.current
+    val staticVector = rememberVectorPainter(ImageVector.vectorResource(R.drawable.ic_image))
+    val staticImage = remember {
+        forwardingPainter(
+            painter = staticVector,
+            colorFilter = ColorFilter.tint(contentColor),
+            alpha = 0.5f,
+        )
+    }
+
     val focusedIndex = remember { fun(): Int? {
         val list = currentTreeState.value.fileList.ifEmpty { return null }
         return list.indexOf(focusedFileState.value)
@@ -307,6 +321,7 @@ private fun TreeScreenItems(
     if (optionState.value.treeOption.viewType.isList) {
         TreeScreenLazyList(
             modifier = modifier,
+            staticImage = staticImage,
             currentTreeState = currentTreeState,
             targetIndexState = targetIndexState,
             optionState = optionState,
@@ -319,6 +334,7 @@ private fun TreeScreenItems(
     } else {
         TreeScreenLazyGrid(
             modifier = modifier,
+            staticImage = staticImage,
             currentTreeState = currentTreeState,
             targetIndexState = targetIndexState,
             optionState = optionState,

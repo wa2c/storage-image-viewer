@@ -28,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +57,7 @@ import my.nanihadesuka.compose.ScrollbarSettings
 @Composable
 fun TreeScreenLazyGrid(
     modifier: Modifier,
+    staticImage: Painter,
     currentTreeState: State<TreeScreenItemData>,
     targetIndexState: State<Int?>,
     optionState: State<TreeScreenOption>,
@@ -94,6 +97,7 @@ fun TreeScreenLazyGrid(
                             }
                         }
                         .clickable { onClickItem(file) },
+                    staticImage = staticImage,
                     imageList = currentTreeState.value.imageFileList,
                     file = file,
                 )
@@ -129,6 +133,7 @@ fun TreeScreenLazyGrid(
 @Composable
 private fun TreeScreenGridItem(
     modifier: Modifier,
+    staticImage: Painter,
     imageList: List<FileModel>,
     file: FileModel,
 ) {
@@ -159,6 +164,9 @@ private fun TreeScreenGridItem(
                 AsyncImage(
                     model = file.uri.uri,
                     contentDescription = file.name,
+                    placeholder = staticImage,
+                    error = staticImage,
+                    fallback = staticImage,
                     modifier = Modifier
                         .fillMaxSize()
                 )
@@ -238,6 +246,7 @@ private fun TreeScreenLazyGridPreview() {
 
         TreeScreenLazyGrid(
             modifier = Modifier,
+            staticImage = painterResource(R.drawable.ic_image),
             currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             targetIndexState = remember { mutableStateOf<Int?>(null) },
             optionState = remember { mutableStateOf(TreeScreenOption()) },

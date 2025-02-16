@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -64,6 +65,7 @@ import java.util.Locale
 @Composable
 fun TreeScreenLazyList(
     modifier: Modifier,
+    staticImage: Painter,
     currentTreeState: State<TreeScreenItemData>,
     targetIndexState: State<Int?>,
     optionState: State<TreeScreenOption>,
@@ -102,6 +104,7 @@ fun TreeScreenLazyList(
                             }
                         }
                         .clickable { onClickItem(file) },
+                    staticImage = staticImage,
                     imageList = currentTreeState.value.imageFileList,
                     file = file,
                     viewType = optionState.value.treeOption.viewType,
@@ -137,6 +140,7 @@ fun TreeScreenLazyList(
 @Composable
 private fun TreeScreenItem(
     modifier: Modifier,
+    staticImage: Painter,
     imageList: List<FileModel>,
     file: FileModel,
     viewType: TreeViewType,
@@ -187,9 +191,9 @@ private fun TreeScreenItem(
                 AsyncImage(
                     model = file.uri.uri,
                     contentDescription = file.name,
-                    placeholder = painterResource(R.drawable.ic_image),
-                    error = painterResource(R.drawable.ic_image),
-                    fallback = painterResource(R.drawable.ic_image),
+                    placeholder = staticImage,
+                    error = staticImage,
+                    fallback = staticImage,
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .size(iconSize),
@@ -289,6 +293,7 @@ private fun TreeScreenLazyListPreview() {
 
         TreeScreenLazyList(
             modifier = Modifier,
+            staticImage = painterResource(R.drawable.ic_image),
             currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             targetIndexState = remember { mutableStateOf<Int?>(null) },
             optionState = remember { mutableStateOf(TreeScreenOption()) },
