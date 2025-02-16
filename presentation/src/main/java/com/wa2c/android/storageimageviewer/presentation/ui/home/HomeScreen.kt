@@ -243,8 +243,7 @@ private fun HomeScreenContainer(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .displayCutoutPadding()
-                .waterfallPadding()
-            ,
+                .waterfallPadding(),
         ) {
             HomeScreenStorageList(
                 storageListState = storageListState,

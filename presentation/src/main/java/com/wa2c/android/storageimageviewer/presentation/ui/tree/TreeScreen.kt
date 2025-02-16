@@ -165,12 +165,12 @@ private fun SystemUI(
     // note: Some Android appear system ui forcibly on show dialog.
 
     val systemUiController = rememberSystemUiController()
-    if (optionState.value.viewerOption.showOverlay) {
-        systemUiController.isSystemBarsVisible = true
-        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-    } else {
+    if (optionState.value.isViewerMode && !optionState.value.viewerOption.showOverlay) {
         systemUiController.isSystemBarsVisible = false
         systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    } else {
+        systemUiController.isSystemBarsVisible = true
+        systemUiController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
     }
 }
 
@@ -189,7 +189,7 @@ private fun TreeScreenContainer(
     onClickUp: () -> Unit,
     onClickBack: () -> Unit,
 ) {
-    val sortMenuExpanded = remember { mutableStateOf(false) }
+    val menuExpanded = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -218,8 +218,7 @@ private fun TreeScreenContainer(
                     IconButton(
                         onClick = onClickBack,
                         modifier = Modifier
-                            .focusItemStyle(shape = CircleShape)
-                        ,
+                            .focusItemStyle(shape = CircleShape),
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_back),
@@ -229,7 +228,7 @@ private fun TreeScreenContainer(
                 },
                 actions = {
                     TreeScreenMenu(
-                        menuExpanded = sortMenuExpanded,
+                        menuExpanded = menuExpanded,
                         optionState = optionState,
                         onSetOption = onSetOption,
                     )
@@ -242,7 +241,7 @@ private fun TreeScreenContainer(
                 isPreview = true,
                 isLoading = busyState.value,
                 onMenu = {
-                    sortMenuExpanded.value = true
+                    menuExpanded.value = true
                 }
             ),
     ) { paddingValues ->
@@ -251,8 +250,7 @@ private fun TreeScreenContainer(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .displayCutoutPadding()
-                .waterfallPadding()
-            ,
+                .waterfallPadding(),
         ) {
             Column(
                 modifier = Modifier
@@ -304,7 +302,7 @@ private fun TreeScreenItems(
         return list.indexOf(focusedFileState.value)
     } }
 
-    val targetIndexState = remember { mutableStateOf<Int?>(focusedIndex()) }
+    val targetIndexState = remember { mutableStateOf(focusedIndex()) }
 
     if (optionState.value.treeOption.viewType.isList) {
         TreeScreenLazyList(
@@ -341,7 +339,7 @@ private fun TreeScreenItems(
             }
         }
         launch {
-            snapshotFlow { optionState.value.isViewerMode }.collect { value ->
+            snapshotFlow { optionState.value.isViewerMode }.collect { _ ->
                 if (!optionState.value.isViewerMode) {
                     targetIndexState.value = currentTreeState.value.fileList.indexOf(focusedFileState.value)
                 }

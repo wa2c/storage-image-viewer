@@ -41,7 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -119,7 +118,6 @@ fun TreeScreenViewer(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TreeScreenViewerContainer(
     pagerState: PagerState,
@@ -245,7 +243,7 @@ fun TreeScreenViewerContainer(
             content = {
                 TreeScreenViewerOverlay(
                     file = treeState.value.imageFileList[pagerState.currentPage],
-                    sortMenuExpanded = sortMenuExpanded,
+                    menuExpanded = sortMenuExpanded,
                     optionState = optionState,
                     onSetOption = onSetOption,
                     onClose = onClose,
@@ -413,7 +411,7 @@ private fun ZoomState.getNextScale(): Float {
 @Composable
 private fun TreeScreenViewerOverlay(
     file: FileModel,
-    sortMenuExpanded: MutableState<Boolean>,
+    menuExpanded: MutableState<Boolean>,
     optionState: State<TreeScreenOption>,
     onSetOption: (TreeScreenOption) -> Unit,
     onClose: () -> Unit,
@@ -442,7 +440,7 @@ private fun TreeScreenViewerOverlay(
             },
             actions = {
                 TreeScreenMenu(
-                    menuExpanded = sortMenuExpanded,
+                    menuExpanded = menuExpanded,
                     optionState = optionState,
                     onSetOption = onSetOption,
                 )

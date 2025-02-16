@@ -85,9 +85,7 @@ fun HomeScreenStorageEditDialog(
                     onClick = { onClickSave(storage) },
                 ),
             )
-        }
-
-        ,
+        },
         dismissButton = DialogButton(
             label = stringResource(R.string.common_cancel_label),
             onClick = onDismiss,

@@ -1,6 +1,5 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.common
 
-import android.content.Context
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme

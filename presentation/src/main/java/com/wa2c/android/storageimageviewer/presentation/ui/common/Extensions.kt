@@ -6,7 +6,6 @@ import android.provider.DocumentsContract
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
-import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppColor
 
 object Extensions {
 

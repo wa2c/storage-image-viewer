@@ -32,6 +32,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -186,6 +187,9 @@ private fun TreeScreenItem(
                 AsyncImage(
                     model = file.uri.uri,
                     contentDescription = file.name,
+                    placeholder = painterResource(R.drawable.ic_image),
+                    error = painterResource(R.drawable.ic_image),
+                    fallback = painterResource(R.drawable.ic_image),
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .size(iconSize),

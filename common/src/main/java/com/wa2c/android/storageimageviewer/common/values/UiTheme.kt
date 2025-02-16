@@ -23,10 +23,5 @@ enum class UiTheme(
         fun findByKeyOrDefault(key: String?): UiTheme {
             return entries.firstOrNull { it.key == key } ?: DEFAULT
         }
-
-        /** Find value or default by index. */
-        fun findByIndexOrDefault(index: Int?): UiTheme {
-            return entries.firstOrNull { it.index == index } ?: DEFAULT
-        }
     }
 }

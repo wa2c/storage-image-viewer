@@ -59,6 +59,10 @@ fun TreeScreenMenu(
         DropdownMenu(
             expanded = menuExpanded.value,
             onDismissRequest = { menuExpanded.value = false },
+            modifier = Modifier
+                .treeKeyControl(
+                    onMenu = { menuExpanded.value = false },
+                )
         ) {
             val option = optionState.value
             TreeSortAction(
