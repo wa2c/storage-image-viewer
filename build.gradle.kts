@@ -17,3 +17,17 @@ val appTargetSdkVersion by extra (35)
 val appMinSdkVersion by extra (26)
 val appVersionCode by extra(1)
 val appVersionName by extra("1.0.0")
+
+tasks.register("convertString") {
+    // Spreadsheet URL
+    System.setProperty(
+        "string_converter_spreadsheet_url",
+        "https://docs.google.com/spreadsheets/d/1UjFqywhYgNrng6ZNJ6efUKvGIR7LTGAcrSltTMsNZvA/export?format=csv#gid=0"
+    )
+    // res folder path
+    System.setProperty(
+        "string_converter_res_path",
+        "../../presentation/src/main/res/"
+    )
+    dependsOn(gradle.includedBuild("string_converter").task(":convertString"))
+}

@@ -26,3 +26,5 @@ include(":presentation")
 include(":domain")
 include(":data")
 include(":common")
+
+includeBuild("tools/string_converter")
