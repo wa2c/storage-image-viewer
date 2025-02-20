@@ -27,8 +27,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.max
-import kotlin.math.min
 
 @Composable
 fun TreeScreenInputNumberDialog(
@@ -43,26 +41,23 @@ fun TreeScreenInputNumberDialog(
                 usePlatformDefaultWidth = false,
             ),
         ) {
+            val pageRange = 1..maxPageNumber
             TreeScreenInputNumberDialogContent(
                 inputNumber = inputNumberState.value ?: "",
                 onInputNumber = {
                     inputNumberState.value += it.toString()
                 },
                 onUpNumber = {
-                    max((inputNumberState.value?.toIntOrNull() ?: 0).plus(1), 1).let {
-                        inputNumberState.value = it.toString()
-                    }
+                    inputNumberState.value = (inputNumberState.value?.toIntOrNull() ?: 0).plus(1).coerceIn(pageRange).toString()
                 },
                 onDownNumber = {
-                    min((inputNumberState.value?.toIntOrNull() ?: 0).minus(1), maxPageNumber).let {
-                        inputNumberState.value = it.toString()
-                    }
+                    inputNumberState.value = (inputNumberState.value?.toIntOrNull() ?: 0).minus(1).coerceIn(pageRange).toString()
                 },
                 onFirst = {
-                    inputNumberState.value = "1"
+                    inputNumberState.value = pageRange.first.toString()
                 },
                 onLast = {
-                    inputNumberState.value = maxPageNumber.toString()
+                    inputNumberState.value = pageRange.last.toString()
                 },
                 onDelete = {
                     inputNumberState.value = inputNumberState.value?.dropLast(1)
