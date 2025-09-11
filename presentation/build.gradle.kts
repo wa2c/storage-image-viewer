@@ -27,9 +27,6 @@ android {
         sourceCompatibility = appJavaVersion
         targetCompatibility = appJavaVersion
     }
-    kotlinOptions {
-        jvmTarget = appJavaVersion.majorVersion
-    }
     buildFeatures {
         compose = true
     }

@@ -25,7 +25,7 @@ import javax.inject.Singleton
 
 @Singleton
 class FileHelper @Inject internal constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
 
     private val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager

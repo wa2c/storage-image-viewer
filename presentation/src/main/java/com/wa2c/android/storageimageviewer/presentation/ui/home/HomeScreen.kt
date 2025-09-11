@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.waterfallPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -57,7 +59,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wa2c.android.storageimageviewer.common.result.AppException
@@ -80,10 +82,8 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypog
 import kotlinx.coroutines.launch
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorderAfterLongPress
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-import org.burnoutcrew.reorderable.reorderable
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun HomeScreen(
@@ -262,44 +262,60 @@ private fun HomeScreenStorageList(
     onClickEdit: (storage: StorageModel) -> Unit,
     onDragAndDrop: (from: Int, to: Int) -> Unit,
 ) {
-    val state = rememberReorderableLazyListState(
-        onMove = { from, to ->
-            onDragAndDrop(from.index, to.index)
-        },
-    )
+    var list by remember(storageListState.value) { mutableStateOf(storageListState.value) }
+    val listState = rememberLazyListState()
+    val itemState = rememberReorderableLazyListState(
+        lazyListState = listState,
+    ) { from, to ->
+        list = list.toMutableList().apply {
+            add(to.index, removeAt(from.index))
+        }
+    }
 
     val savedFocus = rememberSaveable { mutableStateOf<StorageModel?>(null) }
     var focusRequester by remember { mutableStateOf<FocusRequester?>(null) }
 
     LazyColumnScrollbar(
-        state = state.listState,
+        state = listState,
         settings = ScrollbarSettings.Default,
     ) {
         LazyColumn(
-            state = state.listState,
-            modifier = Modifier
-                .reorderable(state)
-                .detectReorderAfterLongPress(state),
+            state = listState,
         ) {
-            items(items = storageListState.value) { storage ->
-                ReorderableItem(state, key = storage) { isDragging ->
+            items(items = list, key = { it },) { storage ->
+                ReorderableItem(
+                    state = itemState,
+                    key = storage,
+                ) { isDragging ->
                     val elevation = animateDpAsState(if (isDragging) AppSize.S else 0.dp, label = "")
-                    HomeScreenStorageItem(
-                        storage = storage,
-                        modifier = Modifier
-                            .focusItemStyle()
-                            .applyIf(storage == savedFocus.value) {
-                                val requester = FocusRequester()
-                                focusRequester(requester).also { focusRequester = requester }
-                            }
-                            .focusable()
-                            .clickable {
-                                onClickItem(storage)
-                                savedFocus.value = storage
-                            }
-                            .shadow(elevation.value),
-                        onClickEdit = onClickEdit,
-                    )
+                    Box {
+                        HomeScreenStorageItem(
+                            storage = storage,
+                            modifier = Modifier
+                                .focusItemStyle()
+                                .applyIf(storage == savedFocus.value) {
+                                    val requester = remember { FocusRequester() }
+                                    focusRequester(requester).also { focusRequester = requester }
+                                }
+                                .focusable()
+                                .clickable {
+                                    onClickItem(storage)
+                                    savedFocus.value = storage
+                                }
+                                .shadow(elevation.value)
+                                .longPressDraggableHandle(
+                                    onDragStarted = {
+
+                                    },
+                                    onDragStopped = {
+                                        val from = storageListState.value.indexOf(storage).takeIf { it >= 0 } ?: return@longPressDraggableHandle
+                                        val to = list.indexOf(storage).takeIf { it >= 0 } ?: return@longPressDraggableHandle
+                                        onDragAndDrop(from, to)
+                                    }
+                                ),
+                            onClickEdit = onClickEdit,
+                        )
+                    }
                 }
                 DividerThin()
             }
@@ -308,11 +324,11 @@ private fun HomeScreenStorageList(
 
     LaunchedEffect(Unit) {
         savedFocus.value?.let { focusedFile ->
-            val index = storageListState.value.indexOf(focusedFile)
-            val listHeight = state.listState.layoutInfo.viewportEndOffset
-            val itemHeight = state.listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
+            val index = list.indexOf(focusedFile)
+            val listHeight = listState.layoutInfo.viewportEndOffset
+            val itemHeight = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
             val offset = (listHeight.toFloat() / 2) - (itemHeight.toFloat() / 2)
-            state.listState.requestScrollToItem(index, -offset.toInt())
+            listState.requestScrollToItem(index, -offset.toInt())
         }
 
         focusRequester?.let { requester ->

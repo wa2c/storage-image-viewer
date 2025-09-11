@@ -52,12 +52,6 @@ android {
         sourceCompatibility = appJavaVersion
         targetCompatibility = appJavaVersion
     }
-    kotlinOptions {
-        jvmTarget = appJavaVersion.majorVersion
-        freeCompilerArgs = listOf(
-            "-Xstring-concat=inline",
-        )
-    }
     buildFeatures {
         buildConfig = true
     }

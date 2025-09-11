@@ -1,10 +1,14 @@
 package com.wa2c.android.storageimageviewer.presentation.ui.common
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -23,6 +27,7 @@ internal class MutableStateAdapter<T>(
 }
 
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 internal fun <T> MutableStateFlow<T>.collectAsMutableState(
     context: CoroutineContext = EmptyCoroutineContext

@@ -10,6 +10,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,10 +38,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.os.LocaleListCompat
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import com.mikepenz.aboutlibraries.ui.compose.m3.LibraryDefaults
 import com.wa2c.android.storageimageviewer.common.values.Language
 import com.wa2c.android.storageimageviewer.common.values.UiTheme
 import com.wa2c.android.storageimageviewer.presentation.R
@@ -159,12 +159,19 @@ private fun SettingsScreenContainer(
                 .padding(paddingValues)
         ) {
             if (showLibraries) {
+                val libraries by rememberLibraries(R.raw.aboutlibraries)
                 LibrariesContainer(
-                    colors = LibraryDefaults.libraryColors(
-                        backgroundColor = MaterialTheme.colorScheme.background,
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                    ),
+                    libraries = libraries,
+                    modifier = Modifier
+                        .fillMaxSize(),
                 )
+//                R.raw.aboutlibraries
+//                LibrariesContainer(
+//                    colors = LibraryDefaults.libraryColors(
+//                        backgroundColor = MaterialTheme.colorScheme.background,
+//                        contentColor = MaterialTheme.colorScheme.onBackground,
+//                    ),
+//                )
             } else {
                 SettingsList(
                     theme = theme,

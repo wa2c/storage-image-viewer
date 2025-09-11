@@ -21,7 +21,7 @@ import javax.inject.Singleton
 class StorageRepository @Inject internal constructor(
     private val storageDao: StorageDao,
     private val fileHelper: FileHelper,
-    @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
+    @param:DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
     /** Storage list */
     val storageListFlow = storageDao.getList().map {
