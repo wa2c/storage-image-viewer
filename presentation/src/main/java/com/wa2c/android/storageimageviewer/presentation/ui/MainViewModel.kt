@@ -18,6 +18,7 @@ class MainViewModel @Inject constructor(
 
 
     /** UI Theme */
-    val uiThemeFlow = settingsRepository.uiThemeFlow.stateIn(viewModelScope, SharingStarted.Eagerly, UiTheme.DEFAULT)
+    val uiThemeFlow = settingsRepository.uiTheme.data
+        .stateIn(viewModelScope, SharingStarted.Eagerly, UiTheme.DEFAULT)
 
 }

@@ -1,10 +1,7 @@
 package com.wa2c.android.storageimageviewer.domain.repository
 
-import com.wa2c.android.storageimageviewer.common.values.TreeSortType
-import com.wa2c.android.storageimageviewer.common.values.TreeViewType
-import com.wa2c.android.storageimageviewer.common.values.UiTheme
 import com.wa2c.android.storageimageviewer.data.kvs.AppPreferencesDataStore
-import kotlinx.coroutines.flow.Flow
+import com.wa2c.android.storageimageviewer.domain.model.SettingsModel
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,52 +13,35 @@ class SettingsRepository @Inject internal constructor(
     // Global
 
     /** UI Theme */
-    val uiThemeFlow = dataStore.uiThemeFlow
-
-    /** UI Theme */
-    suspend fun setUiTheme(value: UiTheme) = dataStore.setUiTheme(value)
+    val uiTheme = SettingsModel(_data = dataStore.uiThemeFlow, invoke = dataStore::setUiTheme)
 
     // Tree
 
     /** Tree sort type */
-    val treeSortTypeFlow: Flow<TreeSortType> = dataStore.treeSortTypeFlow
-    suspend fun setTreeSortType(type: TreeSortType) = dataStore.setTreeSortType(type)
+    val treeSortType = SettingsModel(_data = dataStore.treeSortTypeFlow, invoke = dataStore::setTreeSortType)
 
     /** Tree sort descending */
-    val treeSortDescendingFlow: Flow<Boolean> = dataStore.treeSortDescendingFlow
-    suspend fun setTreeSortDescending(value: Boolean) = dataStore.setTreeSortDescending(value)
+    val treeSortDescending = SettingsModel(_data = dataStore.treeSortDescendingFlow, invoke = dataStore::setTreeSortDescending)
 
     /** Tree sort ignore case */
-    val treeSortIgnoreCaseFlow: Flow<Boolean> = dataStore.treeSortIgnoreCaseFlow
-    suspend fun setTreeSortIgnoreCase(value: Boolean) = dataStore.setTreeSortIgnoreCase(value)
+    val treeSortIgnoreCase = SettingsModel(_data = dataStore.treeSortIgnoreCaseFlow, invoke = dataStore::setTreeSortIgnoreCase)
 
     /** Tree sort number */
-    val treeSortNumberFlow: Flow<Boolean> = dataStore.treeSortNumberFlow
-    suspend fun setTreeSortNumber(value: Boolean) = dataStore.setTreeSortNumber(value)
+    val treeSortNumber = SettingsModel(_data = dataStore.treeSortNumberFlow, invoke = dataStore::setTreeSortNumber)
 
     /** Tree mix folder */
-    val treeMixFolderFlow: Flow<Boolean> = dataStore.treeMixFolderFlow
-    suspend fun setTreeMixFolder(value: Boolean) = dataStore.setTreeMixFolder(value)
+    val treeMixFolder = SettingsModel(_data = dataStore.treeMixFolderFlow, invoke = dataStore::setTreeMixFolder)
 
     /** Tree view type */
-    val treeViewTypeFlow = dataStore.treeViewTypeFlow
-    suspend fun setTreeViewType(type: TreeViewType) = dataStore.setTreeViewType(type)
+    val treeViewType = SettingsModel(_data = dataStore.treeViewTypeFlow, invoke = dataStore::setTreeViewType)
 
     /** View show page */
-    val viewShowPageFlow: Flow<Boolean> = dataStore.viewShowPageFlow
-    suspend fun setViewShowPageFlow(value: Boolean) = dataStore.setViewShowPageFlow(value)
+    val viewShowPage = SettingsModel(_data = dataStore.viewShowPageFlow, invoke = dataStore::setViewShowPage)
 
     /** View volume scroll */
-    val viewVolumeScrollFlow: Flow<Boolean> = dataStore.viewVolumeScrollFlow
-    suspend fun setViewVolumeScrollFlow(value: Boolean) = dataStore.setViewVolumeScrollFlow(value)
+    val viewVolumeScroll = SettingsModel(_data = dataStore.viewVolumeScrollFlow, invoke = dataStore::setViewVolumeScroll)
 
     /** Tree view overlay */
-    val viewShowOverlayFlow: Flow<Boolean> = dataStore.viewShowOverlayFlow
-    suspend fun setViewShowOverlayFlow(value: Boolean) = dataStore.setViewShowOverlayFlow(value)
-
-
-
-
-
+    val viewShowOverlay = SettingsModel(_data = dataStore.viewShowOverlayFlow, invoke = dataStore::setViewShowOverlay)
 
 }

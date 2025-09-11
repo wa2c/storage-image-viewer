@@ -7,7 +7,6 @@ import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.domain.repository.SettingsRepository
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
@@ -16,6 +15,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenOption
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenTreeOption
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenViewerOption
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeSortModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
@@ -57,11 +57,11 @@ class TreeViewModel @Inject constructor(
     private val _isViewerMode = MutableStateFlow(false)
 
     private val sortFlow = combine(
-        settingsRepository.treeSortTypeFlow,
-        settingsRepository.treeSortDescendingFlow,
-        settingsRepository.treeSortIgnoreCaseFlow,
-        settingsRepository.treeSortNumberFlow,
-        settingsRepository.treeMixFolderFlow,
+        settingsRepository.treeSortType.data,
+        settingsRepository.treeSortDescending.data,
+        settingsRepository.treeSortIgnoreCase.data,
+        settingsRepository.treeSortNumber.data,
+        settingsRepository.treeMixFolder.data,
     ) { type, descending, ignoreCase, number, mixFolder ->
         TreeSortModel(
             type = type,
@@ -72,16 +72,16 @@ class TreeViewModel @Inject constructor(
         )
     }
 
-    private val treeOptionFlow = settingsRepository.treeViewTypeFlow.map {
+    private val treeOptionFlow = settingsRepository.treeViewType.data.map {
         TreeScreenTreeOption(
             viewType = it,
         )
     }
 
     private val viewerOptionFlow = combine(
-        settingsRepository.viewShowPageFlow,
-        settingsRepository.viewVolumeScrollFlow,
-        settingsRepository.viewShowOverlayFlow,
+        settingsRepository.viewShowPage.data,
+        settingsRepository.viewVolumeScroll.data,
+        settingsRepository.viewShowOverlay.data,
     ) { page, volumeScroll, overlay ->
         TreeScreenViewerOption(
             showPage = page,
@@ -130,17 +130,17 @@ class TreeViewModel @Inject constructor(
             }
 
             // Sort
-            settingsRepository.setTreeSortType(option.sort.type)
-            settingsRepository.setTreeSortDescending(option.sort.isDescending)
-            settingsRepository.setTreeSortIgnoreCase(option.sort.isIgnoreCase)
-            settingsRepository.setTreeSortNumber(option.sort.isNumberSort)
-            settingsRepository.setTreeMixFolder(option.sort.isFolderMixed)
+            settingsRepository.treeSortType.set(option.sort.type)
+            settingsRepository.treeSortDescending.set(option.sort.isDescending)
+            settingsRepository.treeSortIgnoreCase.set(option.sort.isIgnoreCase)
+            settingsRepository.treeSortNumber.set(option.sort.isNumberSort)
+            settingsRepository.treeMixFolder.set(option.sort.isFolderMixed)
             // Tree
-            settingsRepository.setTreeViewType(option.treeOption.viewType)
+            settingsRepository.treeViewType.set(option.treeOption.viewType)
             // Viewer
-            settingsRepository.setViewShowPageFlow(option.viewerOption.showPage)
-            settingsRepository.setViewShowOverlayFlow(option.viewerOption.showOverlay)
-            settingsRepository.setViewVolumeScrollFlow(option.viewerOption.volumeScroll)
+            settingsRepository.viewShowPage.set(option.viewerOption.showPage)
+            settingsRepository.viewShowOverlay.set(option.viewerOption.showOverlay)
+            settingsRepository.viewVolumeScroll.set(option.viewerOption.volumeScroll)
 
             _isViewerMode.value = option.isViewerMode
         }

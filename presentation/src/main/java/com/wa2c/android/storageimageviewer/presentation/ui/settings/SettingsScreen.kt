@@ -2,7 +2,6 @@ package com.wa2c.android.storageimageviewer.presentation.ui.settings
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatDelegate
@@ -37,9 +36,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.wa2c.android.storageimageviewer.common.values.Language
@@ -48,7 +47,7 @@ import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MutableStateAdapter
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.labelRes
-import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.mode
+import com.wa2c.android.storageimageviewer.presentation.ui.common.collectForSettings
 import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
@@ -66,24 +65,17 @@ fun SettingsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember { SnackbarHostState() }
+    val language = remember {
+        MutableStateAdapter(
+            state = mutableStateOf(Language.findByCodeOrDefault(AppCompatDelegate.getApplicationLocales().toLanguageTags())),
+            mutate = { value -> AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(value.code)) },
+        )
+    }
 
     SettingsScreenContainer(
         snackBarHostState = snackBarHostState,
-        theme = MutableStateAdapter(
-            state = viewModel.uiThemeFlow.collectAsStateWithLifecycle(UiTheme.DEFAULT),
-            mutate = { value ->
-                viewModel.setUiTheme(value)
-                AppCompatDelegate.setDefaultNightMode(value.mode)
-            },
-        ),
-        language = MutableStateAdapter(
-            state =  remember {
-                mutableStateOf(Language.findByCodeOrDefault(AppCompatDelegate.getApplicationLocales().toLanguageTags()))
-            },
-            mutate = { value ->
-                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(value.code))
-            },
-        ),
+        theme = viewModel.uiTheme.collectForSettings(scope),
+        language = language,
         onStartIntent = { intent ->
             try {
                 context.startActivity(intent)
@@ -114,13 +106,13 @@ private fun SettingsScreenContainer(
             TopAppBar(
                 title = {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.ic_settings),
                             contentDescription = null,
                             modifier = Modifier
-                                .size(AppSize.IconSmall)
+                                .size(AppSize.IconSmall),
                         )
                         Text(
                             text = stringResource(id = R.string.settings_title),
@@ -156,7 +148,7 @@ private fun SettingsScreenContainer(
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(paddingValues)
+                .padding(paddingValues),
         ) {
             if (showLibraries) {
                 val libraries by rememberLibraries(R.raw.aboutlibraries)
@@ -244,8 +236,8 @@ private fun SettingsList(
                 onStartIntent(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("https://github.com/wa2c/storage-image-viewer")
-                    )
+                        "https://github.com/wa2c/storage-image-viewer".toUri(),
+                    ),
                 )
             }
         }
@@ -255,8 +247,8 @@ private fun SettingsList(
                 onStartIntent(
                     Intent(
                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.parse("package:" + context.packageName)
-                    )
+                        ("package:" + context.packageName).toUri(),
+                    ),
                 )
             }
         }
