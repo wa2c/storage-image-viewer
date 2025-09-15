@@ -23,7 +23,8 @@ data class TreeScreenTreeOption(
 )
 
 data class TreeScreenViewerOption(
-    val showOverlay: Boolean = false,
     val showPage: Boolean = true,
+    val showAnimation: Boolean = true,
     val volumeScroll: Boolean = false,
+    val showOverlay: Boolean = false,
 )

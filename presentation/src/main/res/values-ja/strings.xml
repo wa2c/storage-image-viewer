@@ -42,6 +42,7 @@
     <string name="tree_menu_view_grid_small_check">グリッド (小)</string>
     <string name="tree_menu_view_grid_large_check">グリッド (大)</string>
     <string name="tree_menu_view_show_page_check">ページ</string>
+    <string name="tree_menu_view_show_animation_check">アニメーション</string>
     <string name="tree_menu_view_volume_scroll_check">音量スクロール</string>
     
     <!-- Settings Screen -->

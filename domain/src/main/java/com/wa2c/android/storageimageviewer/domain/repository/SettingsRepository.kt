@@ -38,6 +38,9 @@ class SettingsRepository @Inject internal constructor(
     /** View show page */
     val viewShowPage = SettingsModel(_data = dataStore.viewShowPageFlow, invoke = dataStore::setViewShowPage)
 
+    /** View show animation */
+    val viewShowAnimation = SettingsModel(_data = dataStore.viewShowAnimationFlow, invoke = dataStore::setViewShowAnimation)
+
     /** View volume scroll */
     val viewVolumeScroll = SettingsModel(_data = dataStore.viewVolumeScrollFlow, invoke = dataStore::setViewVolumeScroll)
 

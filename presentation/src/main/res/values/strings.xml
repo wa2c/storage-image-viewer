@@ -42,6 +42,7 @@
     <string name="tree_menu_view_grid_small_check">Grid (Small)</string>
     <string name="tree_menu_view_grid_large_check">Grid (Large)</string>
     <string name="tree_menu_view_show_page_check">Page</string>
+    <string name="tree_menu_view_show_animation_check">Animation</string>
     <string name="tree_menu_view_volume_scroll_check">Volume Scroll</string>
     
     <!-- Settings Screen -->

@@ -189,6 +189,14 @@ private fun ColumnScope.TreeSortAction(
         }
 
         TreeScreenActionMenuCheck(
+            text = stringResource(R.string.tree_menu_view_show_animation_check),
+            checked = viewerOption.showAnimation,
+        ) {
+            onSetViewerOption(viewerOption.copy(showAnimation = !viewerOption.showAnimation) )
+        }
+
+
+        TreeScreenActionMenuCheck(
             text = stringResource(R.string.tree_menu_view_volume_scroll_check),
             checked = viewerOption.volumeScroll,
         ) {

@@ -80,13 +80,15 @@ class TreeViewModel @Inject constructor(
 
     private val viewerOptionFlow = combine(
         settingsRepository.viewShowPage.data,
+        settingsRepository.viewShowAnimation.data,
         settingsRepository.viewVolumeScroll.data,
         settingsRepository.viewShowOverlay.data,
-    ) { page, volumeScroll, overlay ->
+    ) { page, animation, volumeScroll, overlay ->
         TreeScreenViewerOption(
             showPage = page,
-            showOverlay = overlay,
+            showAnimation = animation,
             volumeScroll = volumeScroll,
+            showOverlay = overlay,
         )
     }
 
@@ -139,8 +141,9 @@ class TreeViewModel @Inject constructor(
             settingsRepository.treeViewType.set(option.treeOption.viewType)
             // Viewer
             settingsRepository.viewShowPage.set(option.viewerOption.showPage)
-            settingsRepository.viewShowOverlay.set(option.viewerOption.showOverlay)
+            settingsRepository.viewShowAnimation.set(option.viewerOption.showAnimation)
             settingsRepository.viewVolumeScroll.set(option.viewerOption.volumeScroll)
+            settingsRepository.viewShowOverlay.set(option.viewerOption.showOverlay)
 
             _isViewerMode.value = option.isViewerMode
         }

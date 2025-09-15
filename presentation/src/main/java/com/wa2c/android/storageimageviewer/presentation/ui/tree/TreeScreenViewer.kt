@@ -6,8 +6,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -149,7 +151,13 @@ fun TreeScreenViewerContainer(
                 scope.launch {
                     // Change page
                     val page = (pagerState.currentPage + step).coerceIn(pageRange)
-                    if (page != pagerState.currentPage) pagerState.animateScrollToPage(page = page)
+                    if (page != pagerState.currentPage) {
+                        if (optionState.value.viewerOption.showAnimation) {
+                            pagerState.animateScrollToPage(page = page)
+                        } else {
+                            pagerState.scrollToPage(page = page)
+                        }
+                    }
                     else animatedColor.flashPage()
                 }
             },
@@ -167,7 +175,11 @@ fun TreeScreenViewerContainer(
                         val page = (pagerState.currentPage + step).coerceIn(pageRange)
                         scope.launch {
                             if (page != pagerState.currentPage) {
-                                pagerState.animateScrollToPage(page = page)
+                                if (optionState.value.viewerOption.showAnimation) {
+                                    pagerState.animateScrollToPage(page = page)
+                                } else {
+                                    pagerState.scrollToPage(page = page)
+                                }
                             } else {
                                 animatedColor.flashPage()
                             }
@@ -186,6 +198,7 @@ fun TreeScreenViewerContainer(
                             zoomState.changeScale(
                                 targetScale = zoomState.getNextScale(),
                                 position = size.center,
+                                animationSpec = if (optionState.value.viewerOption.showAnimation) spring() else snap(),
                             )
                         }
                     },
@@ -194,7 +207,7 @@ fun TreeScreenViewerContainer(
                             val offset = if (isSkip == null) Float.MAX_VALUE else if (isSkip == true) 300f else 100f
                             val xValue = (if (isXPositive == null) 0 else if (isXPositive) 1 else -1) * offset
                             val yValue = (if (isYPositive == null) 0 else if (isYPositive) 1 else -1) * offset
-                            zoomState.translate(size.center, x = xValue, y = yValue)
+                            zoomState.translate(size.center, x = xValue, y = yValue, optionState.value.viewerOption.showAnimation)
                         }
                     },
                     onShowOverlay = {
@@ -390,13 +403,13 @@ private fun TreeScreenViewerContent(
     }
 }
 
-private suspend fun ZoomState.translate(center: Offset, x: Float = 0f, y: Float = 0f) {
+private suspend fun ZoomState.translate(center: Offset, x: Float = 0f, y: Float = 0f, animation: Boolean) {
     val centerX = center.x - offsetX / scale
     val centerY = center.y - offsetY / scale
     centerByLayoutCoordinate(
         offset = Offset(x = centerX + x, y = centerY + y),
         scale,
-        tween(100)
+        if (animation) tween(100) else snap()
     )
 }
 

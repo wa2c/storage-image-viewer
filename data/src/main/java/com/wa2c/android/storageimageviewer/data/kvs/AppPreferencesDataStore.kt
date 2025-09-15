@@ -69,6 +69,10 @@ class AppPreferencesDataStore @Inject constructor(
     val viewShowPageFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_SHOW_PAGE] ?: true }
     suspend fun setViewShowPage(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_SHOW_PAGE, value)
 
+    /** View show animation */
+    val viewShowAnimationFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_SHOW_ANIMATION] ?: true }
+    suspend fun setViewShowAnimation(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_SHOW_ANIMATION, value)
+
     /** View volume scroll */
     val viewVolumeScrollFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_VOLUME_SCROLL] ?: false }
     suspend fun setViewVolumeScroll(value: Boolean) = dataStore.setValue(PREFKEY_VIEW_VOLUME_SCROLL, value)
@@ -88,6 +92,7 @@ class AppPreferencesDataStore @Inject constructor(
         private val PREFKEY_TREE_SORT_NUMBER = booleanPreferencesKey("prefkey_tree_sort_number")
         private val PREFKEY_TREE_SORT_MIX_FOLDER = booleanPreferencesKey("prefkey_tree_mix_folder")
         private val PREFKEY_VIEW_SHOW_PAGE = booleanPreferencesKey("prefkey_view_show_page")
+        private val PREFKEY_VIEW_SHOW_ANIMATION = booleanPreferencesKey("prefkey_view_show_animation")
         private val PREFKEY_VIEW_VOLUME_SCROLL = booleanPreferencesKey("prefkey_view_volume_scroll")
         private val PREFKEY_VIEW_SHOW_OVERLAY = booleanPreferencesKey("prefkey_view_show_overlay")
 
