@@ -193,7 +193,8 @@ private fun TreeScreenContainer(
     onClickUp: () -> Unit,
     onClickBack: () -> Unit,
 ) {
-    val menuExpanded = remember { mutableStateOf(false) }
+    val viewMenuExpanded = remember { mutableStateOf(false) }
+    val sortMenuExpanded = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -231,8 +232,13 @@ private fun TreeScreenContainer(
                     }
                 },
                 actions = {
-                    TreeScreenMenu(
-                        menuExpanded = menuExpanded,
+                    TreeScreenViewMenu(
+                        menuExpanded = viewMenuExpanded,
+                        optionState = optionState,
+                        onSetOption = onSetOption,
+                    )
+                    TreeScreenSortMenu(
+                        menuExpanded = sortMenuExpanded,
                         optionState = optionState,
                         onSetOption = onSetOption,
                     )
@@ -245,7 +251,7 @@ private fun TreeScreenContainer(
                 isPreview = true,
                 isLoading = busyState.value,
                 onMenu = {
-                    menuExpanded.value = true
+                    sortMenuExpanded.value = true
                 }
             ),
     ) { paddingValues ->

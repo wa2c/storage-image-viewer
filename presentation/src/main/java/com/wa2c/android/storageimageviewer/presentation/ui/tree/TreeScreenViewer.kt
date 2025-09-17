@@ -132,6 +132,7 @@ fun TreeScreenViewerContainer(
     val focusRequester = remember { FocusRequester() }
     val zoomState = rememberZoomState()
     var size = remember { androidx.compose.ui.geometry.Size.Unspecified }
+    val viewMenuExpanded = remember { mutableStateOf(false) }
     val sortMenuExpanded = remember { mutableStateOf(false) }
     val pageRange = 0..<pagerState.pageCount
     val animatedColor = remember { Animatable(AppColor.ViewerOverlayBackground) }
@@ -256,7 +257,8 @@ fun TreeScreenViewerContainer(
             content = {
                 TreeScreenViewerOverlay(
                     file = treeState.value.imageFileList[pagerState.currentPage],
-                    menuExpanded = sortMenuExpanded,
+                    viewMenuExpanded = viewMenuExpanded,
+                    sortMenuExpanded = sortMenuExpanded,
                     optionState = optionState,
                     onSetOption = onSetOption,
                     onClose = onClose,
@@ -424,7 +426,8 @@ private fun ZoomState.getNextScale(): Float {
 @Composable
 private fun TreeScreenViewerOverlay(
     file: FileModel,
-    menuExpanded: MutableState<Boolean>,
+    viewMenuExpanded: MutableState<Boolean>,
+    sortMenuExpanded: MutableState<Boolean>,
     optionState: State<TreeScreenOption>,
     onSetOption: (TreeScreenOption) -> Unit,
     onClose: () -> Unit,
@@ -452,8 +455,13 @@ private fun TreeScreenViewerOverlay(
                 }
             },
             actions = {
-                TreeScreenMenu(
-                    menuExpanded = menuExpanded,
+                TreeScreenViewMenu(
+                    menuExpanded = viewMenuExpanded,
+                    optionState = optionState,
+                    onSetOption = onSetOption,
+                )
+                TreeScreenSortMenu(
+                    menuExpanded = sortMenuExpanded,
                     optionState = optionState,
                     onSetOption = onSetOption,
                 )

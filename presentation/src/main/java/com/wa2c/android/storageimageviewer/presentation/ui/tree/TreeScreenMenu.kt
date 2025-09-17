@@ -18,6 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -39,12 +41,111 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenViewerOption
 
 @Composable
-fun TreeScreenMenu(
+fun TreeScreenViewMenu(
     menuExpanded: MutableState<Boolean>,
     optionState: State<TreeScreenOption>,
     onSetOption: (TreeScreenOption) -> Unit,
 ) {
+    Box {
+        IconButton(
+            onClick = { menuExpanded.value = true },
+            modifier = Modifier
+                .focusItemStyle(shape = CircleShape)
+        ) {
+            val iconRes = if (optionState.value.isViewerMode) R.drawable.ic_image else R.drawable.ic_view
+            Icon(
+                imageVector = ImageVector.vectorResource(id = iconRes),
+                contentDescription = stringResource(R.string.tree_menu_view_section),
+            )
+        }
+        DropdownMenu(
+            expanded = menuExpanded.value,
+            onDismissRequest = { menuExpanded.value = false },
+            modifier = Modifier
+                .treeKeyControl(
+                    onMenu = { menuExpanded.value = false },
+                )
+        ) {
+            val option = optionState.value
+            ViewMenuAction(
+                option = option,
+                onSetTreeOption = { onSetOption(option.copy(treeOption = it)) },
+                onSetViewerOption = { onSetOption(option.copy(viewerOption = it)) },
+            )
+        }
+    }
+}
 
+@Composable
+private fun ViewMenuAction(
+    option: TreeScreenOption,
+    onSetTreeOption: (TreeScreenTreeOption) -> Unit,
+    onSetViewerOption: (TreeScreenViewerOption) -> Unit,
+) {
+    if (option.isViewerMode) {
+        val viewerOption = option.viewerOption
+        TreeScreenActionMenuCheck(
+            text = stringResource(R.string.tree_menu_view_show_page_check),
+            checked = viewerOption.showPage,
+        ) {
+            onSetViewerOption(viewerOption.copy(showPage = !viewerOption.showPage) )
+        }
+
+        TreeScreenActionMenuCheck(
+            text = stringResource(R.string.tree_menu_view_show_animation_check),
+            checked = viewerOption.showAnimation,
+        ) {
+            onSetViewerOption(viewerOption.copy(showAnimation = !viewerOption.showAnimation) )
+        }
+
+        TreeScreenActionMenuCheck(
+            text = stringResource(R.string.tree_menu_view_volume_scroll_check),
+            checked = viewerOption.volumeScroll,
+        ) {
+            onSetViewerOption(viewerOption.copy(volumeScroll = !viewerOption.volumeScroll) )
+        }
+    } else {
+        val treeOption = option.treeOption
+        TreeScreenActionMenuRadio(
+            text = stringResource(R.string.tree_menu_view_list_none_check),
+            selected = treeOption.viewType == TreeViewType.ListNone,
+        ) {
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListNone))
+        }
+        TreeScreenActionMenuRadio(
+            text = stringResource(R.string.tree_menu_view_list_small_check),
+            selected = treeOption.viewType == TreeViewType.ListSmall,
+        ) {
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListSmall))
+        }
+        TreeScreenActionMenuRadio(
+            text = stringResource(R.string.tree_menu_view_list_large_check),
+            selected = treeOption.viewType == TreeViewType.ListLarge,
+        ) {
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListLarge))
+        }
+        TreeScreenActionMenuRadio(
+            text = stringResource(R.string.tree_menu_view_grid_small_check),
+            selected = treeOption.viewType == TreeViewType.GridSmall,
+        ) {
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.GridSmall))
+        }
+        TreeScreenActionMenuRadio(
+            text = stringResource(R.string.tree_menu_view_grid_large_check),
+            selected = treeOption.viewType == TreeViewType.GridLarge,
+        ) {
+            onSetTreeOption(treeOption.copy(viewType = TreeViewType.GridLarge))
+        }
+    }
+}
+
+
+@Composable
+fun TreeScreenSortMenu(
+    menuExpanded: MutableState<Boolean>,
+    optionState: State<TreeScreenOption>,
+    onSetOption: (TreeScreenOption) -> Unit,
+) {
     Box {
         IconButton(
             onClick = { menuExpanded.value = true },
@@ -52,8 +153,8 @@ fun TreeScreenMenu(
                 .focusItemStyle(shape = CircleShape)
         ) {
             Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.ic_menu),
-                contentDescription = "Menu",
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_sort),
+                contentDescription = stringResource(R.string.tree_menu_sort_section),
             )
         }
         DropdownMenu(
@@ -68,44 +169,16 @@ fun TreeScreenMenu(
             TreeSortAction(
                 option = option,
                 onSetSort = { onSetOption(option.copy(sort = it)) },
-                onSetTreeOption = { onSetOption(option.copy(treeOption = it)) },
-                onSetViewerOption = { onSetOption(option.copy(viewerOption = it)) },
             )
         }
     }
 }
 
 @Composable
-private fun ColumnScope.TreeSortAction(
+private fun TreeSortAction(
     option: TreeScreenOption,
     onSetSort: (TreeSortModel) -> Unit,
-    onSetTreeOption: (TreeScreenTreeOption) -> Unit,
-    onSetViewerOption: (TreeScreenViewerOption) -> Unit,
 ) {
-    // Sort
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .align(alignment = Alignment.CenterHorizontally)
-            .padding(AppSize.SS)
-    ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_sort),
-            contentDescription = stringResource(R.string.tree_menu_sort_section),
-            modifier = Modifier
-                .padding(end = AppSize.S)
-        )
-
-        Text(
-            text = stringResource(R.string.tree_menu_sort_section),
-            style = AppTypography.titleMedium,
-            modifier = Modifier
-        )
-    }
-
-    DividerThin()
-
     TreeScreenActionMenuRadio(
         text = stringResource(R.string.tree_menu_sort_by_name),
         selected = option.sort.type == TreeSortType.Name,
@@ -152,90 +225,6 @@ private fun ColumnScope.TreeSortAction(
     ) {
         onSetSort(option.sort.copy(isFolderMixed = !option.sort.isFolderMixed))
     }
-
-    DividerNormal()
-
-    // View
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .align(alignment = Alignment.CenterHorizontally)
-            .padding(AppSize.SS)
-    ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_view),
-            contentDescription = stringResource(R.string.tree_menu_view_section),
-            modifier = Modifier
-                .padding(end = AppSize.S)
-        )
-
-        Text(
-            text = stringResource(R.string.tree_menu_view_section),
-            style = AppTypography.titleMedium,
-            modifier = Modifier
-        )
-    }
-
-    DividerThin()
-
-    if (option.isViewerMode) {
-        val viewerOption = option.viewerOption
-        TreeScreenActionMenuCheck(
-            text = stringResource(R.string.tree_menu_view_show_page_check),
-            checked = viewerOption.showPage,
-        ) {
-            onSetViewerOption(viewerOption.copy(showPage = !viewerOption.showPage) )
-        }
-
-        TreeScreenActionMenuCheck(
-            text = stringResource(R.string.tree_menu_view_show_animation_check),
-            checked = viewerOption.showAnimation,
-        ) {
-            onSetViewerOption(viewerOption.copy(showAnimation = !viewerOption.showAnimation) )
-        }
-
-
-        TreeScreenActionMenuCheck(
-            text = stringResource(R.string.tree_menu_view_volume_scroll_check),
-            checked = viewerOption.volumeScroll,
-        ) {
-            onSetViewerOption(viewerOption.copy(volumeScroll = !viewerOption.volumeScroll) )
-        }
-    } else {
-        val treeOption = option.treeOption
-        TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_list_none_check),
-            selected = treeOption.viewType == TreeViewType.ListNone,
-        ) {
-            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListNone))
-        }
-        TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_list_small_check),
-            selected = treeOption.viewType == TreeViewType.ListSmall,
-        ) {
-            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListSmall))
-        }
-        TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_list_large_check),
-            selected = treeOption.viewType == TreeViewType.ListLarge,
-        ) {
-            onSetTreeOption(treeOption.copy(viewType = TreeViewType.ListLarge))
-        }
-        TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_grid_small_check),
-            selected = treeOption.viewType == TreeViewType.GridSmall,
-        ) {
-            onSetTreeOption(treeOption.copy(viewType = TreeViewType.GridSmall))
-        }
-        TreeScreenActionMenuRadio(
-            text = stringResource(R.string.tree_menu_view_grid_large_check),
-            selected = treeOption.viewType == TreeViewType.GridLarge,
-        ) {
-            onSetTreeOption(treeOption.copy(viewType = TreeViewType.GridLarge))
-        }
-    }
-
 }
 
 @Composable
@@ -286,6 +275,30 @@ private fun TreeScreenActionMenuCheck(
     onClick = onClick,
 )
 
+/**
+ * Preview
+ */
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+)
+@Composable
+private fun TreeScreenViewMenuPreview() {
+    AppTheme {
+        Scaffold {
+            Column(
+                modifier = Modifier
+                    .padding(it)
+            ) {
+                TreeScreenViewMenu(
+                    menuExpanded = remember { mutableStateOf(true) },
+                    optionState = remember { mutableStateOf(TreeScreenOption()) },
+                    onSetOption = {},
+                )
+            }
+        }
+    }
+}
 
 /**
  * Preview
@@ -295,18 +308,17 @@ private fun TreeScreenActionMenuCheck(
     showBackground = true,
 )
 @Composable
-private fun TreeScreenLazyGridPreview() {
+private fun TreeScreenSortMenuPreview() {
     AppTheme {
         Scaffold {
             Column(
                 modifier = Modifier
                     .padding(it)
             ) {
-                TreeSortAction(
-                    option = TreeScreenOption(),
-                    onSetSort = {},
-                    onSetTreeOption = {},
-                    onSetViewerOption = {},
+                TreeScreenSortMenu(
+                    menuExpanded = remember { mutableStateOf(true) },
+                    optionState = remember { mutableStateOf(TreeScreenOption()) },
+                    onSetOption = {},
                 )
             }
         }
