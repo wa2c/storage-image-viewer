@@ -56,25 +56,41 @@ class TreeViewModel @Inject constructor(
 
     private val _isViewerMode = MutableStateFlow(false)
 
-    private val sortFlow = combine(
+    private val fileSortFlow = combine(
         settingsRepository.treeSortType.data,
         settingsRepository.treeSortDescending.data,
         settingsRepository.treeSortIgnoreCase.data,
         settingsRepository.treeSortNumber.data,
-        settingsRepository.treeMixFolder.data,
-    ) { type, descending, ignoreCase, number, mixFolder ->
+    ) { type, descending, ignoreCase, number ->
         TreeSortModel(
             type = type,
             isDescending = descending,
             isIgnoreCase = ignoreCase,
             isNumberSort = number,
-            isFolderMixed = mixFolder,
         )
     }
 
-    private val treeOptionFlow = settingsRepository.treeViewType.data.map {
+    private val folderSortFlow = combine(
+        settingsRepository.treeFolderSortType.data,
+        settingsRepository.treeFolderSortDescending.data,
+        settingsRepository.treeFolderSortIgnoreCase.data,
+        settingsRepository.treeFolderSortNumber.data,
+    ) { type, descending, ignoreCase, number ->
+        TreeSortModel(
+            type = type,
+            isDescending = descending,
+            isIgnoreCase = ignoreCase,
+            isNumberSort = number,
+        )
+    }
+
+    private val treeOptionFlow = combine(
+        settingsRepository.treeViewType.data,
+        settingsRepository.treeMixFolder.data,
+    ) { treeView, mixFolder ->
         TreeScreenTreeOption(
-            viewType = it,
+            viewType = treeView,
+            isFolderMixed = mixFolder,
         )
     }
 
@@ -93,13 +109,15 @@ class TreeViewModel @Inject constructor(
     }
 
     val screenOption = combine(
-        sortFlow,
+        fileSortFlow,
+        folderSortFlow,
         treeOptionFlow,
         viewerOptionFlow,
         _isViewerMode,
-    ) { sort, treeOption, viewerOption, isViewerMode ->
+    ) { fileSort, folderSort, treeOption, viewerOption, isViewerMode ->
         TreeScreenOption(
-            sort = sort,
+            fileSort = fileSort,
+            folderSort = folderSort,
             treeOption = treeOption,
             viewerOption = viewerOption,
             isViewerMode = isViewerMode,
@@ -125,19 +143,24 @@ class TreeViewModel @Inject constructor(
 
     fun setOption(option: TreeScreenOption) {
         launch {
-            if (option.sort != screenOption.value.sort) {
+            if (option.fileSort != screenOption.value.fileSort || option.folderSort != screenOption.value.folderSort || option.treeOption != screenOption.value.treeOption) {
                 currentTree.value.let { tree ->
-                    _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(option.sort))))
+                    _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(option))))
                 }
             }
 
-            // Sort
-            settingsRepository.treeSortType.set(option.sort.type)
-            settingsRepository.treeSortDescending.set(option.sort.isDescending)
-            settingsRepository.treeSortIgnoreCase.set(option.sort.isIgnoreCase)
-            settingsRepository.treeSortNumber.set(option.sort.isNumberSort)
-            settingsRepository.treeMixFolder.set(option.sort.isFolderMixed)
+            // File Sort
+            settingsRepository.treeSortType.set(option.fileSort.type)
+            settingsRepository.treeSortDescending.set(option.fileSort.isDescending)
+            settingsRepository.treeSortIgnoreCase.set(option.fileSort.isIgnoreCase)
+            settingsRepository.treeSortNumber.set(option.fileSort.isNumberSort)
+            // FolderSort
+            settingsRepository.treeFolderSortType.set(option.folderSort.type)
+            settingsRepository.treeFolderSortDescending.set(option.folderSort.isDescending)
+            settingsRepository.treeFolderSortIgnoreCase.set(option.folderSort.isIgnoreCase)
+            settingsRepository.treeFolderSortNumber.set(option.folderSort.isNumberSort)
             // Tree
+            settingsRepository.treeMixFolder.set(option.treeOption.isFolderMixed)
             settingsRepository.treeViewType.set(option.treeOption.viewType)
             // Viewer
             settingsRepository.viewShowPage.set(option.viewerOption.showPage)
@@ -213,8 +236,8 @@ class TreeViewModel @Inject constructor(
     }
 
     private suspend fun getChildren(file: FileModel): List<FileModel> {
-        val sort = screenOption.first().sort
-        return storageRepository.getChildren(file).sortedWith(FileComparator(sort))
+        val option = screenOption.first()
+        return storageRepository.getChildren(file).sortedWith(FileComparator(option))
     }
 
     fun closeViewer() {
@@ -236,42 +259,44 @@ class TreeViewModel @Inject constructor(
  * File comparator
  */
 private class FileComparator(
-    val sort: TreeSortModel,
+    val option: TreeScreenOption,
 ): Comparator<FileModel> {
     override fun compare(f1: FileModel, f2: FileModel): Int {
-        return compareFile(f1, f2).let {
-            if (sort.isDescending) -it else it
-        }
-    }
-
-    private fun compareFile(f1: FileModel, f2: FileModel): Int {
         // Sort by folder
-        if (!sort.isFolderMixed) {
+        if (!option.treeOption.isFolderMixed) {
             val comp = f1.isDirectory.compareTo(f2.isDirectory)
             if (comp != 0) return -comp
-        }
 
+            if (f1.isDirectory && f2.isDirectory) {
+                return option.folderSort.compareFile(f1, f2)
+            }
+        }
+        // Sort by File
+        return option.fileSort.compareFile(f1, f2)
+    }
+
+    private fun TreeSortModel.compareFile(f1: FileModel, f2: FileModel): Int {
         // Sort by size
-        if (sort.type == TreeSortType.Size) {
+        if (type == TreeSortType.Size) {
             val comp = f1.size.compareTo(f2.size)
-            if (comp != 0) return comp
+            if (comp != 0) return comp.toDescend(isDescending)
         }
 
         // Sort by date
-        if (sort.type == TreeSortType.Date) {
+        if (type == TreeSortType.Date) {
             val comp = f1.dateModified.compareTo(f2.dateModified)
-            if (comp != 0) return comp
+            if (comp != 0) return comp.toDescend(isDescending)
         }
 
         // Sort by name
-        val (s1, s2) = if (sort.isIgnoreCase) {
-            normalize(f1.name) to normalize(f2.name)
-        } else {
-            f1.name to f2.name
-        }
+        val s1 = if (isIgnoreCase) normalize(f1.name) else f1.name
+        val s2 = if (isIgnoreCase) normalize(f2.name) else f2.name
+        return (if (isNumberSort) compareWithNumber(s1, s2) else s1.compareTo(s2))
+            .toDescend(isDescending)
+    }
 
-        return if (sort.isNumberSort) compareWithNumber(s1, s2)
-        else s1.compareTo(s2)
+    private fun Int.toDescend(isDescend: Boolean): Int {
+        return if (isDescend) this * -1 else this
     }
 
     private fun normalize(s: String) = Normalizer.normalize(s, Normalizer.Form.NFKC).lowercase()

@@ -29,6 +29,18 @@ class SettingsRepository @Inject internal constructor(
     /** Tree sort number */
     val treeSortNumber = SettingsModel(_data = dataStore.treeSortNumberFlow, invoke = dataStore::setTreeSortNumber)
 
+    /** Tree folder sort type */
+    val treeFolderSortType = SettingsModel(_data = dataStore.treeFolderSortTypeFlow, invoke = dataStore::setTreeFolderSortType)
+
+    /** Tree folder sort descending */
+    val treeFolderSortDescending = SettingsModel(_data = dataStore.treeFolderSortDescendingFlow, invoke = dataStore::setTreeFolderSortDescending)
+
+    /** Tree folder sort ignore case */
+    val treeFolderSortIgnoreCase = SettingsModel(_data = dataStore.treeFolderSortIgnoreCaseFlow, invoke = dataStore::setTreeFolderSortIgnoreCase)
+
+    /** Tree folder sort number */
+    val treeFolderSortNumber = SettingsModel(_data = dataStore.treeFolderSortNumberFlow, invoke = dataStore::setTreeFolderSortNumber)
+
     /** Tree mix folder */
     val treeMixFolder = SettingsModel(_data = dataStore.treeMixFolderFlow, invoke = dataStore::setTreeMixFolder)
 

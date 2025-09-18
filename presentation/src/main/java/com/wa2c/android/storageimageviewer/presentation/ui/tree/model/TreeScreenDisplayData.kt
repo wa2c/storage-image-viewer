@@ -4,7 +4,8 @@ import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 
 data class TreeScreenOption(
-    val sort: TreeSortModel = TreeSortModel(),
+    val fileSort: TreeSortModel = TreeSortModel(),
+    val folderSort: TreeSortModel = TreeSortModel(),
     val treeOption: TreeScreenTreeOption = TreeScreenTreeOption(),
     val viewerOption: TreeScreenViewerOption = TreeScreenViewerOption(),
     val isViewerMode: Boolean = false,
@@ -15,11 +16,11 @@ data class TreeSortModel(
     val isDescending: Boolean = false,
     val isIgnoreCase: Boolean = false,
     val isNumberSort: Boolean = false,
-    val isFolderMixed: Boolean = false,
 )
 
 data class TreeScreenTreeOption(
     val viewType: TreeViewType = TreeViewType.ListSmall,
+    val isFolderMixed: Boolean = false,
 )
 
 data class TreeScreenViewerOption(

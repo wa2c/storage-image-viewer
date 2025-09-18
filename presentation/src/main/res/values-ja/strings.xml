@@ -28,6 +28,8 @@
     
     <!-- Tree Menu -->
     <string name="tree_menu_sort_section">ソート</string>
+    <string name="tree_menu_sort_target_file">ファイル</string>
+    <string name="tree_menu_sort_target_folder">フォルダ</string>
     <string name="tree_menu_sort_by_name">名前</string>
     <string name="tree_menu_sort_by_size_check">サイズ</string>
     <string name="tree_menu_sort_by_date_check">日付</string>

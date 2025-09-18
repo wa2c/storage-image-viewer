@@ -28,6 +28,8 @@
     
     <!-- Tree Menu -->
     <string name="tree_menu_sort_section">Sort</string>
+    <string name="tree_menu_sort_target_file">File</string>
+    <string name="tree_menu_sort_target_folder">Folder</string>
     <string name="tree_menu_sort_by_name">Name</string>
     <string name="tree_menu_sort_by_size_check">Size</string>
     <string name="tree_menu_sort_by_date_check">Date</string>

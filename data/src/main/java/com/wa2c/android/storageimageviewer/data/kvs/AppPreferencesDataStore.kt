@@ -45,6 +45,8 @@ class AppPreferencesDataStore @Inject constructor(
     val treeViewTypeFlow: Flow<TreeViewType> = dataStore.data.map { TreeViewType.findByValueOrDefault(it[PREFKEY_TREE_VIEW_TYPE]) }
     suspend fun setTreeViewType(type: TreeViewType) = dataStore.setValue(PREFKEY_TREE_VIEW_TYPE, type.value)
 
+    // File sort
+
     /** Tree sort type */
     val treeSortTypeFlow: Flow<TreeSortType> = dataStore.data.map { TreeSortType.findByValueOrDefault(it[PREFKEY_TREE_SORT_TYPE]) }
     suspend fun setTreeSortType(type: TreeSortType) = dataStore.setValue(PREFKEY_TREE_SORT_TYPE, type.value)
@@ -60,6 +62,25 @@ class AppPreferencesDataStore @Inject constructor(
     /** Tree sort number */
     val treeSortNumberFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_NUMBER] ?: false }
     suspend fun setTreeSortNumber(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_NUMBER, value)
+
+    // Folder sort
+
+    /** Tree sort type */
+    val treeFolderSortTypeFlow: Flow<TreeSortType> = dataStore.data.map { TreeSortType.findByValueOrDefault(it[PREFKEY_TREE_FOLDER_SORT_TYPE]) }
+    suspend fun setTreeFolderSortType(type: TreeSortType) = dataStore.setValue(PREFKEY_TREE_FOLDER_SORT_TYPE, type.value)
+
+    /** Tree sort descending */
+    val treeFolderSortDescendingFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_FOLDER_SORT_DESCENDING] ?: false }
+    suspend fun setTreeFolderSortDescending(value: Boolean) = dataStore.setValue(PREFKEY_TREE_FOLDER_SORT_DESCENDING, value)
+
+    /** Tree sort ignore case */
+    val treeFolderSortIgnoreCaseFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_FOLDER_SORT_IGNORE_CASE] ?: false }
+    suspend fun setTreeFolderSortIgnoreCase(value: Boolean) = dataStore.setValue(PREFKEY_TREE_FOLDER_SORT_IGNORE_CASE, value)
+
+    /** Tree sort number */
+    val treeFolderSortNumberFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_FOLDER_SORT_NUMBER] ?: false }
+    suspend fun setTreeFolderSortNumber(value: Boolean) = dataStore.setValue(PREFKEY_TREE_FOLDER_SORT_NUMBER, value)
+
 
     /** Tree mix folder */
     val treeMixFolderFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_MIX_FOLDER] ?: false }
@@ -86,11 +107,19 @@ class AppPreferencesDataStore @Inject constructor(
         private val PREFKEY_UI_THEME = stringPreferencesKey("prefkey_ui_theme")
 
         private val PREFKEY_TREE_VIEW_TYPE = stringPreferencesKey("prefkey_tree_view_type")
+
         private val PREFKEY_TREE_SORT_TYPE = stringPreferencesKey("prefkey_tree_sort_type")
         private val PREFKEY_TREE_SORT_DESCENDING = booleanPreferencesKey("prefkey_tree_sort_descending")
         private val PREFKEY_TREE_SORT_IGNORE_CASE = booleanPreferencesKey("prefkey_tree_sort_ignore_case")
         private val PREFKEY_TREE_SORT_NUMBER = booleanPreferencesKey("prefkey_tree_sort_number")
+
+        private val PREFKEY_TREE_FOLDER_SORT_TYPE = stringPreferencesKey("prefkey_tree_folder_sort_type")
+        private val PREFKEY_TREE_FOLDER_SORT_DESCENDING = booleanPreferencesKey("prefkey_tree_folder_sort_descending")
+        private val PREFKEY_TREE_FOLDER_SORT_IGNORE_CASE = booleanPreferencesKey("prefkey_tree_folder_sort_ignore_case")
+        private val PREFKEY_TREE_FOLDER_SORT_NUMBER = booleanPreferencesKey("prefkey_tree_folder_sort_number")
+
         private val PREFKEY_TREE_SORT_MIX_FOLDER = booleanPreferencesKey("prefkey_tree_mix_folder")
+
         private val PREFKEY_VIEW_SHOW_PAGE = booleanPreferencesKey("prefkey_view_show_page")
         private val PREFKEY_VIEW_SHOW_ANIMATION = booleanPreferencesKey("prefkey_view_show_animation")
         private val PREFKEY_VIEW_VOLUME_SCROLL = booleanPreferencesKey("prefkey_view_volume_scroll")

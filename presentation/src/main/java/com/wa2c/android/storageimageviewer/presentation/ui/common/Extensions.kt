@@ -31,7 +31,7 @@ object Extensions {
 
     @Composable
     fun Modifier.enabledStyle(enabled: Boolean): Modifier {
-        return this.applyIf(enabled) { alpha(0.5f) }
+        return this.applyIf(!enabled) { alpha(0.5f) }
     }
 
     @Composable
