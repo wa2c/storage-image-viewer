@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.wa2c.android.storageimageviewer.common.values.TreeFolderOrder
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.common.values.UiTheme
@@ -40,10 +41,6 @@ class AppPreferencesDataStore @Inject constructor(
 
     /** UI Theme */
     suspend fun setUiTheme(value: UiTheme) = dataStore.setValue(PREFKEY_UI_THEME, value.key)
-
-    /** Tree view type */
-    val treeViewTypeFlow: Flow<TreeViewType> = dataStore.data.map { TreeViewType.findByValueOrDefault(it[PREFKEY_TREE_VIEW_TYPE]) }
-    suspend fun setTreeViewType(type: TreeViewType) = dataStore.setValue(PREFKEY_TREE_VIEW_TYPE, type.value)
 
     // File sort
 
@@ -81,10 +78,13 @@ class AppPreferencesDataStore @Inject constructor(
     val treeFolderSortNumberFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_FOLDER_SORT_NUMBER] ?: false }
     suspend fun setTreeFolderSortNumber(value: Boolean) = dataStore.setValue(PREFKEY_TREE_FOLDER_SORT_NUMBER, value)
 
+    /** Tree folder order */
+    val treeFolderOrderFlow: Flow<TreeFolderOrder> = dataStore.data.map { TreeFolderOrder.findByValueOrDefault(it[PREFKEY_TREE_FOLDER_ORDER]) }
+    suspend fun setTreeFolderOrder(order: TreeFolderOrder) = dataStore.setValue(PREFKEY_TREE_FOLDER_ORDER, order.value)
 
-    /** Tree mix folder */
-    val treeMixFolderFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_TREE_SORT_MIX_FOLDER] ?: false }
-    suspend fun setTreeMixFolder(value: Boolean) = dataStore.setValue(PREFKEY_TREE_SORT_MIX_FOLDER, value)
+    /** Tree view type */
+    val treeViewTypeFlow: Flow<TreeViewType> = dataStore.data.map { TreeViewType.findByValueOrDefault(it[PREFKEY_TREE_VIEW_TYPE]) }
+    suspend fun setTreeViewType(type: TreeViewType) = dataStore.setValue(PREFKEY_TREE_VIEW_TYPE, type.value)
 
     /** View show page */
     val viewShowPageFlow: Flow<Boolean> = dataStore.data.map { it[PREFKEY_VIEW_SHOW_PAGE] ?: true }
@@ -118,7 +118,7 @@ class AppPreferencesDataStore @Inject constructor(
         private val PREFKEY_TREE_FOLDER_SORT_IGNORE_CASE = booleanPreferencesKey("prefkey_tree_folder_sort_ignore_case")
         private val PREFKEY_TREE_FOLDER_SORT_NUMBER = booleanPreferencesKey("prefkey_tree_folder_sort_number")
 
-        private val PREFKEY_TREE_SORT_MIX_FOLDER = booleanPreferencesKey("prefkey_tree_mix_folder")
+        private val PREFKEY_TREE_FOLDER_ORDER = stringPreferencesKey("prefkey_tree_folder_order")
 
         private val PREFKEY_VIEW_SHOW_PAGE = booleanPreferencesKey("prefkey_view_show_page")
         private val PREFKEY_VIEW_SHOW_ANIMATION = booleanPreferencesKey("prefkey_view_show_animation")

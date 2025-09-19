@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.result.AppResult
+import com.wa2c.android.storageimageviewer.common.values.TreeFolderOrder
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.repository.SettingsRepository
@@ -85,12 +86,12 @@ class TreeViewModel @Inject constructor(
     }
 
     private val treeOptionFlow = combine(
+        settingsRepository.treeFolderOrder.data,
         settingsRepository.treeViewType.data,
-        settingsRepository.treeMixFolder.data,
-    ) { treeView, mixFolder ->
+    ) { folderOrder, viewType ->
         TreeScreenTreeOption(
-            viewType = treeView,
-            isFolderMixed = mixFolder,
+            folderOrder = folderOrder,
+            viewType = viewType,
         )
     }
 
@@ -160,7 +161,7 @@ class TreeViewModel @Inject constructor(
             settingsRepository.treeFolderSortIgnoreCase.set(option.folderSort.isIgnoreCase)
             settingsRepository.treeFolderSortNumber.set(option.folderSort.isNumberSort)
             // Tree
-            settingsRepository.treeMixFolder.set(option.treeOption.isFolderMixed)
+            settingsRepository.treeFolderOrder.set(option.treeOption.folderOrder)
             settingsRepository.treeViewType.set(option.treeOption.viewType)
             // Viewer
             settingsRepository.viewShowPage.set(option.viewerOption.showPage)
@@ -263,10 +264,12 @@ private class FileComparator(
 ): Comparator<FileModel> {
     override fun compare(f1: FileModel, f2: FileModel): Int {
         // Sort by folder
-        if (!option.treeOption.isFolderMixed) {
+        if (option.treeOption.folderOrder != TreeFolderOrder.Mix) {
             val comp = f1.isDirectory.compareTo(f2.isDirectory)
-            if (comp != 0) return -comp
-
+            if (comp != 0) {
+                if (option.treeOption.folderOrder == TreeFolderOrder.First) return -comp
+                else if (option.treeOption.folderOrder == TreeFolderOrder.Last) return comp
+            }
             if (f1.isDirectory && f2.isDirectory) {
                 return option.folderSort.compareFile(f1, f2)
             }

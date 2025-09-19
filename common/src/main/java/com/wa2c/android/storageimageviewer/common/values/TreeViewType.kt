@@ -21,8 +21,10 @@ enum class TreeViewType(
     ;
 
     companion object {
+        val DEFAULT = ListSmall
+
         fun findByValueOrDefault(value: String?): TreeViewType {
-            return entries.firstOrNull { it.value == value } ?: ListLarge
+            return entries.firstOrNull { it.value == value } ?: DEFAULT
         }
     }
 }

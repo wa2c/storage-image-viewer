@@ -75,6 +75,7 @@ fun TreeScreenLazyList(
     val lazyState = rememberLazyListState()
     val parentFocusRequester = remember { FocusRequester() }
     var childFocusRequester by remember { mutableStateOf<FocusRequester?>(null) }
+    val requester = remember { FocusRequester() }
 
     LazyColumnScrollbar(
         state = lazyState,
@@ -94,7 +95,6 @@ fun TreeScreenLazyList(
                 TreeScreenItem(
                     modifier = Modifier
                         .applyIf(targetIndexState.value == index) {
-                            val requester = FocusRequester()
                             focusRequester(requester).also { childFocusRequester = requester }
                         }
                         .focusItemStyle()
@@ -219,7 +219,7 @@ private fun TreeScreenItem(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                if (!file.isDirectory) {
+                if (!file.isDirectory || file.size > 0) {
                     Text(
                         text = Formatter.formatFileSize(context, file.size),
                         style = AppTypography.bodyLarge,

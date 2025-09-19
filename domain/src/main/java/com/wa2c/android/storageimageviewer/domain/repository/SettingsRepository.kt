@@ -41,8 +41,8 @@ class SettingsRepository @Inject internal constructor(
     /** Tree folder sort number */
     val treeFolderSortNumber = SettingsModel(_data = dataStore.treeFolderSortNumberFlow, invoke = dataStore::setTreeFolderSortNumber)
 
-    /** Tree mix folder */
-    val treeMixFolder = SettingsModel(_data = dataStore.treeMixFolderFlow, invoke = dataStore::setTreeMixFolder)
+    /** Tree folder order */
+    val treeFolderOrder = SettingsModel(_data = dataStore.treeFolderOrderFlow, invoke = dataStore::setTreeFolderOrder)
 
     /** Tree view type */
     val treeViewType = SettingsModel(_data = dataStore.treeViewTypeFlow, invoke = dataStore::setTreeViewType)

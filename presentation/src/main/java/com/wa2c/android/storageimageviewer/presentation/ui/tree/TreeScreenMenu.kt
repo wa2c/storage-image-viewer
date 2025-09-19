@@ -3,7 +3,6 @@ package com.wa2c.android.storageimageviewer.presentation.ui.tree
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +25,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.wa2c.android.storageimageviewer.common.values.TreeFolderOrder
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeSortModel
@@ -170,7 +170,7 @@ fun TreeScreenSortMenu(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    val enabled = !option.treeOption.isFolderMixed
+                    val enabledFolder = option.treeOption.folderOrder != TreeFolderOrder.Mix
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -181,7 +181,7 @@ fun TreeScreenSortMenu(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_folder),
                             contentDescription = stringResource(R.string.tree_menu_sort_target_folder),
                             modifier = Modifier
-                                .enabledStyle(enabled)
+                                .enabledStyle(enabledFolder)
                                 .padding(end = AppSize.S)
                         )
 
@@ -189,13 +189,13 @@ fun TreeScreenSortMenu(
                             text = stringResource(R.string.tree_menu_sort_target_folder),
                             style = AppTypography.titleMedium,
                             modifier = Modifier
-                                .enabledStyle(enabled)
+                                .enabledStyle(enabledFolder)
                         )
                     }
 
                     TreeSortAction(
                         sort = option.folderSort,
-                        enabled = enabled,
+                        enabled = enabledFolder,
                         onSetSort = { onSetOption(option.copy(folderSort = it)) },
                     )
                 }
@@ -232,13 +232,25 @@ fun TreeScreenSortMenu(
 
             DividerThin()
 
-            TreeScreenActionMenuCheck(
-                text = stringResource(R.string.tree_menu_sort_option_mix_folder_check),
-                checked = option.treeOption.isFolderMixed
+            TreeScreenActionMenuRadio(
+                text = stringResource(R.string.tree_menu_sort_folder_first_check),
+                selected = option.treeOption.folderOrder == TreeFolderOrder.First,
             ) {
-                val treeOption = optionState.value.treeOption.let {
-                    it.copy(isFolderMixed = !it.isFolderMixed)
-                }
+                val treeOption = optionState.value.treeOption.copy(folderOrder = TreeFolderOrder.First)
+                onSetOption(option.copy(treeOption = treeOption))
+            }
+            TreeScreenActionMenuRadio(
+                text = stringResource(R.string.tree_menu_sort_folder_last_check),
+                selected = option.treeOption.folderOrder == TreeFolderOrder.Last,
+            ) {
+                val treeOption = optionState.value.treeOption.copy(folderOrder = TreeFolderOrder.Last)
+                onSetOption(option.copy(treeOption = treeOption))
+            }
+            TreeScreenActionMenuRadio(
+                text = stringResource(R.string.tree_menu_sort_folder_mix_check),
+                selected = option.treeOption.folderOrder == TreeFolderOrder.Mix,
+            ) {
+                val treeOption = optionState.value.treeOption.copy(folderOrder = TreeFolderOrder.Mix)
                 onSetOption(option.copy(treeOption = treeOption))
             }
         }
@@ -257,7 +269,7 @@ private fun TreeSortAction(
     )
 
     TreeScreenActionMenuRadio(
-        text = stringResource(R.string.tree_menu_sort_by_name),
+        text = stringResource(R.string.tree_menu_sort_by_name_check),
         selected = sort.type == TreeSortType.Name,
         enabled = enabled,
     ) {
@@ -320,6 +332,7 @@ private fun TreeScreenActionMenuRadio(
         ) {
             RadioButton(
                 selected = selected,
+                enabled = enabled,
                 onClick = null,
             )
             Text(
@@ -346,6 +359,7 @@ private fun TreeScreenActionMenuCheck(
         ) {
             Checkbox(
                 checked = checked,
+                enabled = enabled,
                 onCheckedChange = null,
             )
             Text(

@@ -67,6 +67,7 @@ fun TreeScreenLazyGrid(
     val lazyState = rememberLazyGridState()
     val parentFocusRequester = remember { FocusRequester() }
     var childFocusRequester by remember { mutableStateOf<FocusRequester?>(null) }
+    val requester = remember { FocusRequester() }
 
     LazyVerticalGridScrollbar(
         state = lazyState,
@@ -87,7 +88,6 @@ fun TreeScreenLazyGrid(
                 TreeScreenGridItem(
                     modifier = Modifier
                         .applyIf(targetIndexState.value == index) {
-                            val requester = FocusRequester()
                             focusRequester(requester).also { childFocusRequester = requester }
                         }
                         .focusItemStyle()
