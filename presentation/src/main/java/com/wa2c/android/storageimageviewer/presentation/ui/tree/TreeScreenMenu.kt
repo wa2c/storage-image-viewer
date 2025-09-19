@@ -28,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.wa2c.android.storageimageviewer.common.values.TreeFolderOrder
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.common.values.TreeViewType
-import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeSortModel
 import com.wa2c.android.storageimageviewer.presentation.R
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.enabledStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
@@ -39,6 +38,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypog
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenOption
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenTreeOption
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenViewerOption
+import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeSortModel
 
 @Composable
 fun TreeScreenViewMenu(
