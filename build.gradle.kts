@@ -15,8 +15,8 @@ val appId by extra ("com.wa2c.android.storageimageviewer")
 val appJavaVersion by extra (JavaVersion.VERSION_21)
 val appTargetSdkVersion by extra (36)
 val appMinSdkVersion by extra (26)
-val appVersionCode by extra(1)
-val appVersionName by extra("1.0.0")
+val appVersionCode by extra(2)
+val appVersionName by extra("1.1.0")
 
 tasks.register("convertString") {
     // Spreadsheet URL
