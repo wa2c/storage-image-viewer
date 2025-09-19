@@ -15,9 +15,6 @@ enum class UiTheme(
     DARK("dark"),
     ;
 
-    /** Index */
-    val index: Int = this.ordinal
-
     companion object {
         /** Find value or default by key. */
         fun findByKeyOrDefault(key: String?): UiTheme {

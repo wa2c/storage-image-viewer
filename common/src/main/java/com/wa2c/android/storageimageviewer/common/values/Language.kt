@@ -15,9 +15,6 @@ enum class Language(
     JAPANESE("ja"),
     ;
 
-    /** Index */
-    val index: Int = this.ordinal
-
     companion object {
         val default: Language
             get() = findByCodeOrDefault(Locale.getDefault().language)
