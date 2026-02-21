@@ -39,7 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
+import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.wa2c.android.storageimageviewer.common.values.Language
 import com.wa2c.android.storageimageviewer.common.values.UiTheme
@@ -151,19 +151,12 @@ private fun SettingsScreenContainer(
                 .padding(paddingValues),
         ) {
             if (showLibraries) {
-                val libraries by rememberLibraries(R.raw.aboutlibraries)
+                val libraries by produceLibraries(R.raw.aboutlibraries)
                 LibrariesContainer(
                     libraries = libraries,
                     modifier = Modifier
                         .fillMaxSize(),
                 )
-//                R.raw.aboutlibraries
-//                LibrariesContainer(
-//                    colors = LibraryDefaults.libraryColors(
-//                        backgroundColor = MaterialTheme.colorScheme.background,
-//                        contentColor = MaterialTheme.colorScheme.onBackground,
-//                    ),
-//                )
             } else {
                 SettingsList(
                     theme = theme,

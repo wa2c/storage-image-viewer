@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
-    alias(libs.plugins.abount.libraries)
+    alias(libs.plugins.about.libraries)
 }
 
 val appId: String by rootProject.extra
@@ -50,7 +50,8 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.lazycolumnscrollbar)
     implementation(libs.accompanist.drawablepainter)
-    implementation(libs.aboutlibraries.compose)
+    implementation(libs.about.libraries.core)
+    implementation(libs.about.libraries.compose)
 
     // Injection
     implementation(libs.hilt.android)

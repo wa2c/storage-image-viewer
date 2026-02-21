@@ -46,6 +46,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wa2c.android.storageimageviewer.common.values.StorageType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
@@ -65,6 +66,7 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenOption
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -150,7 +152,7 @@ fun TreeScreen(
     // Back button
     BackHandler {
         if (busyState.value) {
-            viewModel.cancelLoading()
+            viewModel.viewModelScope.cancel()
         } else if (!viewModel.isRoot) {
             viewModel.openParent()
         } else {

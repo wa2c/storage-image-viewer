@@ -7,9 +7,7 @@ import com.wa2c.android.storageimageviewer.common.result.AppResult
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
-import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val storageRepository: StorageRepository,
-): ViewModel(), CoroutineScope by MainCoroutineScope() {
+): ViewModel() {
 
     private val _resultState = MutableSharedFlow<Result<AppResult>>()
     val resultState = _resultState.asSharedFlow()
@@ -38,7 +36,7 @@ class HomeViewModel @Inject constructor(
     val editStorage = _editStorage.asStateFlow()
 
     fun setUri(uri: String?, initialName: String?) {
-        launch {
+        viewModelScope.launch {
             if (uri.isNullOrEmpty()) {
                 // Cancel
                 _resultState.emit(Result.failure(AppException.StorageSelectCancelledException()))
@@ -66,7 +64,7 @@ class HomeViewModel @Inject constructor(
      * Save storage
      */
     fun saveStorage(storage: StorageModel) {
-        launch {
+        viewModelScope.launch {
             storageRepository.saveStorage(storage)
             updateEditStorage(null)
         }
@@ -76,7 +74,7 @@ class HomeViewModel @Inject constructor(
      * Delete storage
      */
     fun deleteStorage(storage: StorageModel) {
-        launch {
+        viewModelScope.launch {
             storageRepository.deleteStorage(storage)
             updateEditStorage(null)
         }

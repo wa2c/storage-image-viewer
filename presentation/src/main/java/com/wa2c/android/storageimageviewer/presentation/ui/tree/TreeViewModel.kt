@@ -10,7 +10,6 @@ import com.wa2c.android.storageimageviewer.common.values.TreeSortType
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.repository.SettingsRepository
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
-import com.wa2c.android.storageimageviewer.presentation.ui.common.MainCoroutineScope
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ScreenParam
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenOption
@@ -18,8 +17,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreen
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenViewerOption
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeSortModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +32,7 @@ class TreeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val storageRepository: StorageRepository,
     private val settingsRepository: SettingsRepository,
-): ViewModel(), CoroutineScope by MainCoroutineScope() {
+): ViewModel() {
     private val paramId: String? = savedStateHandle[ScreenParam.ScreenParamId]
 
     // Tree
@@ -129,7 +126,7 @@ class TreeViewModel @Inject constructor(
     )
 
     init {
-        launch {
+        viewModelScope.launch {
             _busyState.emit(true)
             runCatching {
                 paramId?.let { storageRepository.getStorageFile(paramId) } ?: throw AppException.StorageNotFoundException(paramId)
@@ -142,7 +139,7 @@ class TreeViewModel @Inject constructor(
     }
 
     fun setOption(option: TreeScreenOption) {
-        launch {
+        viewModelScope.launch {
             if (option.fileSort != screenOption.value.fileSort || option.folderSort != screenOption.value.folderSort || option.treeOption != screenOption.value.treeOption) {
                 currentTree.value.let { tree ->
                     _currentTree.emit(tree.copy(fileList = tree.fileList.sortedWith(FileComparator(option))))
@@ -192,7 +189,7 @@ class TreeViewModel @Inject constructor(
     fun openFile(
         file: FileModel,
     ) {
-        launch {
+        viewModelScope.launch {
             if (file.isDirectory) {
                 _busyState.emit(true)
                 runCatching {
@@ -217,7 +214,7 @@ class TreeViewModel @Inject constructor(
 
     fun openParent() {
         if (currentTree.value.isRoot) return
-        launch {
+        viewModelScope.launch {
             _busyState.emit(true)
             runCatching {
                 val route = currentTree.value.routeList.dropLast(1)
@@ -241,17 +238,13 @@ class TreeViewModel @Inject constructor(
     }
 
     fun closeViewer() {
-        launch {
+        viewModelScope.launch {
             val option = screenOption.value.copy(
                 viewerOption = screenOption.value.viewerOption.copy(showOverlay = true),
                 isViewerMode = false,
             )
             setOption(option)
         }
-    }
-
-    fun cancelLoading() {
-        coroutineContext.cancelChildren()
     }
 }
 
