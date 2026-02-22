@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
 val appId: String by rootProject.extra
@@ -19,9 +18,10 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
-    compileOptions {
-        sourceCompatibility = appJavaVersion
-        targetCompatibility = appJavaVersion
+    kotlin {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(appJavaVersion.majorVersion))
+        }
     }
 }
 

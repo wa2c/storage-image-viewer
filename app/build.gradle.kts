@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
 }
@@ -48,10 +47,12 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility = appJavaVersion
-        targetCompatibility = appJavaVersion
+    kotlin {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(appJavaVersion.majorVersion))
+        }
     }
+
     buildFeatures {
         buildConfig = true
     }
