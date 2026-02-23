@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.LibraryExtension
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
@@ -11,7 +13,7 @@ val appJavaVersion: JavaVersion by rootProject.extra
 val appTargetSdkVersion: Int by rootProject.extra
 val appMinSdkVersion: Int by rootProject.extra
 
-android {
+configure<LibraryExtension> {
     namespace = "$appId.presentation"
     compileSdk = appTargetSdkVersion
 
@@ -22,14 +24,14 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
-    kotlin {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(appJavaVersion.majorVersion))
-        }
-    }
-
     buildFeatures {
         compose = true
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(appJavaVersion.majorVersion))
     }
 }
 

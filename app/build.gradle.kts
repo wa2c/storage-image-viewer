@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.ApplicationExtension
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
@@ -11,7 +13,7 @@ val appMinSdkVersion: Int by rootProject.extra
 val appVersionCode: Int by rootProject.extra
 val appVersionName: String by rootProject.extra
 
-android {
+configure<ApplicationExtension> {
     namespace = appId
     compileSdk = appTargetSdkVersion
 
@@ -47,12 +49,6 @@ android {
         }
     }
 
-    kotlin {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(appJavaVersion.majorVersion))
-        }
-    }
-
     buildFeatures {
         buildConfig = true
     }
@@ -62,6 +58,12 @@ android {
         includeInApk = false
         // Disables dependency metadata when building Android App Bundles.
         includeInBundle = false
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(appJavaVersion.majorVersion))
     }
 }
 

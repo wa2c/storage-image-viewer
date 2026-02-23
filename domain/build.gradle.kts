@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.LibraryExtension
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
@@ -10,7 +12,7 @@ val appJavaVersion: JavaVersion by rootProject.extra
 val appTargetSdkVersion: Int by rootProject.extra
 val appMinSdkVersion: Int by rootProject.extra
 
-android {
+configure<LibraryExtension> {
     namespace = "$appId.domain"
     compileSdk = appTargetSdkVersion
 
@@ -20,11 +22,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
+}
 
-    kotlin {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of(appJavaVersion.majorVersion))
-        }
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(appJavaVersion.majorVersion))
     }
 }
 
