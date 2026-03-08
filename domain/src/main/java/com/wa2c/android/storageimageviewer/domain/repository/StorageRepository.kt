@@ -7,10 +7,13 @@ import com.wa2c.android.storageimageviewer.data.db.SafStorageEntity
 import com.wa2c.android.storageimageviewer.data.db.StorageDao
 import com.wa2c.android.storageimageviewer.data.file.FileHelper
 import com.wa2c.android.storageimageviewer.domain.DefaultDispatcher
+import com.wa2c.android.storageimageviewer.domain.model.AppMessage
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -23,6 +26,12 @@ class StorageRepository @Inject internal constructor(
     private val fileHelper: FileHelper,
     @param:DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
+    private val _messageFlow = MutableSharedFlow<AppMessage>()
+    val messageFlow: Flow<AppMessage> = _messageFlow
+    suspend fun sendMessage(message: AppMessage) {
+        _messageFlow.emit(message)
+    }
+
     /** Storage list */
     val storageListFlow = storageDao.getList().map {
         withContext(dispatcher) {

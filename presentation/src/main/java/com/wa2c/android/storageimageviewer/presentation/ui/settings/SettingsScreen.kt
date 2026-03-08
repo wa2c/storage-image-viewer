@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -44,18 +43,18 @@ import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.wa2c.android.storageimageviewer.common.values.Language
 import com.wa2c.android.storageimageviewer.common.values.UiTheme
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.LocalSnackbarHostState
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
+import com.wa2c.android.storageimageviewer.presentation.ui.common.MessageExt.toAppMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.MutableStateAdapter
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.labelRes
 import com.wa2c.android.storageimageviewer.presentation.ui.common.collectForSettings
-import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.settings.components.OptionItem
 import com.wa2c.android.storageimageviewer.presentation.ui.settings.components.SettingsItem
 import com.wa2c.android.storageimageviewer.presentation.ui.settings.components.SettingsSingleChoiceItem
 import com.wa2c.android.storageimageviewer.presentation.ui.settings.components.TitleItem
-import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
@@ -64,7 +63,6 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackBarHostState = remember { SnackbarHostState() }
     val language = remember {
         MutableStateAdapter(
             state = mutableStateOf(Language.findByCodeOrDefault(AppCompatDelegate.getApplicationLocales().toLanguageTags())),
@@ -73,16 +71,13 @@ fun SettingsScreen(
     }
 
     SettingsScreenContainer(
-        snackBarHostState = snackBarHostState,
         theme = viewModel.uiTheme.collectForSettings(scope),
         language = language,
         onStartIntent = { intent ->
             try {
                 context.startActivity(intent)
             } catch (e: Exception) {
-                scope.launch {
-                    snackBarHostState.showMessage(context, Result.failure(e))
-                }
+                viewModel.sendMessage(e.toAppMessage())
             }
         },
         onClickBack = onNavigateBack,
@@ -93,7 +88,6 @@ fun SettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsScreenContainer(
-    snackBarHostState: SnackbarHostState,
     theme: MutableState<UiTheme>,
     language: MutableState<Language>,
     onStartIntent: (Intent) -> Unit,
@@ -143,7 +137,7 @@ private fun SettingsScreenContainer(
                 },
             )
         },
-        snackbarHost = { SnackbarHost(snackBarHostState) },
+        snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) },
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -259,7 +253,6 @@ private fun SettingsList(
 private fun SettingsScreenContainerPreview() {
     AppTheme {
         SettingsScreenContainer(
-            snackBarHostState = remember { SnackbarHostState() },
             theme = remember { mutableStateOf(UiTheme.DEFAULT) },
             language = remember { mutableStateOf(Language.default) },
             onStartIntent = {},

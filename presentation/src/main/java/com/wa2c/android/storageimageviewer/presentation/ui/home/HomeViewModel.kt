@@ -2,16 +2,13 @@ package com.wa2c.android.storageimageviewer.presentation.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wa2c.android.storageimageviewer.common.result.AppException
-import com.wa2c.android.storageimageviewer.common.result.AppResult
+import com.wa2c.android.storageimageviewer.domain.model.AppMessage
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,8 +20,9 @@ class HomeViewModel @Inject constructor(
     private val storageRepository: StorageRepository,
 ): ViewModel() {
 
-    private val _resultState = MutableSharedFlow<Result<AppResult>>()
-    val resultState = _resultState.asSharedFlow()
+    fun sendMessage(message: AppMessage) = viewModelScope.launch {
+        storageRepository.sendMessage(message)
+    }
 
     val storageList = storageRepository.storageListFlow.stateIn(
         scope = viewModelScope,
@@ -39,7 +37,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             if (uri.isNullOrEmpty()) {
                 // Cancel
-                _resultState.emit(Result.failure(AppException.StorageSelectCancelledException()))
+                sendMessage(AppMessage.Error.StorageSelectCancelled())
             } else {
                 val storage = editStorage.value ?: return@launch
                 val name = storage.name.ifEmpty { initialName ?: "" }

@@ -4,12 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wa2c.android.storageimageviewer.common.result.AppException
-import com.wa2c.android.storageimageviewer.common.result.AppResult
 import com.wa2c.android.storageimageviewer.common.values.TreeFolderOrder
 import com.wa2c.android.storageimageviewer.common.values.TreeSortType
+import com.wa2c.android.storageimageviewer.domain.model.AppMessage
 import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.repository.SettingsRepository
 import com.wa2c.android.storageimageviewer.domain.repository.StorageRepository
+import com.wa2c.android.storageimageviewer.presentation.ui.common.MessageExt.toAppMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ScreenParam
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenOption
@@ -35,6 +36,10 @@ class TreeViewModel @Inject constructor(
 ): ViewModel() {
     private val paramId: String? = savedStateHandle[ScreenParam.ScreenParamId]
 
+    fun sendMessage(message: AppMessage) = viewModelScope.launch {
+        storageRepository.sendMessage(message)
+    }
+
     // Tree
     private val _currentTree = MutableStateFlow(TreeScreenItemData())
     val currentTree = _currentTree.asStateFlow()
@@ -44,9 +49,6 @@ class TreeViewModel @Inject constructor(
 
     private val _busyState = MutableStateFlow(false)
     val busyState = _busyState.asStateFlow()
-
-    private val _resultState = MutableStateFlow(Result.success<AppResult>(AppResult.Success))
-    val resultState = _resultState.asStateFlow()
 
     val isRoot: Boolean
         get() = currentTree.value.isRoot
@@ -133,7 +135,7 @@ class TreeViewModel @Inject constructor(
             }.onSuccess { file ->
                 openFile(file)
             }.onFailure {
-                _resultState.emit(Result.failure(it))
+                sendMessage(it.toAppMessage())
             }
         }
     }
@@ -199,9 +201,9 @@ class TreeViewModel @Inject constructor(
                     focusFile(null)
                     val route = currentTree.value.routeList + file
                     _currentTree.emit(TreeScreenItemData(route, list))
-                    _resultState.emit(Result.success(AppResult.Success))
+                    sendMessage(AppMessage.Success)
                 }.onFailure {
-                    _resultState.emit(Result.failure(it))
+                    sendMessage(it.toAppMessage())
                 }.also {
                     _busyState.emit(false)
                 }
@@ -223,9 +225,9 @@ class TreeViewModel @Inject constructor(
             }.onSuccess { (route, list) ->
                 focusFile(currentTree.value.currentFolder)
                 _currentTree.emit(TreeScreenItemData(route, list))
-                _resultState.emit(Result.success(AppResult.Success))
+                sendMessage(AppMessage.Success)
             }.onFailure {
-                _resultState.emit(Result.failure(it))
+                sendMessage(it.toAppMessage())
             }.also {
                 _busyState.emit(false)
             }

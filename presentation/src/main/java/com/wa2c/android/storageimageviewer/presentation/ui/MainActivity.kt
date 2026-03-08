@@ -10,10 +10,17 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions
+import com.wa2c.android.storageimageviewer.presentation.ui.common.MessageExt.getMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.isDark
 import com.wa2c.android.storageimageviewer.presentation.ui.common.ValueResource.mode
+import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -33,15 +40,27 @@ class MainActivity : AppCompatActivity() {
         AppCompatDelegate.setDefaultNightMode(mainViewModel.uiThemeFlow.value.mode)
 
         setContent {
+            val snackbarHostState = remember { SnackbarHostState() }
+
             val navController = rememberNavController()
-            AppTheme(
-                darkTheme = mainViewModel.uiThemeFlow.collectAsStateWithLifecycle().value.isDark()
-            ) {
-                MainNavHost(
-                    navController = navController,
-                )
+            CompositionLocalProvider(Extensions.LocalSnackbarHostState provides snackbarHostState) {
+                AppTheme(
+                    darkTheme = mainViewModel.uiThemeFlow.collectAsStateWithLifecycle().value.isDark()
+                ) {
+                    MainNavHost(
+                        navController = navController,
+                    )
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                mainViewModel.messageFlow.collectIn(this@MainActivity) {
+                    val message = it.getMessage(this@MainActivity).ifEmpty { return@collectIn }
+                    snackbarHostState.showSnackbar(message)
+                }
             }
         }
+
     }
 
     @SuppressLint("RestrictedApi")

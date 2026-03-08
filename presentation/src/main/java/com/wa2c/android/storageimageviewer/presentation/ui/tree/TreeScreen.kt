@@ -23,7 +23,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -53,6 +52,7 @@ import com.wa2c.android.storageimageviewer.domain.model.FileModel
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.LocalSnackbarHostState
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toDisplayTreePath
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
@@ -61,7 +61,6 @@ import com.wa2c.android.storageimageviewer.presentation.ui.common.components.Div
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.LoadingBox
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
 import com.wa2c.android.storageimageviewer.presentation.ui.common.forwardingPainter
-import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.tree.model.TreeScreenItemData
@@ -74,10 +73,8 @@ fun TreeScreen(
     viewModel: TreeViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
 ) {
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val focusManager =  LocalFocusManager.current
-    val snackBarHostState = remember { SnackbarHostState() }
     val currentTreeState = viewModel.currentTree.collectAsStateWithLifecycle()
     val focusedFileState = viewModel.focusedFile.collectAsStateWithLifecycle()
     val optionState = viewModel.screenOption.collectAsStateWithLifecycle()
@@ -103,7 +100,6 @@ fun TreeScreen(
         // List
         TreeScreenContainer(
             modifier = Modifier.fillMaxSize(),
-            snackBarHostState = snackBarHostState,
             currentTreeState = currentTreeState,
             focusedFileState = focusedFileState,
             optionState = optionState,
@@ -139,9 +135,6 @@ fun TreeScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.resultState.collectIn(lifecycleOwner) {
-            snackBarHostState.showMessage(context, it)
-        }
         viewModel.focusedFile.collectIn(lifecycleOwner) {
             if (it == null) {
                 focusManager.clearFocus(true)
@@ -184,7 +177,6 @@ private fun SystemUI(
 @Composable
 private fun TreeScreenContainer(
     modifier: Modifier = Modifier,
-    snackBarHostState: SnackbarHostState,
     currentTreeState: State<TreeScreenItemData>,
     focusedFileState: State<FileModel?>,
     optionState: State<TreeScreenOption>,
@@ -247,7 +239,7 @@ private fun TreeScreenContainer(
                 },
             )
         },
-        snackbarHost = { SnackbarHost(snackBarHostState) },
+        snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) },
         modifier = Modifier
             .treeKeyControl(
                 isPreview = true,
@@ -488,7 +480,6 @@ private fun TreeScreenContainerPreview() {
         )
 
         TreeScreenContainer(
-            snackBarHostState = SnackbarHostState(),
             currentTreeState = remember { mutableStateOf(TreeScreenItemData(listOf(dir), list)) },
             focusedFileState = remember { mutableStateOf(null) },
             optionState = remember { mutableStateOf(TreeScreenOption()) },

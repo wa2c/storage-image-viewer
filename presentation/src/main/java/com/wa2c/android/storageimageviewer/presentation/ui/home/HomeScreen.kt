@@ -30,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -39,7 +38,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,26 +57,23 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.wa2c.android.storageimageviewer.common.result.AppException
 import com.wa2c.android.storageimageviewer.common.utils.Log
 import com.wa2c.android.storageimageviewer.common.values.StorageType
+import com.wa2c.android.storageimageviewer.domain.model.AppMessage
 import com.wa2c.android.storageimageviewer.domain.model.StorageModel
 import com.wa2c.android.storageimageviewer.domain.model.UriModel
 import com.wa2c.android.storageimageviewer.presentation.R
+import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.LocalSnackbarHostState
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.applyIf
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.focusItemStyle
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toDisplayTreePath
 import com.wa2c.android.storageimageviewer.presentation.ui.common.Extensions.toUri
-import com.wa2c.android.storageimageviewer.presentation.ui.common.collectIn
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.DividerThin
 import com.wa2c.android.storageimageviewer.presentation.ui.common.components.StorageIcon
-import com.wa2c.android.storageimageviewer.presentation.ui.common.showMessage
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppSize
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTheme
 import com.wa2c.android.storageimageviewer.presentation.ui.common.theme.AppTypography
-import kotlinx.coroutines.launch
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import sh.calvin.reorderable.ReorderableItem
@@ -90,9 +85,6 @@ fun HomeScreen(
     onSelectStorage: (storage: StorageModel) -> Unit,
     onNavigateSettings: () -> Unit,
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val scope = rememberCoroutineScope()
-    val snackBarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val resolver = context.contentResolver
     val storageListState = viewModel.storageList.collectAsStateWithLifecycle()
@@ -104,7 +96,6 @@ fun HomeScreen(
     }
 
     HomeScreenContainer(
-        snackBarHostState = snackBarHostState,
         storageListState = storageListState,
         onClickAdd = viewModel::newStorage,
         onClickEdit = viewModel::updateEditStorage,
@@ -131,9 +122,7 @@ fun HomeScreen(
                 )
                 viewModel.saveStorage(storage)
             } catch (e: Exception) {
-                scope.launch {
-                    snackBarHostState.showMessage(context, Result.failure(AppException.StorageEditException(e)))
-                }
+                viewModel.sendMessage(AppMessage.Error.StorageEdit(e))
             }
         },
         onClickDelete = { storage ->
@@ -148,9 +137,7 @@ fun HomeScreen(
                 }
                 viewModel.deleteStorage(storage)
             } catch (e: Exception) {
-                scope.launch {
-                    snackBarHostState.showMessage(context, Result.failure(AppException.StorageEditException(e)))
-                }
+                viewModel.sendMessage(AppMessage.Error.StorageEdit(e))
             }
         },
         onDismiss = {
@@ -162,9 +149,6 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         focusManager.clearFocus()
-        viewModel.resultState.collectIn(lifecycleOwner = lifecycleOwner) {
-            snackBarHostState.showMessage(context, it)
-        }
     }
 
 }
@@ -172,7 +156,6 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreenContainer(
-    snackBarHostState: SnackbarHostState,
     storageListState: State<List<StorageModel>>,
     onClickAdd: () -> Unit,
     onClickEdit: (storage: StorageModel) -> Unit,
@@ -235,7 +218,7 @@ private fun HomeScreenContainer(
                 )
             }
         },
-        snackbarHost = { SnackbarHost(snackBarHostState) },
+        snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) },
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -429,7 +412,6 @@ private fun HomeScreenContainerPreview() {
         )
 
         HomeScreenContainer(
-            snackBarHostState = remember { SnackbarHostState() },
             storageListState = remember { mutableStateOf(storageList) },
             onClickAdd = {},
             onClickEdit = {},
