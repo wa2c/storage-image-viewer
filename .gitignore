@@ -10,6 +10,7 @@
 /.idea/csv-editor.xml
 /.idea/deploymentTargetSelector.xml
 /.idea/appInsightsSettings.xml
+/.idea/deviceManager.xml
 .DS_Store
 /build
 /captures
